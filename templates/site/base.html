@@ -16,6 +16,9 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% load static %}{% static 'site/css/variables.css' %}">
     
@@ -68,6 +71,62 @@
     
     <!-- JavaScript -->
     <script src="{% load static %}{% static 'site/js/site.js' %}"></script>
+    
+    <!-- Django Messages to SweetAlert -->
+    <script>
+        // Handle Django messages with SweetAlert2
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: '{{ message|escapejs }}',
+                        confirmButtonColor: '#FFD700',
+                        background: '#2d2d2d',
+                        color: '#ffffff'
+                    });
+                {% elif message.tags == 'success' %}
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: '{{ message|escapejs }}',
+                        confirmButtonColor: '#FFD700',
+                        background: '#2d2d2d',
+                        color: '#ffffff'
+                    });
+                {% elif message.tags == 'warning' %}
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Warning!',
+                        text: '{{ message|escapejs }}',
+                        confirmButtonColor: '#FFD700',
+                        background: '#2d2d2d',
+                        color: '#ffffff'
+                    });
+                {% elif message.tags == 'info' %}
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Info',
+                        text: '{{ message|escapejs }}',
+                        confirmButtonColor: '#FFD700',
+                        background: '#2d2d2d',
+                        color: '#ffffff'
+                    });
+                {% else %}
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Notice',
+                        text: '{{ message|escapejs }}',
+                        confirmButtonColor: '#FFD700',
+                        background: '#2d2d2d',
+                        color: '#ffffff'
+                    });
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

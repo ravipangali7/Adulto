@@ -1,0 +1,70 @@
+{% extends 'site/base.html' %}
+{% load static %}
+
+{% block title %}Test Email - Adulto{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Test Email Form -->
+        <div class="bg-grey-custom rounded-lg p-8 shadow-xl">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <img class="h-12 w-auto" src="/static/core/logo.png" alt="Logo">
+                </div>
+                <h2 class="text-3xl font-bold text-white">Test Email Configuration</h2>
+                <p class="text-gray-400 mt-2">Send a test email to verify SMTP settings</p>
+            </div>
+            
+            <!-- Test Email Form -->
+            <form class="space-y-6" method="post">
+                {% csrf_token %}
+                
+                <!-- Email Field -->
+                <div>
+                    <label for="test_email" class="block text-sm font-medium text-white mb-2">
+                        Test Email Address
+                    </label>
+                    <input 
+                        id="test_email" 
+                        name="test_email" 
+                        type="email" 
+                        required 
+                        class="w-full px-4 py-3 bg-bg-grey border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent"
+                        placeholder="Enter email to test"
+                    >
+                </div>
+                
+                <!-- Submit Button -->
+                <div>
+                    <button 
+                        type="submit" 
+                        class="w-full btn-gold py-3 px-4 rounded-lg font-medium text-lg hover:bg-primary-gold-dark transition-colors duration-200"
+                    >
+                        Send Test Email
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Email Configuration Info -->
+            <div class="mt-6 p-4 bg-bg-grey rounded-lg">
+                <h3 class="text-white font-medium mb-2">Current Email Configuration:</h3>
+                <div class="text-sm text-gray-300 space-y-1">
+                    <p><strong>SMTP Host:</strong> smtp.gmail.com</p>
+                    <p><strong>SMTP Port:</strong> 587</p>
+                    <p><strong>From Email:</strong> noreply@adulto.com</p>
+                    <p><strong>Backend:</strong> SMTP (Production)</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Back to Home -->
+        <div class="text-center">
+            <a href="{% url 'home' %}" class="text-primary-gold hover:text-primary-gold-light font-medium transition-colors duration-200">
+                ← Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

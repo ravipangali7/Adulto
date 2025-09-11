@@ -7,6 +7,7 @@ from django.utils.http import http_date
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.contrib.auth import authenticate
 import os
 import mimetypes
 import json
@@ -148,7 +149,12 @@ def signup_view(request):
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
         
-        if password != confirm_password:
+        # Validation
+        if not name or not name.strip():
+            messages.error(request, 'Please enter your full name.')
+        elif not email or not email.strip():
+            messages.error(request, 'Please enter a valid email address.')
+        elif password != confirm_password:
             messages.error(request, 'Passwords do not match.')
         elif len(password) < 8:
             messages.error(request, 'Password must be at least 8 characters long.')
@@ -157,27 +163,37 @@ def signup_view(request):
                 from core.models import User
                 from core.utils import send_verification_email
                 
+                # Check if user already exists
+                if User.objects.filter(email=email).exists():
+                    messages.error(request, 'An account with this email already exists. Please try logging in instead.')
+                    return render(request, 'site/signup.html')
+                
                 # Create user but don't activate
                 user = User.objects.create_user(
                     email=email,
                     password=password,
-                    name=name,
+                    name=name.strip(),
                     is_staff=False,  # Will be True after email verification
                     is_email_verified=False
                 )
                 
                 # Send verification email
-                if send_verification_email(user, request):
-                    messages.success(request, 'Account created successfully! Please check your email and click the activation link to complete your registration.')
-                    return redirect('login')
-                else:
-                    messages.error(request, 'Account created but failed to send verification email. Please contact support.')
+                try:
+                    if send_verification_email(user, request):
+                        messages.success(request, f'Account created successfully! Please check your email ({email}) and click the activation link to complete your registration. If you don\'t see the email, check your spam folder.')
+                        return redirect('login')
+                    else:
+                        messages.error(request, 'Account created but failed to send verification email. Please try again or contact support.')
+                except Exception as email_error:
+                    print(f"Email sending error: {email_error}")
+                    messages.error(request, f'Account created but email sending failed: {str(email_error)}. Please contact support.')
                     
             except Exception as e:
+                print(f"User creation error: {e}")
                 if 'email' in str(e).lower():
                     messages.error(request, 'An account with this email already exists.')
                 else:
-                    messages.error(request, 'An error occurred while creating your account.')
+                    messages.error(request, f'An error occurred while creating your account: {str(e)}')
     
     return render(request, 'site/signup.html')
 
@@ -501,3 +517,28 @@ def resend_verification(request):
         messages.info(request, 'Your email is already verified.')
     
     return redirect('profile')
+
+
+def test_email(request):
+    """Test email functionality for debugging"""
+    if request.method == 'POST':
+        test_email = request.POST.get('test_email')
+        if test_email:
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                
+                send_mail(
+                    subject='Test Email from Adulto',
+                    message='This is a test email to verify email configuration.',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[test_email],
+                    fail_silently=False,
+                )
+                messages.success(request, f'Test email sent successfully to {test_email}!')
+            except Exception as e:
+                messages.error(request, f'Failed to send test email: {str(e)}')
+        else:
+            messages.error(request, 'Please enter a valid email address.')
+    
+    return render(request, 'site/test_email.html')

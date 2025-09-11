@@ -18,6 +18,7 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('change-password/', views.change_password, name='change_password'),
     path('resend-verification/', views.resend_verification, name='resend_verification'),
+    path('test-email/', views.test_email, name='test_email'),
     path('page/<slug:slug>/', views.cms_page, name='cms_page'),
     path('test-404/', views.test_404, name='test_404'),
     # Comment and like functionality
