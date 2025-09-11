@@ -1,0 +1,125 @@
+{% if age_verification %}
+<!-- Age Verification Modal -->
+<div id="age-verification-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50" style="display: none;">
+    <div class="bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="bg-red-600 text-white px-6 py-4 rounded-t-lg">
+            <h2 class="text-2xl font-bold text-center">{{ age_verification.title }}</h2>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <div class="text-center mb-6">
+                <div class="text-6xl mb-4">🔞</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">
+                    {{ age_verification.site_name }} is adults only website!
+                </h3>
+            </div>
+            
+            <div class="prose prose-lg max-w-none text-gray-700">
+                {{ age_verification.content|safe }}
+            </div>
+            
+            <div class="mt-8 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                <p class="text-yellow-800 font-semibold">
+                    To enter {{ age_verification.site_name }} you must be 18 or older
+                </p>
+            </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="bg-gray-50 px-6 py-4 rounded-b-lg">
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button 
+                    id="age-confirm-btn" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200 flex-1 sm:flex-none"
+                >
+                    {{ age_verification.confirm_text }}
+                </button>
+                <button 
+                    id="age-deny-btn" 
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200 flex-1 sm:flex-none"
+                >
+                    {{ age_verification.deny_text }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+#age-verification-modal {
+    backdrop-filter: blur(5px);
+}
+
+#age-verification-modal .prose h1,
+#age-verification-modal .prose h2,
+#age-verification-modal .prose h3,
+#age-verification-modal .prose h4,
+#age-verification-modal .prose h5,
+#age-verification-modal .prose h6 {
+    color: #1f2937;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#age-verification-modal .prose p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+#age-verification-modal .prose ul,
+#age-verification-modal .prose ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+#age-verification-modal .prose li {
+    margin-bottom: 0.5rem;
+}
+
+#age-verification-modal .prose strong {
+    font-weight: 600;
+    color: #1f2937;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('age-verification-modal');
+    const confirmBtn = document.getElementById('age-confirm-btn');
+    const denyBtn = document.getElementById('age-deny-btn');
+    
+    // Check if user has already verified age
+    const ageVerified = localStorage.getItem('age_verified');
+    
+    if (!ageVerified) {
+        // Show modal after a short delay
+        setTimeout(() => {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }, 500);
+    }
+    
+    // Handle confirm button
+    confirmBtn.addEventListener('click', function() {
+        localStorage.setItem('age_verified', 'true');
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+    
+    // Handle deny button
+    denyBtn.addEventListener('click', function() {
+        window.location.href = '{{ age_verification.deny_redirect_url }}';
+    });
+    
+    // Prevent closing modal by clicking outside
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endif %}

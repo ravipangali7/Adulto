@@ -1,0 +1,84 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">{{ form.name.errors|join:', ' }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Slug</label>
+                            {{ form.slug }}
+                            <div class="form-text">Auto-generated from name. You can override.</div>
+                            {% if form.slug.errors %}
+                                <div class="text-danger small">{{ form.slug.errors|join:', ' }}</div>
+                            {% endif %}
+                        </div>
+                        <button class="btn btn-primary" type="submit">Save</button>
+                        <a class="btn btn-secondary" href="{% url 'tag_list' %}">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Help</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-0">Enter a tag name. Slug will be generated automatically.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    (function() {
+        function slugify(value) {
+            return value
+                .toString()
+                .normalize('NFKD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .substring(0, 140);
+        }
+        const nameInput = document.getElementById('id_name');
+        const slugInput = document.getElementById('id_slug');
+        if (nameInput && slugInput) {
+            let userTouchedSlug = false;
+            slugInput.addEventListener('input', function() { userTouchedSlug = this.value.length > 0; });
+            nameInput.addEventListener('input', function() {
+                if (!userTouchedSlug) {
+                    slugInput.value = slugify(this.value);
+                }
+            });
+        }
+        window.makeSlugOn = function(sourceId, targetId) {
+            const source = document.getElementById(sourceId);
+            const target = document.getElementById(targetId);
+            if (!source || !target) return;
+            let touched = false;
+            target.addEventListener('input', function() { touched = this.value.length > 0; });
+            source.addEventListener('input', function() { if (!touched) target.value = slugify(this.value); });
+        }
+    })();
+    
+</script>
+{% endblock %}
+
+

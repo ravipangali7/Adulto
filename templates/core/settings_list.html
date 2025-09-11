@@ -1,0 +1,52 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Site Settings</h1>
+        <a class="btn btn-primary" href="{% url 'settings_create' %}">Add Setting</a>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover my-0">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                        <th>Updated</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for setting in settings %}
+                    <tr>
+                        <td>
+                            <code>{{ setting.key }}</code>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 200px;" title="{{ setting.value }}">
+                                {{ setting.value }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 150px;" title="{{ setting.description }}">
+                                {{ setting.description|default:"No description" }}
+                            </div>
+                        </td>
+                        <td>{{ setting.updated_at|date:"M d, Y" }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-secondary" href="{% url 'settings_update' setting.id %}">Edit</a>
+                            <a class="btn btn-sm btn-danger" href="{% url 'settings_delete' setting.id %}">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No settings found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

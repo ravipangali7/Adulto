@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- SEO Meta Tags -->
+    <title>{% block title %}Adulto - Your Video Destination{% endblock %}</title>
+    <meta name="description" content="{% block description %}Discover and watch amazing videos across various categories. Your premier destination for high-quality video content.{% endblock %}">
+    <meta name="keywords" content="videos, entertainment, categories, latest, popular">
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/static/core/logo.png" />
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% load static %}{% static 'site/css/variables.css' %}">
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-gold': '#FFD700',
+                        'primary-gold-dark': '#B8860B',
+                        'primary-gold-light': '#FFF8DC',
+                        'bg-dark': '#1a1a1a',
+                        'bg-darker': '#0d0d0d',
+                        'bg-grey': '#2d2d2d',
+                        'bg-grey-light': '#404040',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-dark-custom text-white min-h-screen flex flex-col">
+    <!-- Header -->
+    {% include 'site/partials/header.html' %}
+    
+    <!-- Navigation -->
+    {% include 'site/partials/navbar.html' %}
+    
+    <!-- Main Content -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% include 'site/partials/footer.html' %}
+    
+    <!-- Age Verification Modal -->
+    {% include 'site/partials/age_verification_modal.html' %}
+    
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-grey-custom p-6 rounded-lg flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-gold"></div>
+            <span class="text-white">Loading...</span>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="{% load static %}{% static 'site/js/site.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

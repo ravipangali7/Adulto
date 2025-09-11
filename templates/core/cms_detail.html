@@ -1,0 +1,120 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">{{ cms_page.title }}</h1>
+        <div>
+            <a class="btn btn-secondary" href="{% url 'cms_list' %}">Back to List</a>
+            <a class="btn btn-primary" href="{% url 'cms_update' cms_page.id %}">Edit Page</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Page Content</h5>
+                </div>
+                <div class="card-body">
+                    <div class="cms-content">
+                        {{ cms_page.content|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Page Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Slug:</strong></td>
+                            <td><code>{{ cms_page.slug }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>In Navbar:</strong></td>
+                            <td>
+                                {% if cms_page.in_navbar %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>In Footer:</strong></td>
+                            <td>
+                                {% if cms_page.in_footer %}
+                                    <span class="badge bg-success">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td>
+                                {% if cms_page.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>{{ cms_page.created_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Updated:</strong></td>
+                            <td>{{ cms_page.updated_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-primary" href="{% url 'cms_update' cms_page.id %}">Edit Page</a>
+                        <a class="btn btn-danger" href="{% url 'cms_delete' cms_page.id %}">Delete Page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.cms-content {
+    line-height: 1.6;
+}
+
+.cms-content h1, .cms-content h2, .cms-content h3, .cms-content h4, .cms-content h5, .cms-content h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.cms-content p {
+    margin-bottom: 1rem;
+}
+
+.cms-content ul, .cms-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.cms-content blockquote {
+    border-left: 4px solid #dee2e6;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: #6c757d;
+}
+</style>
+{% endblock %}

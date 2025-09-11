@@ -1,0 +1,116 @@
+{% extends 'site/base.html' %}
+{% load static %}
+
+{% block title %}Categories - Adulto{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-white mb-4">Video Categories</h1>
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+            Explore our diverse collection of video categories. Find exactly what you're looking for.
+        </p>
+    </div>
+    
+    <!-- Categories Grid -->
+    {% if categories %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        {% for category in categories %}
+        <div class="category-card bg-grey-custom rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <!-- Category Image/Icon -->
+            <div class="h-32 relative overflow-hidden">
+                {% if category.image %}
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    <div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all duration-300"></div>
+                {% else %}
+                    <div class="h-full bg-gradient-to-br from-primary-gold to-primary-gold-dark flex items-center justify-center">
+                        <svg class="h-16 w-16 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Category Info -->
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-white mb-2 group-hover:text-primary-gold transition-colors duration-200">
+                    <a href="{% url 'videos' %}?category={{ category.slug }}">
+                        {{ category.name }}
+                    </a>
+                </h3>
+                
+                <p class="text-gray-400 text-sm mb-4">
+                    {{ category.videos.count }} video{{ category.videos.count|pluralize }}
+                </p>
+                
+                <!-- View Category Button -->
+                <a href="{% url 'videos' %}?category={{ category.slug }}" class="btn-outline-gold w-full text-center block py-2 rounded-lg font-medium transition-all duration-200 hover:bg-primary-gold hover:text-black">
+                    View Videos
+                    <svg class="h-4 w-4 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Stats Section -->
+    <div class="mt-16 bg-grey-custom rounded-lg p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+                <div class="text-3xl font-bold text-primary-gold mb-2">{{ categories|length }}</div>
+                <div class="text-gray-400">Total Categories</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-primary-gold mb-2">
+                    {% widthratio categories|length 1 1 as total_videos %}
+                    {% for category in categories %}
+                        {% widthratio category.videos.count 1 1 as cat_videos %}
+                        {% widthratio total_videos 1 cat_videos as total_videos %}
+                    {% endfor %}
+                    {{ total_videos|default:"0" }}
+                </div>
+                <div class="text-gray-400">Total Videos</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-primary-gold mb-2">
+                    {% for category in categories %}
+                        {% if forloop.first %}{{ category.videos.count }}{% endif %}
+                    {% empty %}
+                    0
+                    {% endfor %}
+                </div>
+                <div class="text-gray-400">Most Popular Category</div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- No Categories State -->
+    <div class="text-center py-16">
+        <svg class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        <h3 class="text-xl font-semibold text-white mb-2">No Categories Available</h3>
+        <p class="text-gray-400 mb-6">Categories will appear here once they are added to the system.</p>
+        <a href="{% url 'home' %}" class="btn-gold px-6 py-3 rounded-lg font-medium">
+            Back to Home
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Custom CSS -->
+<style>
+.category-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+}
+</style>
+{% endblock %}

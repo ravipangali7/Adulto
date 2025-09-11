@@ -1,0 +1,99 @@
+{% extends 'site/base.html' %}
+{% block title %}{{ cms_page.title }} - Adulto{% endblock %}
+{% block description %}{{ cms_page.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-grey-custom rounded-lg p-6 md:p-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-6">{{ cms_page.title }}</h1>
+            
+            <div class="prose prose-invert max-w-none">
+                {{ cms_page.content|safe }}
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-gray-600">
+                <div class="flex flex-wrap gap-4 text-sm text-gray-400">
+                    <span>Last updated: {{ cms_page.updated_at|date:"F d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.prose {
+    color: #e5e7eb;
+    line-height: 1.7;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    color: #ffffff;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.prose h1 { font-size: 2rem; }
+.prose h2 { font-size: 1.5rem; }
+.prose h3 { font-size: 1.25rem; }
+.prose h4 { font-size: 1.125rem; }
+
+.prose p {
+    margin-bottom: 1.5rem;
+}
+
+.prose ul, .prose ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.prose li {
+    margin-bottom: 0.5rem;
+}
+
+.prose blockquote {
+    border-left: 4px solid #FFD700;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: #d1d5db;
+    font-style: italic;
+}
+
+.prose a {
+    color: #FFD700;
+    text-decoration: none;
+}
+
+.prose a:hover {
+    text-decoration: underline;
+}
+
+.prose strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.prose code {
+    background-color: #374151;
+    color: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.prose pre {
+    background-color: #374151;
+    color: #f3f4f6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.prose pre code {
+    background: none;
+    padding: 0;
+}
+</style>
+{% endblock %}

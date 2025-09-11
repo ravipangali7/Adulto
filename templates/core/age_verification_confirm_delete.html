@@ -1,0 +1,80 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Delete Age Verification Modal</h1>
+        <a class="btn btn-secondary" href="{% url 'age_verification_list' %}">Back to List</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">Are you sure?</h4>
+                        <p>You are about to delete the age verification modal for <strong>"{{ age_verification.site_name }}"</strong>. This action cannot be undone.</p>
+                        <hr>
+                        <p class="mb-0">This will permanently remove the modal and all its content.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Modal Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Site Name:</strong></td>
+                                    <td>{{ age_verification.site_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Title:</strong></td>
+                                    <td>{{ age_verification.title }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if age_verification.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Confirm Text:</strong></td>
+                                    <td>{{ age_verification.confirm_text }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Deny Text:</strong></td>
+                                    <td>{{ age_verification.deny_text }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Deny URL:</strong></td>
+                                    <td>{{ age_verification.deny_redirect_url }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created:</strong></td>
+                                    <td>{{ age_verification.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Updated:</strong></td>
+                                    <td>{{ age_verification.updated_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <a class="btn btn-secondary" href="{% url 'age_verification_list' %}">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Yes, Delete Modal</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

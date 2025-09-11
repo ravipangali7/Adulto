@@ -1,0 +1,90 @@
+<!-- Header Section -->
+<header class="bg-darker-custom border-b border-gray-700 sticky flex top-0 z-40" style="height: var(--header-height);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div class="flex justify-between items-center h-full">
+            <!-- Logo -->
+            <div class="flex-shrink-0">
+                <a href="{% url 'home' %}" class="flex items-center">
+                    <img class="h-6 sm:h-8 w-auto" src="/static/core/logo.png" alt="Logo">
+                    <span class="ml-2 text-lg sm:text-xl font-bold text-white">{{ site_title }}</span>
+                </a>
+            </div>
+            
+            <!-- Search Bar - Hidden on mobile -->
+            <div class="hidden md:flex flex-1 max-w-lg mx-8">
+                <form id="search-form" class="relative w-full">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="search-input"
+                            placeholder="Search videos..." 
+                            class="w-full px-4 py-2 pl-10 pr-4 search-input rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        >
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Mobile Search Button -->
+            <div class="md:hidden">
+                <button id="mobile-search-btn" class="text-white hover:text-primary-gold transition-colors duration-200 p-2">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Authentication Buttons -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                {% if request.user.is_authenticated and request.user.name %}
+                    <!-- User is logged in - show profile and logout -->
+                    <div class="flex items-center space-x-2 sm:space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-primary-gold rounded-full flex items-center justify-center">
+                                <span class="text-black font-bold text-sm">{{ request.user.name|first|upper }}</span>
+                            </div>
+                            <span class="text-white text-sm sm:text-base hidden sm:block">{{ request.user.name }}</span>
+                        </div>
+                        <a href="{% url 'profile' %}" class="text-white hover:text-primary-gold transition-colors duration-200 text-sm sm:text-base">
+                            Profile
+                        </a>
+                        <a href="{% url 'logout' %}" class="text-white hover:text-primary-gold transition-colors duration-200 text-sm sm:text-base">
+                            Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <!-- User is not logged in - show login and signup -->
+                    <a href="{% url 'login' %}" class="text-white hover:text-primary-gold transition-colors duration-200 text-sm sm:text-base">
+                        Login
+                    </a>
+                    <a href="{% url 'signup' %}" class="btn-gold px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base">
+                        Sign Up
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Mobile Search Bar -->
+        <div id="mobile-search" class="md:hidden hidden mt-4 pb-4">
+            <form id="mobile-search-form" class="relative">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="mobile-search-input"
+                        placeholder="Search videos..." 
+                        class="w-full px-4 py-2 pl-10 pr-4 search-input rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                    >
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</header>

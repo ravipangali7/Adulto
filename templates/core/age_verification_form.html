@@ -1,0 +1,154 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">
+            {% if form.instance.pk %}Edit{% else %}Add{% endif %} Age Verification Modal
+        </h1>
+        <a class="btn btn-secondary" href="{% url 'age_verification_list' %}">Back to List</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.site_name.id_for_label }}" class="form-label">Site Name *</label>
+                                    {{ form.site_name }}
+                                    <div class="form-text">Name of your site (e.g., Adulto, xHamster)</div>
+                                    {% if form.site_name.errors %}
+                                        <div class="text-danger">{{ form.site_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label">Modal Title *</label>
+                                    {{ form.title }}
+                                    <div class="form-text">Title shown in the modal header</div>
+                                    {% if form.title.errors %}
+                                        <div class="text-danger">{{ form.title.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Modal Content *</label>
+                            {{ form.content }}
+                            <div class="form-text">HTML content for the modal body. You can use {{ site_name }} placeholder for dynamic site name.</div>
+                            {% if form.content.errors %}
+                                <div class="text-danger">{{ form.content.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.confirm_text.id_for_label }}" class="form-label">Confirm Button Text *</label>
+                                    {{ form.confirm_text }}
+                                    {% if form.confirm_text.errors %}
+                                        <div class="text-danger">{{ form.confirm_text.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.deny_text.id_for_label }}" class="form-label">Deny Button Text *</label>
+                                    {{ form.deny_text }}
+                                    {% if form.deny_text.errors %}
+                                        <div class="text-danger">{{ form.deny_text.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.deny_redirect_url.id_for_label }}" class="form-label">Deny Redirect URL *</label>
+                                    {{ form.deny_redirect_url }}
+                                    <div class="form-text">Where to redirect when user denies age</div>
+                                    {% if form.deny_redirect_url.errors %}
+                                        <div class="text-danger">{{ form.deny_redirect_url.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Active (Show this modal on the site)
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger">{{ form.is_active.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.instance.pk %}
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Modal Info</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Created:</strong> {{ form.instance.created_at|date:"M d, Y H:i" }}</p>
+                                <p class="mb-0"><strong>Updated:</strong> {{ form.instance.updated_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <a class="btn btn-secondary" href="{% url 'age_verification_list' %}">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Modal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Content Tips</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Here are some tips for creating effective age verification content:</p>
+                    <ul class="list-unstyled">
+                        <li><strong>Use {{ site_name }}:</strong> This will be replaced with your actual site name</li>
+                        <li><strong>Be Clear:</strong> Make it obvious this is an adult-only site</li>
+                        <li><strong>Legal Compliance:</strong> Include RTA compliance information</li>
+                        <li><strong>Parental Controls:</strong> Mention parental control tools</li>
+                        <li><strong>Age Requirement:</strong> Clearly state 18+ requirement</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Preview</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">The modal will appear:</p>
+                    <ul class="list-unstyled">
+                        <li>• On first visit to any page</li>
+                        <li>• With a red header and white background</li>
+                        <li>• With two action buttons at the bottom</li>
+                        <li>• Cannot be closed except by clicking buttons</li>
+                        <li>• Remembers user choice in localStorage</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

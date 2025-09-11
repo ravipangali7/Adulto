@@ -1,0 +1,74 @@
+<nav id="sidebar" class="sidebar js-sidebar">
+    <div class="sidebar-content js-simplebar">
+        <a class="sidebar-brand" href="index.html">
+            <span class="align-middle">{{ site_brand }}</span>
+        </a>
+
+        <ul class="sidebar-nav">
+            <li class="sidebar-header">
+                Pages
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'dashboard' %}">
+                    <i class="align-middle" data-feather="sliders"></i> <span
+                        class="align-middle">Dashboard</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'category_list' %}">
+                    <i class="align-middle" data-feather="folder"></i> <span
+                        class="align-middle">Categories</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'tag_list' %}">
+                    <i class="align-middle" data-feather="tag"></i> <span
+                        class="align-middle">Tags</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'video_list' %}">
+                    <i class="align-middle" data-feather="video"></i> <span
+                        class="align-middle">Videos</span>
+                </a>
+            </li>
+
+            <li class="sidebar-header">
+                Content Management
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'cms_list' %}">
+                    <i class="align-middle" data-feather="file-text"></i> <span
+                        class="align-middle">CMS Pages</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'settings_list' %}">
+                    <i class="align-middle" data-feather="settings"></i> <span
+                        class="align-middle">Settings</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'age_verification_list' %}">
+                    <i class="align-middle" data-feather="shield"></i> <span
+                        class="align-middle">Age Verification</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'user_list' %}">
+                    <i class="align-middle" data-feather="users"></i> <span
+                        class="align-middle">User Management</span>
+                </a>
+            </li>
+        </ul>
+
+    </div>
+</nav>

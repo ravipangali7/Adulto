@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activate Your Account - {{ site_title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #FFD700, #B8860B);
+            color: #000;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+        .button {
+            display: inline-block;
+            background: #FFD700;
+            color: #000;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background: #B8860B;
+            color: #fff;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to {{ site_title }}!</h1>
+    </div>
+    
+    <div class="content">
+        <h2>Hello {{ user.name|default:user.email }}!</h2>
+        
+        <p>Thank you for signing up for {{ site_title }}. To complete your registration and activate your account, please click the button below:</p>
+        
+        <div style="text-align: center;">
+            <a href="{{ activation_url }}" class="button">Activate My Account</a>
+        </div>
+        
+        <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; background: #eee; padding: 10px; border-radius: 4px;">
+            {{ activation_url }}
+        </p>
+        
+        <p><strong>Important:</strong></p>
+        <ul>
+            <li>This link will expire in 24 hours</li>
+            <li>You must activate your account to access all features</li>
+            <li>If you didn't create an account, please ignore this email</li>
+        </ul>
+        
+        <p>If you have any questions, please contact our support team.</p>
+        
+        <p>Best regards,<br>The {{ site_title }} Team</p>
+    </div>
+    
+    <div class="footer">
+        <p>This email was sent to {{ user.email }}</p>
+        <p>&copy; 2024 {{ site_title }}. All rights reserved.</p>
+    </div>
+</body>
+</html>

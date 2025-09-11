@@ -1,0 +1,129 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">
+            {% if form.instance.pk %}Edit{% else %}Add{% endif %} CMS Page
+        </h1>
+        <a class="btn btn-secondary" href="{% url 'cms_list' %}">Back to List</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label">Title *</label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger">{{ form.title.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.slug.id_for_label }}" class="form-label">Slug *</label>
+                                    {{ form.slug }}
+                                    <div class="form-text">URL-friendly version of the title. Leave blank to auto-generate.</div>
+                                    {% if form.slug.errors %}
+                                        <div class="text-danger">{{ form.slug.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.content.id_for_label }}" class="form-label">Content *</label>
+                                    {{ form.content }}
+                                    <div class="form-text">HTML content is allowed.</div>
+                                    {% if form.content.errors %}
+                                        <div class="text-danger">{{ form.content.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Display Options</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                {{ form.in_navbar }}
+                                                <label class="form-check-label" for="{{ form.in_navbar.id_for_label }}">
+                                                    Show in Navbar
+                                                </label>
+                                            </div>
+                                            {% if form.in_navbar.errors %}
+                                                <div class="text-danger">{{ form.in_navbar.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                {{ form.in_footer }}
+                                                <label class="form-check-label" for="{{ form.in_footer.id_for_label }}">
+                                                    Show in Footer
+                                                </label>
+                                            </div>
+                                            {% if form.in_footer.errors %}
+                                                <div class="text-danger">{{ form.in_footer.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                {{ form.is_active }}
+                                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                                    Active
+                                                </label>
+                                            </div>
+                                            {% if form.is_active.errors %}
+                                                <div class="text-danger">{{ form.is_active.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if form.instance.pk %}
+                                <div class="card mt-3">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Page Info</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-1"><strong>Created:</strong> {{ form.instance.created_at|date:"M d, Y H:i" }}</p>
+                                        <p class="mb-0"><strong>Updated:</strong> {{ form.instance.updated_at|date:"M d, Y H:i" }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <a class="btn btn-secondary" href="{% url 'cms_list' %}">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Page
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-generate slug from title
+document.getElementById('{{ form.title.id_for_label }}').addEventListener('input', function() {
+    const title = this.value;
+    const slug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    document.getElementById('{{ form.slug.id_for_label }}').value = slug;
+});
+</script>
+{% endblock %}

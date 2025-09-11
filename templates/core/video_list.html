@@ -1,0 +1,153 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    {% csrf_token %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Videos</h1>
+        <a class="btn btn-primary" href="{% url 'video_create' %}">Add Video</a>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover my-0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Categories</th>
+                        <th>Tags</th>
+                        <th>Status</th>
+                        <th>Uploader</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in videos %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% with thumbnail_url=item.get_thumbnail_url %}
+                                    {% if thumbnail_url %}
+                                        <img src="{{ thumbnail_url }}" class="rounded me-2" style="width: 40px; height: 24px; object-fit: cover;">
+                                    {% endif %}
+                                {% endwith %}
+                                <span>{{ item.title }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% for c in item.category.all %}
+                                <span class="badge bg-secondary">{{ c.name }}</span>
+                            {% empty %}
+                                <span class="text-muted">—</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for t in item.tags.all %}
+                                <span class="badge bg-info text-dark">{{ t.name }}</span>
+                            {% empty %}
+                                <span class="text-muted">—</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="form-check form-switch me-2">
+                                    <input class="form-check-input status-toggle" 
+                                           type="checkbox" 
+                                           data-video-id="{{ item.id }}"
+                                           {% if item.is_active %}checked{% endif %}
+                                           id="status-{{ item.id }}">
+                                </div>
+                                <span class="status-badge">
+                                    {% if item.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle"></i> Active
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times-circle"></i> Inactive
+                                        </span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </td>
+                        <td>{{ item.uploader }}</td>
+                        <td>{{ item.created_at|date:'Y-m-d H:i' }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-secondary" href="{% url 'video_update' item.id %}">Edit</a>
+                            <a class="btn btn-sm btn-danger" href="{% url 'video_delete' item.id %}">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No videos found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusToggles = document.querySelectorAll('.status-toggle');
+    
+    statusToggles.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const videoId = this.dataset.videoId;
+            const isActive = this.checked;
+            const statusBadge = this.closest('td').querySelector('.status-badge');
+            
+            // Show loading state
+            this.disabled = true;
+            statusBadge.innerHTML = '<span class="badge bg-warning"><i class="fas fa-spinner fa-spin"></i> Updating...</span>';
+            
+            // Send AJAX request
+            fetch(`/core/videos/${videoId}/toggle-status/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    is_active: isActive
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update badge
+                    if (isActive) {
+                        statusBadge.innerHTML = '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Active</span>';
+                    } else {
+                        statusBadge.innerHTML = '<span class="badge bg-secondary"><i class="fas fa-times-circle"></i> Inactive</span>';
+                    }
+                } else {
+                    // Revert toggle on error
+                    this.checked = !isActive;
+                    statusBadge.innerHTML = isActive ? 
+                        '<span class="badge bg-secondary"><i class="fas fa-times-circle"></i> Inactive</span>' :
+                        '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Active</span>';
+                    alert('Error updating status: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Revert toggle on error
+                this.checked = !isActive;
+                statusBadge.innerHTML = isActive ? 
+                    '<span class="badge bg-secondary"><i class="fas fa-times-circle"></i> Inactive</span>' :
+                    '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Active</span>';
+                alert('Error updating status. Please try again.');
+            })
+            .finally(() => {
+                this.disabled = false;
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
+
+

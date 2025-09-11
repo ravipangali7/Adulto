@@ -1,0 +1,321 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <h1 class="h3 mb-3"><strong>Analytics</strong> Dashboard</h1>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Total Videos</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-primary">
+                                <i class="align-middle" data-feather="video"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ total_videos }}</h1>
+                    <div class="mb-0">
+                        <span class="text-success">
+                            <i class="mdi mdi-arrow-bottom-right"></i> {{ recent_uploads }} new this week
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Categories</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-primary">
+                                <i class="align-middle" data-feather="folder"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ total_categories }}</h1>
+                    <div class="mb-0">
+                        <span class="text-muted">Organized content</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Tags</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-primary">
+                                <i class="align-middle" data-feather="tag"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ total_tags }}</h1>
+                    <div class="mb-0">
+                        <span class="text-muted">Content labels</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Recent Uploads</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-primary">
+                                <i class="align-middle" data-feather="upload"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ recent_uploads }}</h1>
+                    <div class="mb-0">
+                        <span class="text-success">
+                            <i class="mdi mdi-arrow-bottom-right"></i> This week
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Videos by Category Chart -->
+        <div class="col-xl-6 col-xxl-7">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Videos by Category</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if videos_by_category %}
+                        <div class="chart chart-sm">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="bar-chart" style="width: 48px; height: 48px;"></i>
+                            <p>No videos in categories yet</p>
+                            <a href="{% url 'video_create' %}" class="btn btn-primary btn-sm">Upload First Video</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Distribution -->
+        <div class="col-xl-6 col-xxl-5 d-flex">
+            <div class="w-100">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col mt-0">
+                                        <h5 class="card-title">Most Popular</h5>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="stat text-primary">
+                                            <i class="align-middle" data-feather="trending-up"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h1 class="mt-1 mb-3">
+                                    {% if videos_by_category %}
+                                        {{ videos_by_category.0.name }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </h1>
+                                <div class="mb-0">
+                                    <span class="text-muted">
+                                        {% if videos_by_category %}
+                                            {{ videos_by_category.0.count }} videos
+                                        {% else %}
+                                            No data
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col mt-0">
+                                        <h5 class="card-title">Storage Used</h5>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="stat text-primary">
+                                            <i class="align-middle" data-feather="hard-drive"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h1 class="mt-1 mb-3">{{ total_videos }}</h1>
+                                <div class="mb-0">
+                                    <span class="text-muted">Video files</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Videos Table -->
+    <div class="row">
+        <div class="col-12 col-lg-8 col-xxl-9 d-flex">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Videos</h5>
+                </div>
+                <table class="table table-hover my-0">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th class="d-none d-xl-table-cell">Categories</th>
+                            <th class="d-none d-xl-table-cell">Uploader</th>
+                            <th>Created</th>
+                            <th class="d-none d-md-table-cell">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for video in recent_videos %}
+                        <tr>
+                            <td>
+                                <strong>{{ video.title }}</strong>
+                                {% with thumbnail_url=video.get_thumbnail_url %}
+                                    {% if thumbnail_url %}
+                                        <img src="{{ thumbnail_url }}" class="rounded ms-2" style="width: 30px; height: 20px; object-fit: cover;">
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="d-none d-xl-table-cell">
+                                {% for category in video.category.all %}
+                                    <span class="badge bg-secondary">{{ category.name }}</span>
+                                {% empty %}
+                                    <span class="text-muted">—</span>
+                                {% endfor %}
+                            </td>
+                            <td class="d-none d-xl-table-cell">{{ video.uploader.name|default:video.uploader.email }}</td>
+                            <td>{{ video.created_at|date:'M d, Y' }}</td>
+                            <td class="d-none d-md-table-cell">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'video_update' video.id %}">Edit</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="align-middle mb-2" data-feather="video" style="width: 32px; height: 32px;"></i>
+                                <p class="mb-0">No videos uploaded yet</p>
+                                <a href="{% url 'video_create' %}" class="btn btn-primary btn-sm mt-2">Upload First Video</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-12 col-lg-4 col-xxl-3 d-flex">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body d-flex">
+                    <div class="align-self-center w-100">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'video_create' %}" class="btn btn-primary">
+                                <i class="align-middle me-2" data-feather="plus"></i>
+                                Upload Video
+                            </a>
+                            <a href="{% url 'category_create' %}" class="btn btn-outline-secondary">
+                                <i class="align-middle me-2" data-feather="folder-plus"></i>
+                                Add Category
+                            </a>
+                            <a href="{% url 'tag_create' %}" class="btn btn-outline-secondary">
+                                <i class="align-middle me-2" data-feather="tag"></i>
+                                Add Tag
+                            </a>
+                            <a href="{% url 'video_list' %}" class="btn btn-outline-info">
+                                <i class="align-middle me-2" data-feather="list"></i>
+                                View All Videos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Category Chart
+    {% if videos_by_category %}
+    const categoryData = {
+        labels: [
+            {% for item in videos_by_category %}
+                '{{ item.name }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Videos',
+            data: [
+                {% for item in videos_by_category %}
+                    {{ item.count }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: categoryData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}

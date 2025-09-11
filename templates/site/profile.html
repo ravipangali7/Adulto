@@ -1,0 +1,129 @@
+{% extends 'site/base.html' %}
+{% block title %}Profile - {{ site_title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-grey-custom rounded-lg p-6 md:p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-3xl font-bold text-white">My Profile</h1>
+                <div class="flex items-center space-x-2">
+                    <div class="w-12 h-12 bg-primary-gold rounded-full flex items-center justify-center">
+                        <span class="text-black font-bold text-xl">{{ user.name|first|upper }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Status -->
+            <div class="mb-6">
+                {% if user.is_email_verified %}
+                    <div class="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        Account Verified
+                    </div>
+                {% else %}
+                    <div class="bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Email Not Verified - Please check your email and click the activation link
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Profile Information -->
+                <div class="bg-darker-custom rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-white mb-4">Profile Information</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+                                <input type="text" id="name" name="name" value="{{ user.name }}" 
+                                       class="w-full px-3 py-2 bg-grey-custom border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                            </div>
+                            
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                                <input type="email" id="email" name="email" value="{{ user.email }}" 
+                                       class="w-full px-3 py-2 bg-grey-custom border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-gold">
+                                <p class="text-xs text-gray-400 mt-1">Changing your email will require verification</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Account Status</label>
+                                <div class="px-3 py-2 bg-grey-custom border border-gray-600 rounded-lg text-white">
+                                    {% if user.is_email_verified %}
+                                        <span class="text-green-400">✓ Verified</span>
+                                    {% else %}
+                                        <span class="text-yellow-400">⚠ Pending Verification</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Member Since</label>
+                                <div class="px-3 py-2 bg-grey-custom border border-gray-600 rounded-lg text-white">
+                                    {{ user.date_joined|date:"F d, Y" }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full mt-6 bg-primary-gold text-black font-semibold py-2 px-4 rounded-lg hover:bg-yellow-400 transition-colors duration-200">
+                            Update Profile
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Account Actions -->
+                <div class="bg-darker-custom rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-white mb-4">Account Actions</h2>
+                    <div class="space-y-4">
+                        <a href="{% url 'change_password' %}" 
+                           class="block w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center">
+                            Change Password
+                        </a>
+                        
+                        {% if not user.is_email_verified %}
+                        <form method="post" action="{% url 'resend_verification' %}">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="block w-full bg-yellow-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-yellow-700 transition-colors duration-200">
+                                Resend Verification Email
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <a href="{% url 'logout' %}" 
+                           class="block w-full bg-red-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200 text-center">
+                            Logout
+                        </a>
+                    </div>
+                    
+                    <!-- Account Statistics -->
+                    <div class="mt-6 pt-6 border-t border-gray-600">
+                        <h3 class="text-lg font-semibold text-white mb-3">Account Statistics</h3>
+                        <div class="space-y-2 text-sm text-gray-300">
+                            <div class="flex justify-between">
+                                <span>Videos Uploaded:</span>
+                                <span>{{ user.videos.count }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Comments Made:</span>
+                                <span>{{ user.comments.count }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Last Login:</span>
+                                <span>{{ user.last_login|date:"M d, Y"|default:"Never" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

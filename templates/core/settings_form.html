@@ -1,0 +1,90 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">
+            {% if form.instance.pk %}Edit{% else %}Add{% endif %} Setting
+        </h1>
+        <a class="btn btn-secondary" href="{% url 'settings_list' %}">Back to List</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.key.id_for_label }}" class="form-label">Key *</label>
+                            {{ form.key }}
+                            <div class="form-text">Unique identifier for this setting (e.g., 'site_title', 'contact_email')</div>
+                            {% if form.key.errors %}
+                                <div class="text-danger">{{ form.key.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.value.id_for_label }}" class="form-label">Value *</label>
+                            {{ form.value }}
+                            <div class="form-text">The actual value for this setting</div>
+                            {% if form.value.errors %}
+                                <div class="text-danger">{{ form.value.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                            <div class="form-text">Optional description of what this setting does</div>
+                            {% if form.description.errors %}
+                                <div class="text-danger">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.instance.pk %}
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Setting Info</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Created:</strong> {{ form.instance.created_at|date:"M d, Y H:i" }}</p>
+                                <p class="mb-0"><strong>Updated:</strong> {{ form.instance.updated_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <a class="btn btn-secondary" href="{% url 'settings_list' %}">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Setting
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Common Settings</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Here are some common setting keys you might want to use:</p>
+                    <ul class="list-unstyled">
+                        <li><code>site_title</code> - Site title</li>
+                        <li><code>site_description</code> - Site description</li>
+                        <li><code>contact_email</code> - Contact email</li>
+                        <li><code>contact_phone</code> - Contact phone</li>
+                        <li><code>social_facebook</code> - Facebook URL</li>
+                        <li><code>social_twitter</code> - Twitter URL</li>
+                        <li><code>social_instagram</code> - Instagram URL</li>
+                        <li><code>footer_text</code> - Footer text</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

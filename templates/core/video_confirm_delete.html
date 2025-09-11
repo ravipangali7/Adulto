@@ -1,0 +1,18 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <h1 class="h3 d-inline align-middle">Delete Video</h1>
+    <div class="card mt-3">
+        <div class="card-body">
+            <p>Are you sure you want to delete "{{ object }}"?</p>
+            <form method="post">
+                {% csrf_token %}
+                <a class="btn btn-secondary" href="{% url 'video_list' %}">Cancel</a>
+                <button class="btn btn-danger" type="submit">Confirm Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

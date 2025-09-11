@@ -1,0 +1,144 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">{{ age_verification.site_name }} - Age Verification</h1>
+        <div>
+            <a class="btn btn-secondary" href="{% url 'age_verification_list' %}">Back to List</a>
+            <a class="btn btn-primary" href="{% url 'age_verification_update' age_verification.id %}">Edit Modal</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Modal Preview</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Modal Preview -->
+                    <div class="border rounded p-4 bg-light">
+                        <div class="bg-danger text-white px-4 py-3 rounded-top mb-0">
+                            <h4 class="mb-0 text-center">{{ age_verification.title }}</h4>
+                        </div>
+                        <div class="bg-white p-4 border border-top-0 rounded-bottom">
+                            <div class="text-center mb-4">
+                                <div class="text-4xl mb-2">🔞</div>
+                                <h5 class="text-dark font-weight-bold">
+                                    {{ age_verification.site_name }} is adults only website!
+                                </h5>
+                            </div>
+                            <div class="prose">
+                                {{ age_verification.content|safe }}
+                            </div>
+                            <div class="mt-4 p-3 bg-warning bg-opacity-25 border border-warning rounded">
+                                <p class="mb-0 text-dark font-weight-bold">
+                                    To enter {{ age_verification.site_name }} you must be 18 or older
+                                </p>
+                            </div>
+                            <div class="mt-4 d-flex gap-2 justify-content-center">
+                                <button class="btn btn-success">{{ age_verification.confirm_text }}</button>
+                                <button class="btn btn-danger">{{ age_verification.deny_text }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Modal Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Site Name:</strong></td>
+                            <td>{{ age_verification.site_name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Title:</strong></td>
+                            <td>{{ age_verification.title }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td>
+                                {% if age_verification.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Confirm Text:</strong></td>
+                            <td>{{ age_verification.confirm_text }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Deny Text:</strong></td>
+                            <td>{{ age_verification.deny_text }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Deny URL:</strong></td>
+                            <td><a href="{{ age_verification.deny_redirect_url }}" target="_blank">{{ age_verification.deny_redirect_url }}</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>{{ age_verification.created_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Updated:</strong></td>
+                            <td>{{ age_verification.updated_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-primary" href="{% url 'age_verification_update' age_verification.id %}">Edit Modal</a>
+                        <a class="btn btn-danger" href="{% url 'age_verification_delete' age_verification.id %}">Delete Modal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.prose {
+    color: #333;
+    line-height: 1.6;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    color: #000;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.prose p {
+    margin-bottom: 1rem;
+}
+
+.prose ul, .prose ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.prose li {
+    margin-bottom: 0.5rem;
+}
+
+.prose strong {
+    font-weight: 600;
+    color: #000;
+}
+</style>
+{% endblock %}

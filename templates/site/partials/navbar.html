@@ -1,0 +1,70 @@
+<!-- Navigation Bar -->
+<nav class="bg-grey-custom border-b border-gray-600 flex sticky top-16 z-30" style="height: var(--navbar-height);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div class="flex items-center justify-between h-full">
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="{% url 'videos' %}" class="text-white hover:text-primary-gold transition-colors duration-200 font-medium">
+                    Videos
+                </a>
+                <a href="{% url 'categories' %}" class="text-white hover:text-primary-gold transition-colors duration-200 font-medium">
+                    Categories
+                </a>
+                <a href="{% url 'tags' %}" class="text-white hover:text-primary-gold transition-colors duration-200 font-medium">
+                    Tags
+                </a>
+                <a href="{% url 'latest' %}" class="text-white hover:text-primary-gold transition-colors duration-200 font-medium">
+                    Latest
+                </a>
+                <a href="{% url 'popular' %}" class="text-white hover:text-primary-gold transition-colors duration-200 font-medium">
+                    Popular
+                </a>
+                
+                <!-- Dynamic CMS Pages -->
+                {% for page in navbar_pages %}
+                <a href="{% url 'cms_page' page.slug %}" class="text-white hover:text-primary-gold transition-colors duration-200 font-medium">
+                    {{ page.title }}
+                </a>
+                {% endfor %}
+            </div>
+            
+            
+            <!-- Mobile menu button -->
+            <div class="md:hidden">
+                <button id="mobile-menu-button" type="button" class="text-white hover:text-primary-gold focus:outline-none focus:text-primary-gold">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-grey-custom border-t border-gray-600">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="{% url 'videos' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+                    Videos
+                </a>
+                <a href="{% url 'categories' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+                    Categories
+                </a>
+                <a href="{% url 'tags' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+                    Tags
+                </a>
+                <a href="{% url 'latest' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+                    Latest
+                </a>
+                <a href="{% url 'popular' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+                    Popular
+                </a>
+                
+                <!-- Dynamic CMS Pages for Mobile -->
+                {% for page in navbar_pages %}
+                <a href="{% url 'cms_page' page.slug %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+                    {{ page.title }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,327 @@
+{% extends 'site/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if query %}
+        Search Results for "{{ query }}" - Adulto
+    {% else %}
+        Search - Adulto
+    {% endif %}
+{% endblock %}
+
+{% block description %}
+    {% if query %}
+        Search results for "{{ query }}" on Adulto. Find videos, categories, and tags.
+    {% else %}
+        Search through our collection of videos, categories, and tags.
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-highlight {
+        background-color: #fbbf24;
+        padding: 0.1rem 0.2rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+    }
+    
+    .search-result-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    
+    .search-result-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .search-stats {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .search-filters {
+        background-color: #1f2937;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-tag {
+        display: inline-block;
+        background-color: #374151;
+        color: #f3f4f6;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        margin: 0.25rem;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    
+    .filter-tag:hover {
+        background-color: #4b5563;
+        color: #f3f4f6;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 4rem 2rem;
+        background-color: #1f2937;
+        border-radius: 0.5rem;
+    }
+    
+    .search-suggestions {
+        background-color: #1f2937;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Search Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-4">
+            {% if query %}
+                Search Results for "{{ query }}"
+            {% else %}
+                Search Videos
+            {% endif %}
+        </h1>
+        
+        <!-- Search Form -->
+        <form method="GET" action="{% url 'search' %}" class="max-w-2xl">
+            <div class="relative">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ query }}"
+                    placeholder="Search videos, categories, tags, or users..."
+                    class="w-full px-4 py-3 pr-12 bg-gray-800 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent"
+                    autocomplete="off"
+                >
+                <button 
+                    type="submit" 
+                    class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 hover:text-primary-gold transition-colors"
+                >
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if query %}
+        <!-- Search Stats -->
+        {% if has_results %}
+        <div class="search-stats">
+            <div class="flex items-center justify-between text-white">
+                <div>
+                    <h2 class="text-xl font-semibold mb-2">Search Results</h2>
+                    <p class="text-gray-200">
+                        Found <span class="font-bold text-primary-gold">{{ total_results }}</span> 
+                        result{{ total_results|pluralize }} for "{{ query }}"
+                    </p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-300">Page {{ results.number }} of {{ results.paginator.num_pages }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Search Results -->
+        {% if has_results %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                {% for video in results %}
+                <div class="search-result-card bg-grey-custom rounded-lg overflow-hidden">
+                    <a href="{{ video.get_absolute_url }}" class="block">
+                        <div class="relative">
+                            {% if video.thumbnail %}
+                                <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" class="w-full h-48 object-cover">
+                            {% else %}
+                                <div class="w-full h-48 bg-gray-600 flex items-center justify-center">
+                                    <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                            <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                {{ video.get_duration_display }}
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-white font-semibold text-sm mb-2 line-clamp-2">
+                                {{ video.title|truncatechars:60 }}
+                            </h3>
+                            <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
+                                <span>{{ video.uploader.name|default:"Anonymous" }}</span>
+                                <span>{{ video.views }} views</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1">
+                                {% for category in video.category.all|slice:":2" %}
+                                <span class="bg-primary-gold text-black text-xs px-2 py-1 rounded">
+                                    {{ category.name }}
+                                </span>
+                                {% endfor %}
+                                {% for tag in video.tags.all|slice:":2" %}
+                                <span class="bg-gray-600 text-white text-xs px-2 py-1 rounded">
+                                    #{{ tag.name }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if results.has_other_pages %}
+            <div class="flex justify-center items-center space-x-2 mb-8">
+                {% if results.has_previous %}
+                    <a href="?q={{ query }}&page={{ results.previous_page_number }}" 
+                       class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                        Previous
+                    </a>
+                {% endif %}
+                
+                <span class="px-4 py-2 text-gray-300">
+                    Page {{ results.number }} of {{ results.paginator.num_pages }}
+                </span>
+                
+                {% if results.has_next %}
+                    <a href="?q={{ query }}&page={{ results.next_page_number }}" 
+                       class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        {% else %}
+            <!-- No Results -->
+            <div class="no-results">
+                <svg class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold text-white mb-2">No Results Found</h2>
+                <p class="text-gray-400 mb-4">We couldn't find any videos matching "{{ query }}"</p>
+                <div class="space-x-4">
+                    <a href="{% url 'search' %}" class="btn-primary-gold">Try Another Search</a>
+                    <a href="{% url 'home' %}" class="btn-outline-gold">Browse All Videos</a>
+                </div>
+            </div>
+
+            <!-- Search Suggestions -->
+            <div class="search-suggestions">
+                <h3 class="text-white font-semibold mb-4">Search Suggestions:</h3>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-gray-300 text-sm font-medium mb-2">Try searching for:</h4>
+                        <div class="flex flex-wrap">
+                            <a href="?q=latest" class="filter-tag">Latest Videos</a>
+                            <a href="?q=popular" class="filter-tag">Popular Videos</a>
+                            <a href="?q=trending" class="filter-tag">Trending</a>
+                        </div>
+                    </div>
+                    
+                    {% if all_categories %}
+                    <div>
+                        <h4 class="text-gray-300 text-sm font-medium mb-2">Browse Categories:</h4>
+                        <div class="flex flex-wrap">
+                            {% for category in all_categories|slice:":10" %}
+                            <a href="?q={{ category.name }}" class="filter-tag">{{ category.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if all_tags %}
+                    <div>
+                        <h4 class="text-gray-300 text-sm font-medium mb-2">Popular Tags:</h4>
+                        <div class="flex flex-wrap">
+                            {% for tag in all_tags|slice:":10" %}
+                            <a href="?q={{ tag.name }}" class="filter-tag">#{{ tag.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty Search State -->
+        <div class="text-center py-12">
+            <svg class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <h2 class="text-2xl font-bold text-white mb-2">Search Our Collection</h2>
+            <p class="text-gray-400 mb-6">Find videos by title, category, tag, or uploader name</p>
+            
+            <!-- Quick Search Options -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="bg-grey-custom rounded-lg p-6">
+                    <h3 class="text-white font-semibold mb-3">Browse Categories</h3>
+                    <div class="space-y-2">
+                        {% for category in all_categories|slice:":5" %}
+                        <a href="?q={{ category.name }}" class="block text-gray-300 hover:text-primary-gold transition-colors">
+                            {{ category.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="bg-grey-custom rounded-lg p-6">
+                    <h3 class="text-white font-semibold mb-3">Popular Tags</h3>
+                    <div class="space-y-2">
+                        {% for tag in all_tags|slice:":5" %}
+                        <a href="?q={{ tag.name }}" class="block text-gray-300 hover:text-primary-gold transition-colors">
+                            #{{ tag.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="bg-grey-custom rounded-lg p-6">
+                    <h3 class="text-white font-semibold mb-3">Quick Links</h3>
+                    <div class="space-y-2">
+                        <a href="{% url 'latest' %}" class="block text-gray-300 hover:text-primary-gold transition-colors">Latest Videos</a>
+                        <a href="{% url 'popular' %}" class="block text-gray-300 hover:text-primary-gold transition-colors">Popular Videos</a>
+                        <a href="{% url 'videos' %}" class="block text-gray-300 hover:text-primary-gold transition-colors">All Videos</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus search input
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.focus();
+    }
+    
+    // Add search suggestions on input
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            if (query.length > 2) {
+                // You could add AJAX search suggestions here
+                console.log('Searching for:', query);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
