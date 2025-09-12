@@ -20,7 +20,7 @@
                 {% for video in videos %}
                 <div class="video-card bg-grey-custom rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
                     <!-- Video Thumbnail - Clickable -->
-                    <a href="{{ video.get_absolute_url }}" class="block relative group">
+                    <a href="{{ video.get_absolute_url }}" class="block relative group" onclick="trackVideoClick('{{ video.title|escapejs }}', '{{ video.id }}')">
                         {% if video.thumbnail %}
                         <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" class="w-full h-48 object-cover">
                         {% else %}
@@ -194,4 +194,20 @@
     }
 }
 </style>
+
+{% block extra_js %}
+{% load analytics %}
+<script>
+// Track video clicks for Google Analytics
+function trackVideoClick(videoTitle, videoId) {
+    {% if settings.GOOGLE_ANALYTICS_ENABLED %}
+    gtag('event', 'video_click', {
+        'event_category': 'engagement',
+        'event_label': videoTitle,
+        'video_title': videoTitle,
+        'video_id': videoId
+    });
+    {% endif %}
+}
+</script>
 {% endblock %}

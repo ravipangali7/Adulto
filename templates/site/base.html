@@ -9,6 +9,15 @@
     <title>{% block title %}Adulto - Your Video Destination{% endblock %}</title>
     <meta name="description" content="{% block description %}Discover and watch amazing videos across various categories. Your premier destination for high-quality video content.{% endblock %}">
     <meta name="keywords" content="videos, entertainment, categories, latest, popular">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K1XP0N6Q26"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-K1XP0N6Q26');
+    </script>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="/static/core/logo.png" />
@@ -21,6 +30,10 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% load static %}{% static 'site/css/variables.css' %}">
+    
+    <!-- Google Analytics -->
+    {% load analytics %}
+    {% google_analytics %}
     
     <!-- Custom Tailwind Config -->
     <script>

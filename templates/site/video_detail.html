@@ -377,6 +377,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{% load analytics %}
 <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -393,6 +394,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Google Analytics event tracking for video interactions
+    {% if settings.GOOGLE_ANALYTICS_ENABLED %}
+    // Track video play
+    player.on('play', function() {
+        gtag('event', 'video_play', {
+            'event_category': 'engagement',
+            'event_label': '{{ video.title|escapejs }}',
+            'video_title': '{{ video.title|escapejs }}',
+            'video_id': '{{ video.id }}'
+        });
+    });
+    
+    // Track video pause
+    player.on('pause', function() {
+        gtag('event', 'video_pause', {
+            'event_category': 'engagement',
+            'event_label': '{{ video.title|escapejs }}',
+            'video_title': '{{ video.title|escapejs }}',
+            'video_id': '{{ video.id }}'
+        });
+    });
+    
+    // Track video completion (when video ends)
+    player.on('ended', function() {
+        gtag('event', 'video_complete', {
+            'event_category': 'engagement',
+            'event_label': '{{ video.title|escapejs }}',
+            'video_title': '{{ video.title|escapejs }}',
+            'video_id': '{{ video.id }}'
+        });
+    });
+    
+    // Track fullscreen events
+    player.on('fullscreenchange', function() {
+        if (player.isFullscreen()) {
+            gtag('event', 'video_fullscreen_enter', {
+                'event_category': 'engagement',
+                'event_label': '{{ video.title|escapejs }}',
+                'video_title': '{{ video.title|escapejs }}',
+                'video_id': '{{ video.id }}'
+            });
+        } else {
+            gtag('event', 'video_fullscreen_exit', {
+                'event_category': 'engagement',
+                'event_label': '{{ video.title|escapejs }}',
+                'video_title': '{{ video.title|escapejs }}',
+                'video_id': '{{ video.id }}'
+            });
+        }
+    });
+    {% endif %}
     
     // Handle fullscreen change events
     player.on('fullscreenchange', function() {
@@ -452,6 +505,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         likesCount.textContent = `${data.likes_count} likes`;
                     }
                     
+                    // Track like event in Google Analytics
+                    {% if settings.GOOGLE_ANALYTICS_ENABLED %}
+                    gtag('event', 'video_like', {
+                        'event_category': 'engagement',
+                        'event_label': '{{ video.title|escapejs }}',
+                        'video_title': '{{ video.title|escapejs }}',
+                        'video_id': '{{ video.id }}'
+                    });
+                    {% endif %}
+                    
                     // Show success message
                     showMessage(data.message, 'success');
                     
@@ -498,6 +561,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     // Add new comment to the list
                     addCommentToList(data.comment);
+                    
+                    // Track comment event in Google Analytics
+                    {% if settings.GOOGLE_ANALYTICS_ENABLED %}
+                    gtag('event', 'video_comment', {
+                        'event_category': 'engagement',
+                        'event_label': '{{ video.title|escapejs }}',
+                        'video_title': '{{ video.title|escapejs }}',
+                        'video_id': '{{ video.id }}'
+                    });
+                    {% endif %}
                     
                     // Clear form
                     this.reset();

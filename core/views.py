@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User
+from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment
 from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
@@ -30,35 +30,91 @@ def login(request):
 # Create your views here.
 @login_required(login_url='login')
 def dashboard(request):
+	from django.db.models import Sum, Count, Avg
+	from django.utils import timezone
+	from datetime import timedelta
+	
 	# Get dashboard statistics
 	total_videos = Video.objects.count()
 	total_categories = Category.objects.count()
 	total_tags = Tag.objects.count()
-	recent_videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags').order_by('-created_at')[:5]
 	
-	# Get videos by category
+	# Get analytics data
+	total_views = Video.objects.aggregate(total=Sum('views'))['total'] or 0
+	total_likes = Video.objects.aggregate(total=Sum('likes'))['total'] or 0
+	total_comments = Comment.objects.count()
+	
+	# Calculate averages
+	avg_views_per_video = round(total_views / total_videos, 0) if total_videos > 0 else 0
+	avg_likes_per_video = round(total_likes / total_videos, 0) if total_videos > 0 else 0
+	
+	# Get recent videos with engagement data
+	recent_videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').order_by('-created_at')[:5]
+	
+	# Get most liked videos
+	most_liked_videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').order_by('-likes')[:5]
+	
+	# Get most viewed videos
+	most_viewed_videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').order_by('-views')[:5]
+	
+	# Get recent comments
+	recent_comments = Comment.objects.select_related('video', 'user').order_by('-created_at')[:5]
+	
+	# Get videos by category with engagement data
 	videos_by_category = []
 	for category in Category.objects.all():
-		count = category.videos.count()
+		videos_in_category = category.videos.all()
+		count = videos_in_category.count()
 		if count > 0:
+			total_views_in_category = videos_in_category.aggregate(total=Sum('views'))['total'] or 0
+			total_likes_in_category = videos_in_category.aggregate(total=Sum('likes'))['total'] or 0
 			videos_by_category.append({
 				'name': category.name,
-				'count': count
+				'count': count,
+				'total_views': total_views_in_category,
+				'total_likes': total_likes_in_category
 			})
 	
 	# Get recent activity (last 7 days)
-	from django.utils import timezone
-	from datetime import timedelta
 	week_ago = timezone.now() - timedelta(days=7)
 	recent_uploads = Video.objects.filter(created_at__gte=week_ago).count()
+	recent_views = Video.objects.filter(created_at__gte=week_ago).aggregate(total=Sum('views'))['total'] or 0
+	recent_likes = Video.objects.filter(created_at__gte=week_ago).aggregate(total=Sum('likes'))['total'] or 0
+	recent_comments_count = Comment.objects.filter(created_at__gte=week_ago).count()
+	
+	# Get engagement trends (last 30 days)
+	month_ago = timezone.now() - timedelta(days=30)
+	engagement_trends = []
+	for i in range(7):  # Last 7 days
+		day_start = timezone.now() - timedelta(days=i+1)
+		day_end = timezone.now() - timedelta(days=i)
+		day_views = Video.objects.filter(created_at__gte=day_start, created_at__lt=day_end).aggregate(total=Sum('views'))['total'] or 0
+		day_likes = Video.objects.filter(created_at__gte=day_start, created_at__lt=day_end).aggregate(total=Sum('likes'))['total'] or 0
+		engagement_trends.append({
+			'date': day_start.strftime('%Y-%m-%d'),
+			'views': day_views,
+			'likes': day_likes
+		})
 	
 	context = {
 		'total_videos': total_videos,
 		'total_categories': total_categories,
 		'total_tags': total_tags,
+		'total_views': total_views,
+		'total_likes': total_likes,
+		'total_comments': total_comments,
+		'avg_views_per_video': avg_views_per_video,
+		'avg_likes_per_video': avg_likes_per_video,
 		'recent_videos': recent_videos,
+		'most_liked_videos': most_liked_videos,
+		'most_viewed_videos': most_viewed_videos,
+		'recent_comments': recent_comments,
 		'videos_by_category': videos_by_category,
 		'recent_uploads': recent_uploads,
+		'recent_views': recent_views,
+		'recent_likes': recent_likes,
+		'recent_comments_count': recent_comments_count,
+		'engagement_trends': engagement_trends,
 	}
 	return render(request, 'core/dashboard.html', context)
 

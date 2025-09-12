@@ -169,13 +169,14 @@ def signup_view(request):
                     return render(request, 'site/signup.html')
                 
                 # Create user but don't activate
-                user = User.objects.create_user(
+                user = User(
                     email=email,
-                    password=password,
                     name=name.strip(),
                     is_staff=False,  # Will be True after email verification
                     is_email_verified=False
                 )
+                user.set_password(password)
+                user.save()
                 
                 # Send verification email
                 try:

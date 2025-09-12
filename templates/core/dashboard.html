@@ -32,6 +32,76 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col mt-0">
+                            <h5 class="card-title">Total Views</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-info">
+                                <i class="align-middle" data-feather="eye"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ total_views|floatformat:0 }}</h1>
+                    <div class="mb-0">
+                        <span class="text-info">
+                            <i class="mdi mdi-arrow-bottom-right"></i> {{ recent_views|floatformat:0 }} this week
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Total Likes</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-danger">
+                                <i class="align-middle" data-feather="heart"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ total_likes|floatformat:0 }}</h1>
+                    <div class="mb-0">
+                        <span class="text-danger">
+                            <i class="mdi mdi-arrow-bottom-right"></i> {{ recent_likes|floatformat:0 }} this week
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Total Comments</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-warning">
+                                <i class="align-middle" data-feather="message-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ total_comments }}</h1>
+                    <div class="mb-0">
+                        <span class="text-warning">
+                            <i class="mdi mdi-arrow-bottom-right"></i> {{ recent_comments_count }} this week
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Analytics Row -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
                             <h5 class="card-title">Categories</h5>
                         </div>
                         <div class="col-auto">
@@ -72,19 +142,37 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col mt-0">
-                            <h5 class="card-title">Recent Uploads</h5>
+                            <h5 class="card-title">Avg Views/Video</h5>
                         </div>
                         <div class="col-auto">
-                            <div class="stat text-primary">
-                                <i class="align-middle" data-feather="upload"></i>
+                            <div class="stat text-success">
+                                <i class="align-middle" data-feather="trending-up"></i>
                             </div>
                         </div>
                     </div>
-                    <h1 class="mt-1 mb-3">{{ recent_uploads }}</h1>
+                    <h1 class="mt-1 mb-3">{{ avg_views_per_video|floatformat:0 }}</h1>
                     <div class="mb-0">
-                        <span class="text-success">
-                            <i class="mdi mdi-arrow-bottom-right"></i> This week
-                        </span>
+                        <span class="text-muted">Engagement rate</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Avg Likes/Video</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-danger">
+                                <i class="align-middle" data-feather="thumbs-up"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ avg_likes_per_video|floatformat:0 }}</h1>
+                    <div class="mb-0">
+                        <span class="text-muted">Like ratio</span>
                     </div>
                 </div>
             </div>
@@ -114,68 +202,138 @@
             </div>
         </div>
 
-        <!-- Category Distribution -->
-        <div class="col-xl-6 col-xxl-5 d-flex">
-            <div class="w-100">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col mt-0">
-                                        <h5 class="card-title">Most Popular</h5>
-                                    </div>
-                                    <div class="col-auto">
-                                        <div class="stat text-primary">
-                                            <i class="align-middle" data-feather="trending-up"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <h1 class="mt-1 mb-3">
-                                    {% if videos_by_category %}
-                                        {{ videos_by_category.0.name }}
-                                    {% else %}
-                                        —
-                                    {% endif %}
-                                </h1>
-                                <div class="mb-0">
-                                    <span class="text-muted">
-                                        {% if videos_by_category %}
-                                            {{ videos_by_category.0.count }} videos
-                                        {% else %}
-                                            No data
-                                        {% endif %}
-                                    </span>
-                                </div>
-                            </div>
+        <!-- Engagement Trends Chart -->
+        <div class="col-xl-6 col-xxl-5">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Engagement Trends (Last 7 Days)</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if engagement_trends %}
+                        <div class="chart chart-sm">
+                            <canvas id="engagementChart"></canvas>
                         </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col mt-0">
-                                        <h5 class="card-title">Storage Used</h5>
-                                    </div>
-                                    <div class="col-auto">
-                                        <div class="stat text-primary">
-                                            <i class="align-middle" data-feather="hard-drive"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <h1 class="mt-1 mb-3">{{ total_videos }}</h1>
-                                <div class="mb-0">
-                                    <span class="text-muted">Video files</span>
-                                </div>
-                            </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="align-middle mb-2" data-feather="trending-up" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No engagement data yet</p>
                         </div>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Videos Table -->
+    <!-- Most Popular Videos Row -->
+    <div class="row">
+        <!-- Most Liked Videos -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Most Liked Videos</h5>
+                </div>
+                <div class="card-body">
+                    {% if most_liked_videos %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Video</th>
+                                        <th>Likes</th>
+                                        <th>Views</th>
+                                        <th>Comments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for video in most_liked_videos %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% with thumbnail_url=video.get_thumbnail_url %}
+                                                    {% if thumbnail_url %}
+                                                        <img src="{{ thumbnail_url }}" class="rounded me-2" style="width: 40px; height: 25px; object-fit: cover;">
+                                                    {% endif %}
+                                                {% endwith %}
+                                                <div>
+                                                    <strong class="text-truncate" style="max-width: 150px;">{{ video.title|truncatechars:30 }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ video.uploader.name|default:video.uploader.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-danger">{{ video.likes }}</span></td>
+                                        <td><span class="badge bg-info">{{ video.views }}</span></td>
+                                        <td><span class="badge bg-warning">{{ video.comments.count }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="heart" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No videos with likes yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Viewed Videos -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Most Viewed Videos</h5>
+                </div>
+                <div class="card-body">
+                    {% if most_viewed_videos %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Video</th>
+                                        <th>Views</th>
+                                        <th>Likes</th>
+                                        <th>Comments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for video in most_viewed_videos %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% with thumbnail_url=video.get_thumbnail_url %}
+                                                    {% if thumbnail_url %}
+                                                        <img src="{{ thumbnail_url }}" class="rounded me-2" style="width: 40px; height: 25px; object-fit: cover;">
+                                                    {% endif %}
+                                                {% endwith %}
+                                                <div>
+                                                    <strong class="text-truncate" style="max-width: 150px;">{{ video.title|truncatechars:30 }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ video.uploader.name|default:video.uploader.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-info">{{ video.views }}</span></td>
+                                        <td><span class="badge bg-danger">{{ video.likes }}</span></td>
+                                        <td><span class="badge bg-warning">{{ video.comments.count }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="eye" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No videos with views yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Videos and Comments Row -->
     <div class="row">
         <div class="col-12 col-lg-8 col-xxl-9 d-flex">
             <div class="card flex-fill">
@@ -188,6 +346,7 @@
                             <th>Title</th>
                             <th class="d-none d-xl-table-cell">Categories</th>
                             <th class="d-none d-xl-table-cell">Uploader</th>
+                            <th>Engagement</th>
                             <th>Created</th>
                             <th class="d-none d-md-table-cell">Actions</th>
                         </tr>
@@ -196,12 +355,16 @@
                         {% for video in recent_videos %}
                         <tr>
                             <td>
-                                <strong>{{ video.title }}</strong>
-                                {% with thumbnail_url=video.get_thumbnail_url %}
-                                    {% if thumbnail_url %}
-                                        <img src="{{ thumbnail_url }}" class="rounded ms-2" style="width: 30px; height: 20px; object-fit: cover;">
-                                    {% endif %}
-                                {% endwith %}
+                                <div class="d-flex align-items-center">
+                                    {% with thumbnail_url=video.get_thumbnail_url %}
+                                        {% if thumbnail_url %}
+                                            <img src="{{ thumbnail_url }}" class="rounded me-2" style="width: 40px; height: 25px; object-fit: cover;">
+                                        {% endif %}
+                                    {% endwith %}
+                                    <div>
+                                        <strong class="text-truncate" style="max-width: 200px;">{{ video.title|truncatechars:40 }}</strong>
+                                    </div>
+                                </div>
                             </td>
                             <td class="d-none d-xl-table-cell">
                                 {% for category in video.category.all %}
@@ -211,6 +374,13 @@
                                 {% endfor %}
                             </td>
                             <td class="d-none d-xl-table-cell">{{ video.uploader.name|default:video.uploader.email }}</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <span class="badge bg-info" title="Views">{{ video.views }}</span>
+                                    <span class="badge bg-danger" title="Likes">{{ video.likes }}</span>
+                                    <span class="badge bg-warning" title="Comments">{{ video.comments.count }}</span>
+                                </div>
+                            </td>
                             <td>{{ video.created_at|date:'M d, Y' }}</td>
                             <td class="d-none d-md-table-cell">
                                 <a class="btn btn-sm btn-outline-primary" href="{% url 'video_update' video.id %}">Edit</a>
@@ -218,7 +388,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
+                            <td colspan="6" class="text-center text-muted py-4">
                                 <i class="align-middle mb-2" data-feather="video" style="width: 32px; height: 32px;"></i>
                                 <p class="mb-0">No videos uploaded yet</p>
                                 <a href="{% url 'video_create' %}" class="btn btn-primary btn-sm mt-2">Upload First Video</a>
@@ -230,28 +400,69 @@
             </div>
         </div>
         
-        <!-- Quick Actions -->
+        <!-- Recent Comments -->
         <div class="col-12 col-lg-4 col-xxl-3 d-flex">
             <div class="card flex-fill w-100">
                 <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Comments</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_comments %}
+                        <div class="list-group list-group-flush">
+                            {% for comment in recent_comments %}
+                            <div class="list-group-item px-0 py-2">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ comment.author_name }}</h6>
+                                    <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
+                                </div>
+                                <p class="mb-1 text-truncate" style="max-width: 200px;" title="{{ comment.content }}">{{ comment.content|truncatechars:50 }}</p>
+                                <small class="text-muted">on: {{ comment.video.title|truncatechars:30 }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'video_list' %}" class="btn btn-sm btn-outline-primary">View All Comments</a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="message-circle" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No comments yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
                     <h5 class="card-title mb-0">Quick Actions</h5>
                 </div>
-                <div class="card-body d-flex">
-                    <div class="align-self-center w-100">
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'video_create' %}" class="btn btn-primary">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{% url 'video_create' %}" class="btn btn-primary w-100">
                                 <i class="align-middle me-2" data-feather="plus"></i>
                                 Upload Video
                             </a>
-                            <a href="{% url 'category_create' %}" class="btn btn-outline-secondary">
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{% url 'category_create' %}" class="btn btn-outline-secondary w-100">
                                 <i class="align-middle me-2" data-feather="folder-plus"></i>
                                 Add Category
                             </a>
-                            <a href="{% url 'tag_create' %}" class="btn btn-outline-secondary">
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{% url 'tag_create' %}" class="btn btn-outline-secondary w-100">
                                 <i class="align-middle me-2" data-feather="tag"></i>
                                 Add Tag
                             </a>
-                            <a href="{% url 'video_list' %}" class="btn btn-outline-info">
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <a href="{% url 'video_list' %}" class="btn btn-outline-info w-100">
                                 <i class="align-middle me-2" data-feather="list"></i>
                                 View All Videos
                             </a>
@@ -312,6 +523,60 @@
             plugins: {
                 legend: {
                     position: 'bottom',
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Engagement Trends Chart
+    {% if engagement_trends %}
+    const engagementData = {
+        labels: [
+            {% for trend in engagement_trends reversed %}
+                '{{ trend.date|slice:"5:" }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Views',
+            data: [
+                {% for trend in engagement_trends reversed %}
+                    {{ trend.views }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Likes',
+            data: [
+                {% for trend in engagement_trends reversed %}
+                    {{ trend.likes }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    };
+
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    new Chart(engagementCtx, {
+        type: 'line',
+        data: engagementData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
                 }
             }
         }
