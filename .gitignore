@@ -1,6 +1,38 @@
-/env
-/media
+# Virtual environment
+env/
+.env
+
+# Media files
+media/
+
+# Database
 db.sqlite3
+*.sqlite3
+*.db
+
+# Python cache
 __pycache__/
 */__pycache__/
 **/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
