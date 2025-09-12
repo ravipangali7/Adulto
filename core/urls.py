@@ -1,5 +1,15 @@
 from django.urls import path
+from django.contrib.sitemaps.views import sitemap
 from . import views
+from .sitemaps import VideoSitemap, CategorySitemap, TagSitemap, CMSSitemap, StaticSitemap
+
+sitemaps = {
+    'videos': VideoSitemap,
+    'categories': CategorySitemap,
+    'tags': TagSitemap,
+    'cms': CMSSitemap,
+    'static': StaticSitemap,
+}
 
 urlpatterns = [
 	path('auth/login', views.login, name="auth_login"),
@@ -49,5 +59,8 @@ urlpatterns = [
 	path('users/<int:pk>/', views.user_detail, name='user_detail'),
 	path('users/<int:pk>/edit/', views.user_update, name='user_update'),
 	path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
+
+	# Sitemap
+	path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 
 ]

@@ -1,9 +1,70 @@
 {% extends 'site/base.html' %}
 {% load static %}
 
-{% block title %}{{ video.title }} - Desi X Zone{% endblock %}
+{% block title %}{{ video.seo_title|default:video.title }} - Desi X Zone{% endblock %}
 
-{% block description %}{{ video.description|truncatewords:20 }}{% endblock %}
+{% block description %}{{ video.seo_description|default:video.description|truncatewords:25 }}{% endblock %}
+
+{% block keywords %}{{ video.tags.all|join:", " }}, {{ video.category.all|join:", " }}, video, streaming, entertainment{% endblock %}
+
+{% block og_type %}video.other{% endblock %}
+
+{% block og_title %}{{ video.title }} - Desi X Zone{% endblock %}
+
+{% block og_description %}{{ video.description|truncatewords:25 }}{% endblock %}
+
+{% block og_image %}{% if video.thumbnail %}{{ request.scheme }}://{{ request.get_host }}{{ video.thumbnail.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'core/logo.png' %}{% endif %}{% endblock %}
+
+{% block twitter_card %}player{% endblock %}
+
+{% block twitter_title %}{{ video.title }} - Desi X Zone{% endblock %}
+
+{% block twitter_description %}{{ video.description|truncatewords:25 }}{% endblock %}
+
+{% block twitter_image %}{% if video.thumbnail %}{{ request.scheme }}://{{ request.get_host }}{{ video.thumbnail.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'core/logo.png' %}{% endif %}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "{{ video.title|escapejs }}",
+  "description": "{{ video.description|escapejs|truncatewords:50 }}",
+  "thumbnailUrl": "{% if video.thumbnail %}{{ request.scheme }}://{{ request.get_host }}{{ video.thumbnail.url }}{% endif %}",
+  "uploadDate": "{{ video.created_at|date:'c' }}",
+  "duration": "PT{{ video.duration|default:0 }}S",
+  "contentUrl": "{% if video.video_file %}{{ request.scheme }}://{{ request.get_host }}{{ video.video_file.url }}{% endif %}",
+  "embedUrl": "{{ request.build_absolute_uri }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ video.uploader.name|default:'Anonymous'|escapejs }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Desi X Zone",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'core/logo.png' %}"
+    }
+  },
+  "interactionStatistic": [
+    {
+      "@type": "InteractionCounter",
+      "interactionType": "https://schema.org/WatchAction",
+      "userInteractionCount": {{ video.views }}
+    },
+    {
+      "@type": "InteractionCounter",
+      "interactionType": "https://schema.org/LikeAction",
+      "userInteractionCount": {{ video.likes }}
+    }
+  ],
+  "genre": [{% for category in video.category.all %}"{{ category.name|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+  "keywords": "{{ video.tags.all|join:', '|escapejs }}"
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
@@ -341,7 +402,7 @@
                     <a href="{{ related_video.get_absolute_url }}" class="block">
                         <div class="relative overflow-hidden rounded-lg mb-3 group-hover:opacity-90 transition-opacity duration-200">
                             {% if related_video.thumbnail %}
-                            <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }}" class="w-full h-40 object-cover">
+                            <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }} - Video thumbnail" class="w-full h-40 object-cover">
                             {% else %}
                             <div class="w-full h-40 bg-gray-600 flex items-center justify-center">
                                 <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
