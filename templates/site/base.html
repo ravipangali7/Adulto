@@ -19,8 +19,8 @@
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}{% block title %}Desi X Zone - Your Video Destination{% endblock %}{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}{% block description %}Discover and watch amazing videos across various categories. Your premier destination for high-quality video content.{% endblock %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Desi X Zone - Your Video Destination{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Discover and watch amazing videos across various categories. Your premier destination for high-quality video content.{% endblock %}">
     <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
     <meta property="og:site_name" content="Desi X Zone">
     <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'core/logo.png' %}{% endblock %}">
@@ -30,8 +30,8 @@
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="{% block twitter_card %}summary_large_image{% endblock %}">
-    <meta name="twitter:title" content="{% block twitter_title %}{% block title %}Desi X Zone - Your Video Destination{% endblock %}{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}{% block description %}Discover and watch amazing videos across various categories. Your premier destination for high-quality video content.{% endblock %}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}Desi X Zone - Your Video Destination{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Discover and watch amazing videos across various categories. Your premier destination for high-quality video content.{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'core/logo.png' %}{% endblock %}">
     <meta name="twitter:site" content="@desixzone">
     <meta name="twitter:creator" content="@desixzone">
