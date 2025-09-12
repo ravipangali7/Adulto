@@ -51,6 +51,8 @@ class VideoForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['video_file'].required = False
             self.fields['video_file'].help_text = "Leave empty to keep current video file"
+            # Remove required attribute from widget for edit forms
+            self.fields['video_file'].widget.attrs.pop('required', None)
         else:
             self.fields['video_file'].required = True
     
@@ -90,8 +92,13 @@ class VideoForm(forms.ModelForm):
         
         # For new videos, video file is required
         # For edit forms, either new file or existing file is required
-        if not video_file and (not self.instance or not self.instance.pk or not self.instance.video_file):
-            raise forms.ValidationError("Video file is required.")
+        if not video_file:
+            # If this is a new video (no instance or no pk), video file is required
+            if not self.instance or not self.instance.pk:
+                raise forms.ValidationError("Video file is required.")
+            # If this is an edit but no existing video file, video file is required
+            elif not self.instance.video_file:
+                raise forms.ValidationError("Video file is required.")
         
         return cleaned_data
 

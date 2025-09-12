@@ -51,6 +51,14 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Categories</label>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-categories">
+                                            <i class="fas fa-check-square"></i> Select All
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-categories">
+                                            <i class="fas fa-square"></i> Deselect All
+                                        </button>
+                                    </div>
                                     <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
                                         {% for checkbox in form.category %}
                                             <div class="form-check">
@@ -68,6 +76,14 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Tags</label>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-tags">
+                                            <i class="fas fa-check-square"></i> Select All
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-tags">
+                                            <i class="fas fa-square"></i> Deselect All
+                                        </button>
+                                    </div>
                                     <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
                                         {% for checkbox in form.tags %}
                                             <div class="form-check">
@@ -265,6 +281,32 @@
             });
         }
 
+        // Select All / Deselect All functionality for categories and tags
+        function setupSelectAllButtons(selectAllId, deselectAllId, checkboxName) {
+            const selectAllBtn = document.getElementById(selectAllId);
+            const deselectAllBtn = document.getElementById(deselectAllId);
+            
+            if (selectAllBtn && deselectAllBtn) {
+                selectAllBtn.addEventListener('click', function() {
+                    const checkboxes = document.querySelectorAll(`input[name="${checkboxName}"]`);
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = true;
+                    });
+                });
+                
+                deselectAllBtn.addEventListener('click', function() {
+                    const checkboxes = document.querySelectorAll(`input[name="${checkboxName}"]`);
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                });
+            }
+        }
+
+        // Initialize select all functionality
+        setupSelectAllButtons('select-all-categories', 'deselect-all-categories', 'category');
+        setupSelectAllButtons('select-all-tags', 'deselect-all-tags', 'tags');
+
         // Form validation and progress tracking
         const form = document.getElementById('video-form');
         const submitBtn = document.getElementById('submit-btn');
@@ -279,6 +321,9 @@
             const titleField = document.getElementById('id_title');
             const slugField = document.getElementById('id_slug');
             const videoFile = document.getElementById('id_video_file').files[0];
+            
+            // Check if this is an edit (existing video) or new video
+            const isEdit = {{ form.instance.pk|yesno:"true,false" }};
             
             // Basic validation
             if (!titleField.value.trim()) {
@@ -295,32 +340,40 @@
                 return false;
             }
             
-            if (!videoFile) {
+            // Only require video file for new videos, not when editing
+            if (!isEdit && !videoFile) {
                 alert('Please select a video file');
                 e.preventDefault();
                 return false;
             }
             
-            // Check file size (500MB limit)
-            const maxSize = 500 * 1024 * 1024; // 500MB in bytes
-            if (videoFile.size > maxSize) {
-                alert('File size too large. Maximum allowed size is 500MB.');
-                e.preventDefault();
-                return false;
+            // Only validate file size and show progress if a new file is selected
+            if (videoFile) {
+                // Check file size (500MB limit)
+                const maxSize = 500 * 1024 * 1024; // 500MB in bytes
+                if (videoFile.size > maxSize) {
+                    alert('File size too large. Maximum allowed size is 500MB.');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Show progress bar for files larger than 10MB
+                if (videoFile.size > 10 * 1024 * 1024) {
+                    e.preventDefault();
+                    uploadWithProgress(videoFile);
+                    return false;
+                }
+                
+                // For small files, show simple loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Uploading...';
+            } else if (isEdit) {
+                // For edits without new file, show saving state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
             }
             
-            // Show progress bar for files larger than 10MB
-            if (videoFile.size > 10 * 1024 * 1024) {
-                e.preventDefault();
-                uploadWithProgress(videoFile);
-                return false;
-            }
-            
-            // For small files, show simple loading state
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-            
-            // Allow normal form submission for small files
+            // Allow normal form submission
             return true;
         });
         
