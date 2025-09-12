@@ -4,7 +4,7 @@ from core.models import CMS, Settings, AgeVerification
 
 def site_branding(request):
 	return {
-		"site_brand": getattr(settings, "SITE_BRAND", "Adulto"),
+		"site_brand": getattr(settings, "SITE_BRAND", "Desi X Zone"),
 		"site_logo_url": getattr(settings, "SITE_LOGO_URL", "/static/logo.png"),
 	}
 
@@ -29,7 +29,7 @@ def cms_and_settings(request):
 	
 	try:
 		# Get common settings
-		context['site_title'] = Settings.get_setting('site_title', 'Adulto')
+		context['site_title'] = Settings.get_setting('site_title', 'Desi X Zone')
 		context['site_description'] = Settings.get_setting('site_description', 'Your premier destination for high-quality video content')
 		context['contact_email'] = Settings.get_setting('contact_email', '')
 		context['contact_phone'] = Settings.get_setting('contact_phone', '')
@@ -40,7 +40,7 @@ def cms_and_settings(request):
 	except:
 		# Fallback values if settings don't exist
 		context.update({
-			'site_title': 'Adulto',
+			'site_title': 'Desi X Zone',
 			'site_description': 'Your premier destination for high-quality video content',
 			'contact_email': '',
 			'contact_phone': '',

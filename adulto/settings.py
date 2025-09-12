@@ -126,8 +126,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [ BASE_DIR / 'static']
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATICFILES_DIRS = [ BASE_DIR / 'static']
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -152,10 +152,10 @@ EMAIL_HOST_PASSWORD = 'thlw vigx mbvk uuzp'  # Change to your app password
 DEFAULT_FROM_EMAIL = 'noreply@adulto.com'
 
 # Site settings
-SITE_TITLE = 'Adulto'
+SITE_TITLE = 'Desi X Zone'
 
 # Branding (dynamic site name and logo)
-SITE_BRAND = os.getenv('SITE_BRAND', 'Adulto')
+SITE_BRAND = os.getenv('SITE_BRAND', 'Desi X Zone')
 SITE_LOGO_URL = os.getenv('SITE_LOGO_URL', '/static/core/logo.png')
 AUTH_USER_MODEL = 'core.User'
 
