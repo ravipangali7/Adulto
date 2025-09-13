@@ -5,3 +5,7 @@
 5. Analytics in Dashboard
 6. Goolge Analytics
 8. and final hit (boy and girl pairing)
+
+
+git fetch origin
+ git reset --hard origin/main
