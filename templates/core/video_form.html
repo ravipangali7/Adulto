@@ -112,7 +112,7 @@
                                     <div class="form-text">
                                         <small class="text-muted">
                                             <i class="fas fa-info-circle"></i> 
-                                            Maximum file size: 500MB. Large files may take time to upload.
+                                            Maximum file size: 1GB. Large files may take time to upload.
                                             {% if form.instance and form.instance.pk %}
                                                 <br><i class="fas fa-edit"></i> 
                                                 Leave empty to keep current video file.
@@ -349,10 +349,10 @@
             
             // Only validate file size and show progress if a new file is selected
             if (videoFile) {
-                // Check file size (500MB limit)
-                const maxSize = 500 * 1024 * 1024; // 500MB in bytes
+                // Check file size (1GB limit)
+                const maxSize = 1024 * 1024 * 1024; // 1GB in bytes
                 if (videoFile.size > maxSize) {
-                    alert('File size too large. Maximum allowed size is 500MB.');
+                    alert('File size too large. Maximum allowed size is 1GB.');
                     e.preventDefault();
                     return false;
                 }
@@ -401,6 +401,19 @@
             // Create XMLHttpRequest for progress tracking
             const xhr = new XMLHttpRequest();
             
+            // Set timeout for large files (15 minutes)
+            xhr.timeout = 15 * 60 * 1000; // 15 minutes
+            
+            // Timeout handler
+            xhr.addEventListener('timeout', function() {
+                progressBar.classList.remove('progress-bar-animated');
+                progressBar.classList.add('bg-warning');
+                uploadStatus.textContent = 'Upload timeout. The file may be too large or connection is slow.';
+                uploadStatus.className = 'text-warning text-center mt-2';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Retry Upload';
+            });
+            
             // Upload progress
             xhr.upload.addEventListener('progress', function(e) {
                 if (e.lengthComputable) {
@@ -436,10 +449,22 @@
                         window.location.href = '{% url "video_list" %}';
                     }, 2000);
                 } else {
-                    // Error
+                    // Error - show specific error message
                     progressBar.classList.remove('progress-bar-animated');
                     progressBar.classList.add('bg-danger');
-                    uploadStatus.textContent = 'Upload failed. Please try again.';
+                    let errorMessage = 'Upload failed. Please try again.';
+                    
+                    if (xhr.status === 413) {
+                        errorMessage = 'File too large. Maximum size is 1GB.';
+                    } else if (xhr.status === 408) {
+                        errorMessage = 'Upload timeout. Please try again.';
+                    } else if (xhr.status === 500) {
+                        errorMessage = 'Server error. Please try again later.';
+                    } else if (xhr.status === 0) {
+                        errorMessage = 'Connection lost. Please check your internet and try again.';
+                    }
+                    
+                    uploadStatus.textContent = errorMessage;
                     uploadStatus.className = 'text-danger text-center mt-2';
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Save Video';

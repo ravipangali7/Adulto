@@ -64,10 +64,10 @@ class VideoForm(forms.ModelForm):
             return self.instance.video_file
         
         if video_file:
-            # Check file size (500MB limit)
-            max_size = 500 * 1024 * 1024  # 500MB in bytes
+            # Check file size (1GB limit)
+            max_size = 1024 * 1024 * 1024  # 1GB in bytes
             if video_file.size > max_size:
-                raise forms.ValidationError(f"File size too large. Maximum allowed size is 500MB. Your file is {video_file.size / (1024 * 1024):.1f}MB.")
+                raise forms.ValidationError(f"File size too large. Maximum allowed size is 1GB. Your file is {video_file.size / (1024 * 1024):.1f}MB.")
             
             # Check file extension
             allowed_extensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv']
