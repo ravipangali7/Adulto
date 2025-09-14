@@ -231,9 +231,9 @@ def video_create(request):
 				form.save_m2m()
 				
 				# Generate thumbnail if no thumbnail provided and video file exists
-				if not video.thumbnail and video.video_file:
-					video.generate_thumbnail()
-					video.save()  # Save again to store the generated thumbnail
+				# if not video.thumbnail and video.video_file:
+				# 	video.generate_thumbnail()
+				# 	video.save()  # Save again to store the generated thumbnail
 				
 				messages.success(request, "Video created successfully")
 				return redirect('video_list')
