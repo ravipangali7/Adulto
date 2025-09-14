@@ -33,6 +33,11 @@ urlpatterns = [
 	path('videos/<int:pk>/edit/', views.video_update, name='video_update'),
 	path('videos/<int:pk>/delete/', views.video_delete, name='video_delete'),
 	path('videos/<int:pk>/toggle-status/', views.video_toggle_status, name='video_toggle_status'),
+	
+	# Chunked Upload System
+	path('upload-chunk/', views.upload_chunk, name='upload_chunk'),
+	path('check-progress/', views.check_upload_progress, name='check_upload_progress'),
+	path('test-upload/', views.test_upload, name='test_upload'),
 
 	# CMS CRUD
 	path('cms/', views.cms_list, name='cms_list'),

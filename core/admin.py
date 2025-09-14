@@ -25,12 +25,42 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-	list_display = ("title", "uploader", "is_active", "created_at")
+	list_display = ("title", "uploader", "is_active", "has_thumbnail", "created_at")
 	list_filter = ("is_active", "category", "tags", "created_at")
 	search_fields = ("title", "slug", "description")
 	prepopulated_fields = {"slug": ("title",)}
 	filter_horizontal = ("tags", "category")
 	list_editable = ("is_active",)
+	actions = ["generate_thumbnails_action"]
+	
+	def has_thumbnail(self, obj):
+		return bool(obj.thumbnail)
+	has_thumbnail.boolean = True
+	has_thumbnail.short_description = "Has Thumbnail"
+	
+	def generate_thumbnails_action(self, request, queryset):
+		"""Generate thumbnails for selected videos"""
+		success_count = 0
+		error_count = 0
+		
+		for video in queryset:
+			if video.video_file and not video.thumbnail:
+				try:
+					if video.generate_thumbnail():
+						video.save(update_fields=['thumbnail'])
+						success_count += 1
+					else:
+						error_count += 1
+				except Exception as e:
+					error_count += 1
+					self.message_user(request, f"Error generating thumbnail for {video.title}: {e}", level='ERROR')
+		
+		if success_count > 0:
+			self.message_user(request, f"Successfully generated {success_count} thumbnails", level='SUCCESS')
+		if error_count > 0:
+			self.message_user(request, f"Failed to generate {error_count} thumbnails", level='WARNING')
+	
+	generate_thumbnails_action.short_description = "Generate thumbnails for selected videos"
 
 
 @admin.register(Settings)

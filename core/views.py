@@ -5,6 +5,10 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
+import os
+import tempfile
+import hashlib
+from django.core.files.base import ContentFile
 from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment
 from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm
 from django.contrib.auth.decorators import login_required
@@ -24,7 +28,6 @@ def login(request):
             return render(request, 'site/login.html')
     else:
         return render(request, 'site/login.html')
-
 
 
 # Create your views here.
@@ -231,9 +234,13 @@ def video_create(request):
 				form.save_m2m()
 				
 				# Generate thumbnail if no thumbnail provided and video file exists
-				# if not video.thumbnail and video.video_file:
-				# 	video.generate_thumbnail()
-				# 	video.save()  # Save again to store the generated thumbnail
+				if not video.thumbnail and video.video_file:
+					try:
+						if video.generate_thumbnail():
+							video.save(update_fields=['thumbnail'])
+					except Exception as e:
+						print(f"Thumbnail generation failed for video {video.id}: {e}")
+						# Don't fail the upload if thumbnail generation fails
 				
 				messages.success(request, "Video created successfully")
 				return redirect('video_list')
@@ -250,7 +257,7 @@ def video_create(request):
 			print(f"Form errors: {form.errors}")  # Debug print
 	else:
 		form = VideoForm()
-	return render(request, 'core/video_form.html', {"form": form, "title": "Create Video"})
+	return render(request, 'core/video_form_chunked.html', {"form": form, "title": "Create Video"})
 
 
 @login_required(login_url='login')
@@ -263,14 +270,18 @@ def video_update(request, pk: int):
 			
 			# Generate thumbnail if no thumbnail provided and video file exists
 			if not video.thumbnail and video.video_file:
-				video.generate_thumbnail()
-				video.save()  # Save again to store the generated thumbnail
+				try:
+					if video.generate_thumbnail():
+						video.save(update_fields=['thumbnail'])
+				except Exception as e:
+					print(f"Thumbnail generation failed for video {video.id}: {e}")
+					# Don't fail the upload if thumbnail generation fails
 			
 			messages.success(request, "Video updated successfully")
 			return redirect('video_list')
 	else:
 		form = VideoForm(instance=video)
-	return render(request, 'core/video_form.html', {"form": form, "title": "Edit Video"})
+	return render(request, 'core/video_form_chunked.html', {"form": form, "title": "Edit Video"})
 
 
 @login_required(login_url='login')
@@ -281,6 +292,12 @@ def video_delete(request, pk: int):
 		messages.success(request, "Video deleted successfully")
 		return redirect('video_list')
 	return render(request, 'core/video_confirm_delete.html', {"object": video})
+
+
+@login_required(login_url='login')
+def test_upload(request):
+	"""Test page for chunked upload system"""
+	return render(request, 'core/test_upload.html')
 
 
 @login_required(login_url='login')
@@ -309,6 +326,126 @@ def video_toggle_status(request, pk: int):
 			'success': False,
 			'error': str(e)
 		}, status=400)
+
+
+# NEW CHUNKED UPLOAD SYSTEM
+@csrf_exempt
+@login_required(login_url='login')
+@require_http_methods(["POST"])
+def upload_chunk(request):
+	"""Handle chunked video uploads"""
+	try:
+		# Get upload parameters
+		chunk_number = int(request.POST.get('chunk_number', 0))
+		total_chunks = int(request.POST.get('total_chunks', 1))
+		file_id = request.POST.get('file_id')
+		file_name = request.POST.get('file_name')
+		file_size = int(request.POST.get('file_size', 0))
+		
+		if not file_id or 'chunk' not in request.FILES:
+			return JsonResponse({'error': 'Missing file data'}, status=400)
+		
+		# Create temporary directory for chunks
+		temp_dir = os.path.join(tempfile.gettempdir(), 'video_chunks', file_id)
+		os.makedirs(temp_dir, exist_ok=True)
+		
+		# Save chunk
+		chunk_file = os.path.join(temp_dir, f'chunk_{chunk_number}')
+		with open(chunk_file, 'wb') as f:
+			for chunk in request.FILES['chunk'].chunks():
+				f.write(chunk)
+		
+		# Check if all chunks are uploaded
+		if chunk_number == total_chunks - 1:
+			# Reassemble file
+			final_file_path = os.path.join(temp_dir, 'final_video.mp4')
+			with open(final_file_path, 'wb') as final_file:
+				for i in range(total_chunks):
+					chunk_path = os.path.join(temp_dir, f'chunk_{i}')
+					if os.path.exists(chunk_path):
+						with open(chunk_path, 'rb') as chunk_file:
+							final_file.write(chunk_file.read())
+						os.remove(chunk_path)  # Clean up chunk
+			
+			# Create Video object with the reassembled file
+			video = Video(
+				title=request.POST.get('title', 'Untitled Video'),
+				slug=request.POST.get('slug', 'untitled-video'),
+				description=request.POST.get('description', ''),
+				uploader=request.user,
+				is_active=True
+			)
+			
+			# Save the reassembled file
+			with open(final_file_path, 'rb') as f:
+				video.video_file.save(file_name, ContentFile(f.read()), save=False)
+			
+			video.save()
+			
+			# Handle categories and tags
+			category_ids = request.POST.getlist('categories')
+			tag_ids = request.POST.getlist('tags')
+			
+			if category_ids:
+				video.category.set(category_ids)
+			if tag_ids:
+				video.tags.set(tag_ids)
+			
+			# Generate thumbnail asynchronously (non-blocking)
+			try:
+				if video.generate_thumbnail():
+					video.save(update_fields=['thumbnail'])
+			except Exception as e:
+				print(f"Thumbnail generation failed for video {video.id}: {e}")
+				# Don't fail the upload if thumbnail generation fails
+			
+			# Clean up temporary directory
+			import shutil
+			shutil.rmtree(temp_dir, ignore_errors=True)
+			
+			return JsonResponse({
+				'status': 'complete',
+				'video_id': video.id,
+				'message': 'Video uploaded successfully!'
+			})
+		
+		return JsonResponse({
+			'status': 'chunk_received',
+			'chunk_number': chunk_number,
+			'total_chunks': total_chunks
+		})
+		
+	except Exception as e:
+		return JsonResponse({
+			'error': str(e)
+		}, status=500)
+
+
+@csrf_exempt
+@login_required(login_url='login')
+@require_http_methods(["POST"])
+def check_upload_progress(request):
+	"""Check upload progress for a file"""
+	try:
+		file_id = request.POST.get('file_id')
+		if not file_id:
+			return JsonResponse({'error': 'File ID required'}, status=400)
+		
+		temp_dir = os.path.join(tempfile.gettempdir(), 'video_chunks', file_id)
+		if not os.path.exists(temp_dir):
+			return JsonResponse({'progress': 0, 'status': 'not_started'})
+		
+		# Count uploaded chunks
+		chunk_files = [f for f in os.listdir(temp_dir) if f.startswith('chunk_')]
+		progress = len(chunk_files)
+		
+		return JsonResponse({
+			'progress': progress,
+			'status': 'uploading' if progress > 0 else 'not_started'
+		})
+		
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
 
 
 # CMS Views
