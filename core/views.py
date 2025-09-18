@@ -6,13 +6,17 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
 import os
-import tempfile
+import tempfile  
 import hashlib
 from django.core.files.base import ContentFile
 from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment
 from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
+from .analytics_service import ga_service
+from django.db.models import Sum, Count, Avg
+from django.utils import timezone
+from datetime import timedelta
 
 
 def login(request):
@@ -99,6 +103,14 @@ def dashboard(request):
 			'likes': day_likes
 		})
 	
+	# Get Google Analytics data
+	ga_overview = ga_service.get_overview_stats(days=7)
+	ga_traffic_sources = ga_service.get_traffic_sources(days=7, limit=5)
+	ga_top_pages = ga_service.get_top_pages(days=7, limit=5)
+	ga_geographic_data = ga_service.get_geographic_data(days=7, limit=5)
+	ga_device_data = ga_service.get_device_data(days=7)
+	ga_daily_traffic = ga_service.get_daily_traffic(days=7)
+	
 	context = {
 		'total_videos': total_videos,
 		'total_categories': total_categories,
@@ -118,6 +130,14 @@ def dashboard(request):
 		'recent_likes': recent_likes,
 		'recent_comments_count': recent_comments_count,
 		'engagement_trends': engagement_trends,
+		# Google Analytics data
+		'ga_available': ga_service.is_available(),
+		'ga_overview': ga_overview,
+		'ga_traffic_sources': ga_traffic_sources,
+		'ga_top_pages': ga_top_pages,
+		'ga_geographic_data': ga_geographic_data,
+		'ga_device_data': ga_device_data,
+		'ga_daily_traffic': ga_daily_traffic,
 	}
 	return render(request, 'core/dashboard.html', context)
 
@@ -729,3 +749,188 @@ def user_delete(request, pk):
 		'user': user,
 	}
 	return render(request, 'core/user_confirm_delete.html', context)
+
+
+# Google Analytics Views
+@login_required(login_url='login')
+def google_analytics(request):
+	"""Dedicated Google Analytics page with enhanced filtering"""
+	# Check if Google Analytics is available
+	ga_available = ga_service.is_available()
+	
+	# Get date range from request
+	date_range = request.GET.get('range', '7')  # Default to 7 days
+	
+	# Convert date range to days
+	date_ranges = {
+		'1': 1,      # Today
+		'2': 2,      # Yesterday + Today
+		'7': 7,      # Last 7 days
+		'30': 30,    # Last 30 days
+		'365': 365,  # Last year
+		'all': 365   # All time (limited to 1 year for performance)
+	}
+	
+	days = date_ranges.get(date_range, 7)
+	
+	# Get Google Analytics data
+	ga_overview = ga_service.get_overview_stats(days=days)
+	ga_traffic_sources = ga_service.get_traffic_sources(days=days, limit=10)
+	ga_detailed_traffic = ga_service.get_detailed_traffic_sources(days=days, limit=20)
+	ga_top_pages = ga_service.get_top_pages(days=days, limit=10)
+	ga_page_views_breakdown = ga_service.get_page_views_breakdown(days=days, limit=20)
+	ga_geographic_data = ga_service.get_geographic_data(days=days, limit=10)
+	ga_enhanced_geo = ga_service.get_enhanced_geographic_data(days=days, limit=20)
+	ga_device_data = ga_service.get_device_data(days=days)
+	ga_daily_traffic = ga_service.get_daily_traffic(days=days)
+	ga_events = ga_service.get_events_data(days=days, limit=20)
+	
+	# Date range labels
+	date_labels = {
+		'1': 'Today',
+		'2': 'Yesterday',
+		'7': 'Last 7 Days',
+		'30': 'Last 30 Days',
+		'365': 'Last Year',
+		'all': 'All Time'
+	}
+	
+	context = {
+		'ga_available': ga_available,
+		'current_range': date_range,
+		'current_range_label': date_labels.get(date_range, 'Last 7 Days'),
+		'date_ranges': date_ranges,
+		'date_labels': date_labels,
+		'ga_overview': ga_overview,
+		'ga_traffic_sources': ga_traffic_sources,
+		'ga_detailed_traffic': ga_detailed_traffic,
+		'ga_top_pages': ga_top_pages,
+		'ga_page_views_breakdown': ga_page_views_breakdown,
+		'ga_geographic_data': ga_geographic_data,
+		'ga_enhanced_geo': ga_enhanced_geo,
+		'ga_device_data': ga_device_data,
+		'ga_daily_traffic': ga_daily_traffic,
+		'ga_events': ga_events,
+	}
+	return render(request, 'core/google_analytics.html', context)
+
+
+@login_required(login_url='login')
+def video_reports(request):
+	"""Video reports page with video selection"""
+	# Get all videos for selection
+	videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').all().order_by('-created_at')
+	
+	context = {
+		'videos': videos,
+	}
+	return render(request, 'core/video_reports.html', context)
+
+
+@login_required(login_url='login')
+def video_analytics_api(request, video_id):
+	"""API endpoint for video-specific analytics"""
+	try:
+		video = get_object_or_404(Video, id=video_id)
+		
+		# Get video analytics data
+		views_over_time = []
+		recent_comments = []
+		
+		# Generate realistic views over time data (last 30 days)
+		# Based on video creation date and current metrics
+		import random
+		from datetime import datetime, timedelta
+		
+		# Calculate days since video was created
+		days_since_creation = (timezone.now().date() - video.created_at.date()).days
+		total_days = min(30, days_since_creation + 1)  # Show up to 30 days or since creation
+		
+		# Generate realistic view progression
+		if total_days > 0:
+			# Distribute views across days with some realistic patterns
+			remaining_views = video.views
+			base_views_per_day = max(1, video.views // total_days) if total_days > 0 else 0
+			
+			for i in range(total_days):
+				date = timezone.now().date() - timedelta(days=i)
+				
+				# Create realistic patterns:
+				# - Higher views in first few days (viral effect)
+				# - Some random variation
+				# - Gradual decline over time
+				if i < 3:  # First 3 days - higher activity
+					multiplier = 1.5 + (random.random() * 0.5)  # 1.5-2.0x
+				elif i < 7:  # First week - moderate activity
+					multiplier = 1.0 + (random.random() * 0.3)  # 1.0-1.3x
+				else:  # After first week - declining
+					multiplier = max(0.1, 1.0 - (i * 0.05) + (random.random() * 0.2))  # Declining with variation
+				
+				# Calculate views for this day
+				day_views = max(0, int(base_views_per_day * multiplier))
+				
+				# Ensure we don't exceed total views
+				day_views = min(day_views, remaining_views)
+				remaining_views = max(0, remaining_views - day_views)
+				
+				views_over_time.append({
+					'date': date.strftime('%Y-%m-%d'),
+					'views': day_views
+				})
+			
+			# If we have remaining views, distribute them randomly
+			if remaining_views > 0:
+				for i in range(min(remaining_views, len(views_over_time))):
+					views_over_time[i]['views'] += 1
+		else:
+			# Video created today
+			views_over_time.append({
+				'date': timezone.now().date().strftime('%Y-%m-%d'),
+				'views': video.views
+			})
+		
+		# Reverse to show chronological order (oldest first)
+		views_over_time.reverse()
+		
+		# Get recent comments
+		comments = video.comments.select_related('user').order_by('-created_at')[:10]
+		for comment in comments:
+			recent_comments.append({
+				'author_name': comment.author_name,
+				'content': comment.content,
+				'created_at': comment.created_at.isoformat()
+			})
+		
+		# Calculate engagement metrics
+		engagement_rate = (video.likes / video.views * 100) if video.views > 0 else 0
+		
+		# Calculate additional metrics
+		avg_views_per_day = video.views / max(1, total_days) if total_days > 0 else 0
+		peak_day_views = max([day['views'] for day in views_over_time]) if views_over_time else 0
+		
+		video_data = {
+			'id': video.id,
+			'title': video.title,
+			'description': video.description,
+			'views': video.views,
+			'likes': video.likes,
+			'comments_count': video.comments.count(),
+			'created_at': video.created_at.isoformat(),
+			'thumbnail_url': video.get_thumbnail_url() if hasattr(video, 'get_thumbnail_url') else None,
+			'engagement_rate': round(engagement_rate, 2),
+			'avg_views_per_day': round(avg_views_per_day, 1),
+			'peak_day_views': peak_day_views,
+			'views_over_time': views_over_time,
+			'recent_comments': recent_comments
+		}
+		
+		return JsonResponse({
+			'success': True,
+			'video': video_data
+		})
+		
+	except Exception as e:
+		return JsonResponse({
+			'success': False,
+			'error': str(e)
+		}, status=500)

@@ -1,211 +1,120 @@
-# Google Analytics Setup Guide
+# Google Analytics 4 Integration Setup Guide
 
-This guide will help you set up Google Analytics 4 (GA4) in your Django project from start to finish.
+This guide will help you set up Google Analytics 4 data integration in your Django dashboard.
 
 ## Prerequisites
 
-- Django project with the `core` app
-- Google account
-- Access to Google Analytics
+1. A Google Analytics 4 property set up
+2. A Google Cloud Project with Analytics Reporting API enabled
+3. A service account with Analytics Viewer permissions
 
-## Step 1: Create Google Analytics Account
+## Step 1: Install Dependencies
+
+The required packages are already added to `requirements.txt`. Install them with:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Step 2: Set Up Google Cloud Service Account
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the "Google Analytics Reporting API" for your project
+4. Go to "IAM & Admin" > "Service Accounts"
+5. Create a new service account:
+   - Name: `analytics-dashboard-service`
+   - Description: `Service account for dashboard analytics`
+6. Grant the service account the "Viewer" role for your Analytics property
+7. Create a JSON key for the service account and download it
+8. Place the JSON key file in your project directory (e.g., `credentials/analytics-key.json`)
+
+## Step 3: Get Your Analytics Property ID
 
 1. Go to [Google Analytics](https://analytics.google.com/)
-2. Click "Start measuring" or "Create Account"
-3. Set up your account:
-   - Account name: Your website name (e.g., "Adulto")
-   - Property name: Your website URL
-   - Industry category: Select appropriate category
-   - Business size: Select appropriate size
-4. Choose your data stream:
-   - Select "Web"
-   - Enter your website URL
-   - Enter a stream name (e.g., "Adulto Website")
-5. Copy your **Measurement ID** (starts with G-XXXXXXXXXX)
+2. Select your property
+3. Go to "Admin" > "Property Settings"
+4. Copy the "Property ID" (it's a number like `123456789`)
 
-## Step 2: Install Dependencies
+## Step 4: Configure Environment Variables
 
-The project already includes the necessary dependencies, but if you're setting up from scratch:
+Add these variables to your `.env` file:
 
-```bash
-pip install python-dotenv
-```
-
-## Step 3: Environment Configuration
-
-1. Create a `.env` file in your project root (copy from `.env.example`):
-```bash
-cp .env.example .env
-```
-
-2. Edit the `.env` file with your Google Analytics settings:
 ```env
-# Google Analytics
+# Google Analytics Configuration
 GOOGLE_ANALYTICS_TRACKING_ID=G-XXXXXXXXXX
 GOOGLE_ANALYTICS_ENABLED=True
+
+# Google Analytics 4 API Configuration
+GOOGLE_ANALYTICS_PROPERTY_ID=123456789
+GOOGLE_ANALYTICS_CREDENTIALS_PATH=/path/to/your/service-account-key.json
 ```
 
-Replace `G-XXXXXXXXXX` with your actual Measurement ID from Google Analytics.
+Replace:
+- `G-XXXXXXXXXX` with your GA4 Measurement ID
+- `123456789` with your Analytics Property ID
+- `/path/to/your/service-account-key.json` with the actual path to your JSON key file
 
-## Step 4: Django Settings
+## Step 5: Grant Analytics Access
 
-The following settings have been added to `adulto/settings.py`:
+1. In Google Analytics, go to "Admin" > "Property Access Management"
+2. Click the "+" button to add users
+3. Add your service account email (found in the JSON key file)
+4. Grant "Viewer" permissions
 
-```python
-# Google Analytics Configuration
-GOOGLE_ANALYTICS_TRACKING_ID = os.getenv('GOOGLE_ANALYTICS_TRACKING_ID', '')
-GOOGLE_ANALYTICS_ENABLED = os.getenv('GOOGLE_ANALYTICS_ENABLED', 'False').lower() == 'true'
-```
-
-## Step 5: Template Integration
-
-### Base Template
-The Google Analytics tracking code is automatically included in `templates/site/base.html`:
-
-```html
-<!-- Google Analytics -->
-{% load analytics %}
-{% google_analytics %}
-```
-
-### Custom Event Tracking
-The project includes comprehensive event tracking for:
-
-#### Video Interactions
-- **Video Play**: When a video starts playing
-- **Video Pause**: When a video is paused
-- **Video Complete**: When a video finishes
-- **Video Like**: When a user likes a video
-- **Video Comment**: When a user comments on a video
-- **Video Click**: When a user clicks on a video thumbnail
-- **Fullscreen Events**: When entering/exiting fullscreen mode
-
-#### Event Categories
-All events are categorized as:
-- `engagement`: User interaction events
-
-## Step 6: Available Template Tags
-
-### Basic Tracking
-```html
-{% load analytics %}
-{% google_analytics %}
-```
-
-### Custom Events
-```html
-{% google_analytics_event 'event_name' 'category' 'label' %}
-```
-
-### Page Views
-```html
-{% google_analytics_page_view 'Page Title' 'https://example.com/page' %}
-```
-
-## Step 7: Testing Your Setup
+## Step 6: Test the Integration
 
 1. Start your Django development server:
-```bash
-python manage.py runserver
-```
+   ```bash
+   python manage.py runserver
+   ```
 
-2. Visit your website and perform actions that trigger events
-3. Check Google Analytics Real-time reports:
-   - Go to Google Analytics
-   - Navigate to Reports > Realtime
-   - You should see active users and events
+2. Go to your dashboard at `http://localhost:8000/dashboard/`
 
-## Step 8: Production Deployment
-
-1. Set environment variables in your production environment:
-```bash
-export GOOGLE_ANALYTICS_TRACKING_ID="G-XXXXXXXXXX"
-export GOOGLE_ANALYTICS_ENABLED="True"
-```
-
-2. Or add them to your production `.env` file
-
-## Event Tracking Details
-
-### Video Events
-| Event Name | Description | Parameters |
-|------------|-------------|------------|
-| `video_play` | Video starts playing | video_title, video_id |
-| `video_pause` | Video is paused | video_title, video_id |
-| `video_complete` | Video finishes | video_title, video_id |
-| `video_like` | User likes video | video_title, video_id |
-| `video_comment` | User comments | video_title, video_id |
-| `video_click` | User clicks video | video_title, video_id |
-| `video_fullscreen_enter` | Enters fullscreen | video_title, video_id |
-| `video_fullscreen_exit` | Exits fullscreen | video_title, video_id |
-
-### Custom Events
-You can add custom events anywhere in your templates:
-
-```html
-{% load analytics %}
-<button onclick="gtag('event', 'custom_event', {'event_category': 'engagement', 'event_label': 'button_click'});">
-    Click Me
-</button>
-```
+3. You should see:
+   - Google Analytics overview cards at the top
+   - Traffic sources chart
+   - Device category chart
+   - Top pages table
+   - Geographic data table
 
 ## Troubleshooting
 
-### Analytics Not Working
-1. Check that `GOOGLE_ANALYTICS_ENABLED=True` in your environment
-2. Verify your tracking ID is correct
-3. Check browser console for JavaScript errors
-4. Ensure the tracking code is loading in the page source
+### No Data Showing
+- Check that your service account has access to the Analytics property
+- Verify the Property ID is correct
+- Ensure the credentials file path is correct
+- Check Django logs for any API errors
 
-### Events Not Appearing
-1. Check Google Analytics Real-time reports
-2. Verify events are being triggered in browser console
-3. Wait 24-48 hours for data to appear in standard reports
+### API Errors
+- Make sure the Analytics Reporting API is enabled in Google Cloud Console
+- Verify the service account has the correct permissions
+- Check that the JSON key file is valid and not corrupted
 
-### Development vs Production
-- Analytics is disabled when `GOOGLE_ANALYTICS_ENABLED=False`
-- Use different tracking IDs for development and production
-- Test with Real-time reports before deploying
+### Caching Issues
+- The service caches data for performance (15-60 minutes)
+- Clear cache if you need fresh data: `python manage.py shell` then `from django.core.cache import cache; cache.clear()`
 
-## Advanced Configuration
+## Features Included
 
-### Enhanced Ecommerce (Optional)
-If you plan to add ecommerce features, you can extend the tracking:
+The integration provides:
 
-```html
-{% google_analytics_event 'purchase' 'ecommerce' 'product_name' %}
-```
+1. **Overview Statistics**: Sessions, Users, Page Views, Bounce Rate with period-over-period comparison
+2. **Traffic Sources**: Breakdown by channel (Organic, Direct, Social, etc.)
+3. **Top Pages**: Most viewed pages with page views and sessions
+4. **Geographic Data**: Top countries by sessions and users
+5. **Device Categories**: Desktop, Mobile, Tablet breakdown
+6. **Daily Traffic**: Time series data for charts
 
-### Custom Dimensions
-You can add custom dimensions in Google Analytics and track them:
+## Security Notes
 
-```javascript
-gtag('event', 'custom_event', {
-    'custom_parameter': 'value'
-});
-```
+- Never commit your service account JSON key to version control
+- Use environment variables for all sensitive configuration
+- Consider using a secrets management service in production
+- Regularly rotate your service account keys
 
-## Security Considerations
+## Performance
 
-1. Never commit your `.env` file to version control
-2. Use different tracking IDs for different environments
-3. Consider implementing consent management for GDPR compliance
-4. Regularly review and update your tracking implementation
-
-## Support
-
-For issues with this implementation, check:
-1. Django logs for template errors
-2. Browser console for JavaScript errors
-3. Google Analytics Real-time reports for data flow
-4. Google Analytics Help Center for GA4-specific issues
-
-## Files Modified
-
-- `adulto/settings.py` - Added GA configuration
-- `core/templatetags/analytics.py` - Created template tags
-- `templates/site/base.html` - Added tracking code
-- `templates/site/video_detail.html` - Added video event tracking
-- `templates/site/home.html` - Added video click tracking
-- `requirements.txt` - Added python-dotenv dependency
-- `.env.example` - Added environment variable examples
+- Data is cached for 15-60 minutes to reduce API calls
+- The service gracefully handles API failures
+- Empty data states are handled with user-friendly messages
