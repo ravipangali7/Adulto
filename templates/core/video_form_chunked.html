@@ -50,7 +50,12 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Video File *</label>
-                                    <input type="file" id="video-file-input" class="form-control" accept="video/*" required>
+                                    <div class="input-group">
+                                        <input type="file" id="video-file-input" class="form-control" accept="video/*" required>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="openVideoSelectionModal()">
+                                            <i class="fas fa-folder-open"></i> Select from Media Library
+                                        </button>
+                                    </div>
                                     <div class="form-text">
                                         <small class="text-muted">
                                             <i class="fas fa-info-circle"></i> 
@@ -208,6 +213,26 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Video Selection Modal -->
+<div class="modal fade" id="videoSelectionModal" tabindex="-1" aria-labelledby="videoSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="videoSelectionModalLabel">Select Video from Media Library</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="video-selection-grid">
+                    <!-- Videos will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
         </div>
     </div>
 </div>
@@ -446,6 +471,160 @@
     
     function generateFileId() {
         return 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    // Video Selection from Media Library
+    function openVideoSelectionModal() {
+        loadVideoSelection();
+        const modal = new bootstrap.Modal(document.getElementById('videoSelectionModal'));
+        modal.show();
+    }
+    
+    function loadVideoSelection() {
+        fetch('{% url "media_library" %}')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const videoGrid = doc.getElementById('video-grid');
+                
+                if (videoGrid) {
+                    document.getElementById('video-selection-grid').innerHTML = videoGrid.innerHTML;
+                    
+                    // Add click handlers for video selection
+                    document.querySelectorAll('#video-selection-grid .card').forEach(card => {
+                        card.style.cursor = 'pointer';
+                        card.addEventListener('click', function() {
+                            const filename = this.closest('[data-filename]').getAttribute('data-filename');
+                            selectVideoFromLibrary(filename);
+                        });
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading videos:', error);
+                alert('Error loading videos from media library');
+            });
+    }
+    
+    function selectVideoFromLibrary(filename) {
+        // Create a fake file input event with the selected video
+        const fileInput = document.getElementById('video-file-input');
+        
+        // Create a custom event to simulate file selection
+        const event = new Event('change', { bubbles: true });
+        
+        // Set the filename in a data attribute for reference
+        fileInput.setAttribute('data-selected-filename', filename);
+        
+        // Trigger the change event
+        fileInput.dispatchEvent(event);
+        
+        // Show a visual indicator that a video was selected
+        const inputGroup = fileInput.closest('.input-group');
+        const selectedIndicator = document.createElement('div');
+        selectedIndicator.className = 'form-text text-success';
+        selectedIndicator.innerHTML = `<i class="fas fa-check"></i> Selected: ${filename}`;
+        
+        // Remove any existing indicator
+        const existingIndicator = inputGroup.querySelector('.text-success');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+        
+        inputGroup.appendChild(selectedIndicator);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('videoSelectionModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+    
+    // Override the form submission to handle media library selection
+    const originalFormSubmit = form.addEventListener;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (uploadInProgress) {
+            alert('Upload in progress. Please wait...');
+            return false;
+        }
+        
+        const titleField = document.getElementById('id_title');
+        const slugField = document.getElementById('id_slug');
+        
+        // Basic validation
+        if (!titleField.value.trim()) {
+            alert('Please enter a video title');
+            titleField.focus();
+            return false;
+        }
+        
+        if (!slugField.value.trim()) {
+            alert('Please enter a video slug');
+            slugField.focus();
+            return false;
+        }
+        
+        // Check if a video is selected from media library
+        const selectedFilename = videoFileInput.getAttribute('data-selected-filename');
+        if (selectedFilename) {
+            // Handle media library selection
+            handleMediaLibrarySelection(selectedFilename);
+        } else if (!videoFileInput.files[0]) {
+            alert('Please select a video file or choose from media library');
+            return false;
+        } else {
+            // Handle regular file upload
+            startChunkedUpload();
+        }
+    });
+    
+    function handleMediaLibrarySelection(filename) {
+        // Create a Video object with the selected file from media library
+        const formData = new FormData();
+        formData.append('title', document.getElementById('id_title').value);
+        formData.append('slug', document.getElementById('id_slug').value);
+        formData.append('description', document.getElementById('id_description').value);
+        formData.append('selected_filename', filename);
+        
+        // Add categories
+        const categoryCheckboxes = document.querySelectorAll('input[name="category"]:checked');
+        categoryCheckboxes.forEach(checkbox => {
+            formData.append('categories', checkbox.value);
+        });
+        
+        // Add tags
+        const tagCheckboxes = document.querySelectorAll('input[name="tags"]:checked');
+        tagCheckboxes.forEach(checkbox => {
+            formData.append('tags', checkbox.value);
+        });
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating Video...';
+        
+        fetch('{% url "video_create" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '{% url "video_list" %}';
+            } else {
+                throw new Error('Failed to create video');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating video. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Video';
+        });
     }
 })();
 </script>

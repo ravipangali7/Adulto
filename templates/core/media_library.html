@@ -1,0 +1,367 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Media Library</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="fas fa-plus"></i> Add Video
+        </button>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Videos in Media Library</h5>
+                </div>
+                <div class="card-body">
+                    {% if videos %}
+                        <div class="row" id="video-grid">
+                            {% for video in videos %}
+                                <div class="col-md-3 col-sm-6 mb-4" data-filename="{{ video.filename }}">
+                                    <div class="card h-100">
+                                        <div class="position-relative">
+                                            <img src="{% url 'media_library_thumbnail' video.filename %}" 
+                                                 class="card-img-top" 
+                                                 alt="{{ video.filename }}"
+                                                 style="height: 200px; object-fit: cover;"
+                                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4='">
+                                            <div class="position-absolute top-0 end-0 p-2">
+                                                <button class="btn btn-sm btn-danger" 
+                                                        onclick="deleteVideo('{{ video.filename }}')"
+                                                        title="Delete Video">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            <div class="position-absolute bottom-0 start-0 end-0 p-2 bg-dark bg-opacity-75">
+                                                <small class="text-white">
+                                                    <i class="fas fa-clock"></i> {{ video.duration|floatformat:0 }}s
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title text-truncate" title="{{ video.filename }}">
+                                                {{ video.filename }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                <i class="fas fa-hdd"></i> {{ video.file_size }} MB
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No videos in media library</h5>
+                            <p class="text-muted">Upload your first video to get started</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                                <i class="fas fa-plus"></i> Add Video
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload Video to Media Library</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="media-upload-form">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="media-video-file" class="form-label">Select Video File</label>
+                        <input type="file" id="media-video-file" class="form-control" accept="video/*" required>
+                        <div class="form-text">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                Maximum file size: 1GB. Large files will be uploaded in chunks automatically.
+                            </small>
+                        </div>
+                        
+                        <!-- Upload Progress Bar -->
+                        <div id="media-upload-progress" class="mt-3" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Uploading...</small>
+                                <small id="media-progress-percentage" class="text-primary fw-bold">0%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div id="media-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                     role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small id="media-uploaded-size" class="text-muted">0 MB</small>
+                                <small id="media-total-size" class="text-muted">0 MB</small>
+                            </div>
+                            <div id="media-upload-status" class="text-center mt-2">
+                                <small class="text-muted">Preparing upload...</small>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="media-upload-btn" onclick="startMediaUpload()">
+                    <i class="fas fa-upload"></i> Upload Video
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Selection Modal -->
+<div class="modal fade" id="videoSelectionModal" tabindex="-1" aria-labelledby="videoSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="videoSelectionModalLabel">Select Video from Media Library</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="video-selection-grid">
+                    <!-- Videos will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Media Library Upload System
+let mediaUploadInProgress = false;
+let currentMediaFile = null;
+let mediaFileId = null;
+
+function startMediaUpload() {
+    const fileInput = document.getElementById('media-video-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Please select a video file');
+        return;
+    }
+    
+    currentMediaFile = file;
+    mediaFileId = generateFileId();
+    
+    // Show progress bar
+    const progressContainer = document.getElementById('media-upload-progress');
+    const uploadBtn = document.getElementById('media-upload-btn');
+    
+    progressContainer.style.display = 'block';
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    mediaUploadInProgress = true;
+    
+    // Update file size info
+    const fileSizeMB = (currentMediaFile.size / (1024 * 1024)).toFixed(1);
+    document.getElementById('media-total-size').textContent = fileSizeMB + ' MB';
+    document.getElementById('media-uploaded-size').textContent = '0 MB';
+    document.getElementById('media-progress-percentage').textContent = '0%';
+    document.getElementById('media-upload-status').textContent = 'Preparing upload...';
+    
+    // Reset progress bar
+    const progressBar = document.getElementById('media-progress-bar');
+    progressBar.style.width = '0%';
+    progressBar.setAttribute('aria-valuenow', '0');
+    progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated bg-primary';
+    
+    // Start uploading chunks
+    uploadMediaChunks();
+}
+
+function uploadMediaChunks() {
+    const chunkSize = 1024 * 1024; // 1MB chunks
+    const totalChunks = Math.ceil(currentMediaFile.size / chunkSize);
+    let uploadedChunks = 0;
+    
+    document.getElementById('media-upload-status').textContent = `Uploading ${totalChunks} chunks...`;
+    
+    function uploadChunk(chunkIndex) {
+        if (chunkIndex >= totalChunks) {
+            // All chunks uploaded
+            document.getElementById('media-upload-status').textContent = 'Finalizing upload...';
+            return;
+        }
+        
+        const start = chunkIndex * chunkSize;
+        const end = Math.min(start + chunkSize, currentMediaFile.size);
+        const chunk = currentMediaFile.slice(start, end);
+        
+        const formData = new FormData();
+        formData.append('chunk', chunk);
+        formData.append('chunk_number', chunkIndex);
+        formData.append('total_chunks', totalChunks);
+        formData.append('file_id', mediaFileId);
+        formData.append('file_name', currentMediaFile.name);
+        formData.append('file_size', currentMediaFile.size);
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "media_library_upload" %}', true);
+        xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                
+                if (response.status === 'complete') {
+                    // Upload completed successfully
+                    const progressBar = document.getElementById('media-progress-bar');
+                    progressBar.classList.remove('progress-bar-animated');
+                    progressBar.classList.add('bg-success');
+                    document.getElementById('media-upload-status').textContent = 'Upload completed!';
+                    document.getElementById('media-upload-status').className = 'text-success text-center mt-2';
+                    
+                    // Refresh the page to show new video
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else if (response.status === 'chunk_received') {
+                    // Chunk uploaded successfully, continue with next chunk
+                    uploadedChunks++;
+                    const progress = Math.round((uploadedChunks / totalChunks) * 100);
+                    
+                    const progressBar = document.getElementById('media-progress-bar');
+                    progressBar.style.width = progress + '%';
+                    progressBar.setAttribute('aria-valuenow', progress);
+                    document.getElementById('media-progress-percentage').textContent = progress + '%';
+                    
+                    const uploadedMB = ((uploadedChunks * chunkSize) / (1024 * 1024)).toFixed(1);
+                    document.getElementById('media-uploaded-size').textContent = uploadedMB + ' MB';
+                    
+                    document.getElementById('media-upload-status').textContent = `Uploading chunk ${uploadedChunks + 1} of ${totalChunks}...`;
+                    
+                    // Upload next chunk
+                    setTimeout(() => uploadChunk(chunkIndex + 1), 100);
+                }
+            } else {
+                // Error occurred
+                handleMediaUploadError('Upload failed. Please try again.');
+            }
+        };
+        
+        xhr.onerror = function() {
+            handleMediaUploadError('Upload failed. Please check your connection.');
+        };
+        
+        xhr.send(formData);
+    }
+    
+    // Start uploading first chunk
+    uploadChunk(0);
+}
+
+function handleMediaUploadError(message) {
+    const progressBar = document.getElementById('media-progress-bar');
+    progressBar.classList.remove('progress-bar-animated');
+    progressBar.classList.add('bg-danger');
+    document.getElementById('media-upload-status').textContent = message;
+    document.getElementById('media-upload-status').className = 'text-danger text-center mt-2';
+    
+    const uploadBtn = document.getElementById('media-upload-btn');
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Video';
+    mediaUploadInProgress = false;
+}
+
+function deleteVideo(filename) {
+    if (confirm(`Are you sure you want to delete "${filename}"?`)) {
+        const formData = new FormData();
+        formData.append('filename', filename);
+        
+        fetch('{% url "media_library_delete" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Remove video card from DOM
+                const videoCard = document.querySelector(`[data-filename="${filename}"]`);
+                if (videoCard) {
+                    videoCard.remove();
+                }
+                
+                // Show success message
+                alert(data.message);
+                
+                // If no videos left, show empty state
+                const videoGrid = document.getElementById('video-grid');
+                if (videoGrid && videoGrid.children.length === 0) {
+                    location.reload();
+                }
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting video. Please try again.');
+        });
+    }
+}
+
+function generateFileId() {
+    return 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Function to load videos for selection modal (used by video forms)
+function loadVideoSelection() {
+    fetch('{% url "media_library" %}')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const videoGrid = doc.getElementById('video-grid');
+            
+            if (videoGrid) {
+                document.getElementById('video-selection-grid').innerHTML = videoGrid.innerHTML;
+                
+                // Add click handlers for video selection
+                document.querySelectorAll('#video-selection-grid .card').forEach(card => {
+                    card.style.cursor = 'pointer';
+                    card.addEventListener('click', function() {
+                        const filename = this.closest('[data-filename]').getAttribute('data-filename');
+                        selectVideoFromLibrary(filename);
+                    });
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading videos:', error);
+        });
+}
+
+// Function to select video from library (used by video forms)
+function selectVideoFromLibrary(filename) {
+    // This function will be called from video forms
+    if (window.selectVideoCallback) {
+        window.selectVideoCallback(filename);
+    }
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('videoSelectionModal'));
+    if (modal) {
+        modal.hide();
+    }
+}
+</script>
+{% endblock %}
