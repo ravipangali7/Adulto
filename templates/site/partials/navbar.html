@@ -1,6 +1,6 @@
 <!-- Navigation Bar -->
 <nav class="bg-grey-custom border-b border-gray-600 flex sticky top-16 z-30" style="height: var(--navbar-height);">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div class="flex items-center justify-between h-full">
             <!-- Desktop Navigation -->
             <div class="hidden md:flex items-center space-x-8">
@@ -68,3 +68,108 @@
         </div>
     </div>
 </nav>
+
+<!-- Tags Sub-Navbar -->
+<div class="bg-gray-800 border-b border-gray-700 sticky z-20" style="top: calc(var(--header-height) + var(--navbar-height));">
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center py-3">
+            <!-- Tags Scroll Container -->
+            <div class="flex-1 overflow-x-auto scrollbar-hide">
+                <div class="flex space-x-3 pb-1">
+                    <!-- All Tags Link -->
+                    <a href="{% url 'tags' %}" class="flex-shrink-0 bg-primary-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-gold-light transition-colors duration-200 whitespace-nowrap">
+                        All Tags
+                    </a>
+                    
+                    <!-- Popular Tags -->
+                    {% for tag in popular_tags %}
+                    <a href="{% url 'videos' %}?tag={{ tag.slug }}" class="flex-shrink-0 bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-gold hover:text-black transition-colors duration-200 whitespace-nowrap">
+                        #{{ tag.name }}
+                    </a>
+                    {% endfor %}
+                    
+                    <!-- Show more tags if there are many -->
+                    {% if tags_count > 10 %}
+                    <a href="{% url 'tags' %}" class="flex-shrink-0 bg-gray-600 text-gray-300 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-500 transition-colors duration-200 whitespace-nowrap">
+                        +{{ tags_count|add:"-10" }} more
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Scroll Indicators -->
+            <div class="flex items-center ml-4 space-x-2">
+                <button id="scroll-left" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <button id="scroll-right" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Hide scrollbar for tags container */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar { 
+    display: none;  /* Safari and Chrome */
+}
+
+/* Smooth scrolling */
+.scrollbar-hide {
+    scroll-behavior: smooth;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollContainer = document.querySelector('.scrollbar-hide');
+    const scrollLeftBtn = document.getElementById('scroll-left');
+    const scrollRightBtn = document.getElementById('scroll-right');
+    
+    if (scrollContainer && scrollLeftBtn && scrollRightBtn) {
+        // Scroll left
+        scrollLeftBtn.addEventListener('click', function() {
+            scrollContainer.scrollBy({
+                left: -200,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Scroll right
+        scrollRightBtn.addEventListener('click', function() {
+            scrollContainer.scrollBy({
+                left: 200,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Show/hide scroll buttons based on scroll position
+        function updateScrollButtons() {
+            const isAtStart = scrollContainer.scrollLeft <= 0;
+            const isAtEnd = scrollContainer.scrollLeft >= (scrollContainer.scrollWidth - scrollContainer.clientWidth);
+            
+            scrollLeftBtn.style.opacity = isAtStart ? '0.5' : '1';
+            scrollRightBtn.style.opacity = isAtEnd ? '0.5' : '1';
+            
+            scrollLeftBtn.disabled = isAtStart;
+            scrollRightBtn.disabled = isAtEnd;
+        }
+        
+        // Update buttons on scroll
+        scrollContainer.addEventListener('scroll', updateScrollButtons);
+        
+        // Initial update
+        updateScrollButtons();
+    }
+});
+</script>

@@ -33,7 +33,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Videos Grid (80% on desktop, 100% on mobile) -->
         <div class="w-full lg:w-4/5 order-1 lg:order-2">
@@ -47,7 +47,8 @@
             {% if videos %}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {% for video in videos %}
-                    {% include 'site/partials/video_card.html' with video=video %}
+
+                {% include 'site/partials/video_card.html' with video=video %}
                 {% endfor %}
             </div>
             
