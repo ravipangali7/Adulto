@@ -76,6 +76,11 @@ def video_detail(request, slug):
         is_active=True
     ).exclude(id=video.id).distinct()
     
+    # Get popular videos for sidebar (top 6 by views)
+    popular_videos = Video.objects.filter(
+        is_active=True
+    ).exclude(id=video.id).order_by('-views')[:6]
+    
     # Get approved comments
     comments = Comment.objects.filter(video=video, is_approved=True).select_related('user')
     
@@ -85,6 +90,7 @@ def video_detail(request, slug):
     context = {
         'video': video,
         'related_videos': related_videos,
+        'popular_videos': popular_videos,
         'comments': comments,
         'comment_form': comment_form,
     }
