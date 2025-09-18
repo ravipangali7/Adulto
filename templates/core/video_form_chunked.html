@@ -473,14 +473,14 @@
         return 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
     
-    // Video Selection from Media Library
-    function openVideoSelectionModal() {
+    // Video Selection from Media Library - Make functions global
+    window.openVideoSelectionModal = function() {
         loadVideoSelection();
         const modal = new bootstrap.Modal(document.getElementById('videoSelectionModal'));
         modal.show();
-    }
+    };
     
-    function loadVideoSelection() {
+    window.loadVideoSelection = function() {
         fetch('{% url "media_library" %}')
             .then(response => response.text())
             .then(html => {
@@ -505,9 +505,9 @@
                 console.error('Error loading videos:', error);
                 alert('Error loading videos from media library');
             });
-    }
+    };
     
-    function selectVideoFromLibrary(filename) {
+    window.selectVideoFromLibrary = function(filename) {
         // Create a fake file input event with the selected video
         const fileInput = document.getElementById('video-file-input');
         
@@ -539,7 +539,7 @@
         if (modal) {
             modal.hide();
         }
-    }
+    };
     
     // Override the form submission to handle media library selection
     const originalFormSubmit = form.addEventListener;
