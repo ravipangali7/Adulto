@@ -38,6 +38,12 @@ urlpatterns = [
 	path('upload-chunk/', views.upload_chunk, name='upload_chunk'),
 	path('check-progress/', views.check_upload_progress, name='check_upload_progress'),
 	path('test-upload/', views.test_upload, name='test_upload'),
+	
+	# Media Library
+	path('media-library/', views.media_library, name='media_library'),
+	path('media-library/upload/', views.media_library_upload, name='media_library_upload'),
+	path('media-library/delete/', views.media_library_delete, name='media_library_delete'),
+	path('media-library/thumbnail/<str:filename>/', views.media_library_thumbnail, name='media_library_thumbnail'),
 
 	# CMS CRUD
 	path('cms/', views.cms_list, name='cms_list'),
@@ -64,6 +70,11 @@ urlpatterns = [
 	path('users/<int:pk>/', views.user_detail, name='user_detail'),
 	path('users/<int:pk>/edit/', views.user_update, name='user_update'),
 	path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
+
+	# Analytics Pages
+	path('google-analytics/', views.google_analytics, name='google_analytics'),
+	path('video-reports/', views.video_reports, name='video_reports'),
+	path('api/video-analytics/<int:video_id>/', views.video_analytics_api, name='video_analytics_api'),
 
 	# Sitemap
 	path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

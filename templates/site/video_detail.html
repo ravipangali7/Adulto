@@ -145,11 +145,39 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    
+    /* Popular Videos Sidebar Styles */
+    .popular-video-item {
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        padding: 8px;
+    }
+    
+    .popular-video-item:hover {
+        background-color: rgba(255, 215, 0, 0.1);
+        transform: translateX(4px);
+    }
+    
+    .popular-video-thumbnail {
+        transition: transform 0.2s ease;
+    }
+    
+    .popular-video-item:hover .popular-video-thumbnail {
+        transform: scale(1.05);
+    }
+    
+    .popular-video-title {
+        transition: color 0.2s ease;
+    }
+    
+    .popular-video-item:hover .popular-video-title {
+        color: #FFD700 !important;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Video Content -->
         <div class="lg:col-span-2">
@@ -192,37 +220,40 @@
                 <h1 class="text-2xl font-bold text-white mb-4">{{ video.title }}</h1>
                 
                 <!-- Video Stats -->
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-6 text-sm text-gray-400">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-3 sm:space-y-0">
+                    <!-- Stats Row -->
+                    <div class="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-gray-400">
                         <span class="flex items-center">
-                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-4 w-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
-                            {{ video.views }} views
+                            <span class="whitespace-nowrap">{{ video.views }} views</span>
                         </span>
                         <span class="flex items-center">
-                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-4 w-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                             </svg>
-                            {{ video.likes }} likes
+                            <span class="whitespace-nowrap">{{ video.likes }} likes</span>
                         </span>
                         <span class="flex items-center">
-                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-4 w-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                             </svg>
-                            {{ comments.count }} comments
+                            <span class="whitespace-nowrap">{{ comments.count }} comments</span>
                         </span>
-                        <span>{{ video.created_at|date:"M d, Y" }}</span>
+                        <span class="text-xs sm:text-sm whitespace-nowrap">{{ video.created_at|date:"M d, Y" }}</span>
                     </div>
                     
                     <!-- Like Button -->
-                    <button id="like-btn" class="btn-outline-gold px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-gold hover:text-black transition-colors duration-200" data-video-id="{{ video.id }}">
-                        <svg class="h-4 w-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                        </svg>
-                        <span id="like-text">Like</span>
-                    </button>
+                    <div class="flex justify-center sm:justify-end">
+                        <button id="like-btn" class="btn-outline-gold px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-gold hover:text-black transition-colors duration-200 flex items-center" data-video-id="{{ video.id }}">
+                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                            </svg>
+                            <span id="like-text">Like</span>
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Uploader Info -->
@@ -257,7 +288,7 @@
                 {% endif %}
                 
                 <!-- Categories and Tags -->
-                <div class="flex flex-wrap gap-2">
+                {% comment %} <div class="flex flex-wrap gap-2">
                     {% for category in video.category.all %}
                     <span class="bg-primary-gold text-black text-xs px-3 py-1 rounded-full">
                         {{ category.name }}
@@ -268,7 +299,7 @@
                         #{{ tag.name }}
                     </span>
                     {% endfor %}
-                </div>
+                </div> {% endcomment %}
             </div>
             
             <!-- Show Comments Button -->
@@ -361,32 +392,97 @@
             </div>
         </div>
         
-        <!-- Sidebar - Ad Space -->
+        <!-- Sidebar - Popular Videos -->
         <div class="lg:col-span-1">
-            <!-- Ad Space Placeholder -->
+            <!-- Popular Videos Section -->
             <div class="bg-grey-custom rounded-lg p-6 mb-6">
-                <div class="text-center py-12">
-                    <div class="w-16 h-16 bg-gray-600 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                        <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-9 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4h6"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-white font-semibold mb-2">Advertisement Space</h3>
-                    <p class="text-gray-400 text-sm">Ad content will appear here</p>
+                <div class="flex items-center mb-4">
+                    <svg class="h-5 w-5 text-primary-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <h3 class="text-white font-semibold text-lg">Popular Videos</h3>
                 </div>
-            </div>
-            
-            <!-- Additional Ad Space -->
-            <div class="bg-grey-custom rounded-lg p-6">
+                
+                {% if popular_videos %}
+                <div class="space-y-2">
+                    {% for popular_video in popular_videos|slice:":6" %}
+                    <div class="popular-video-item">
+                        <a href="{{ popular_video.get_absolute_url }}" class="block">
+                            <div class="flex space-x-3">
+                                <!-- Video Thumbnail -->
+                                <div class="relative flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden popular-video-thumbnail">
+                                    {% if popular_video.thumbnail %}
+                                    <img src="{{ popular_video.thumbnail.url }}" alt="{{ popular_video.title }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <div class="w-full h-full bg-gray-600 flex items-center justify-center">
+                                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Duration Badge -->
+                                    <div class="absolute bottom-1 right-1 bg-black bg-opacity-80 text-white text-xs px-1 py-0.5 rounded text-xs">
+                                        {{ popular_video.get_duration_display }}
+                                    </div>
+                                    
+                                    <!-- Play Button Overlay -->
+                                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                        <div class="w-6 h-6 bg-primary-gold rounded-full flex items-center justify-center">
+                                            <svg class="h-3 w-3 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M8 5v14l11-7z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Video Info -->
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="popular-video-title text-white font-medium text-sm line-clamp-2 mb-1">
+                                        {{ popular_video.title }}
+                                    </h4>
+                                    <div class="flex items-center text-xs text-gray-400 mb-1">
+                                        <span class="flex items-center mr-3">
+                                            <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            {{ popular_video.views|floatformat:0 }}
+                                        </span>
+                                        <span class="flex items-center">
+                                            <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                            </svg>
+                                            {{ popular_video.likes|floatformat:0 }}
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-500 text-xs">{{ popular_video.uploader.name|default:"Anonymous" }}</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- View All Popular Videos Link -->
+                <div class="mt-4 pt-4 border-t border-gray-600">
+                    <a href="{% url 'popular' %}" class="block text-center text-primary-gold hover:text-primary-gold-light text-sm font-medium transition-colors duration-200">
+                        View All Popular Videos
+                        <svg class="h-4 w-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+                
+                {% else %}
+                <!-- No Popular Videos State -->
                 <div class="text-center py-8">
-                    <div class="w-12 h-12 bg-gray-600 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-9 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2M9 4h6"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-white font-medium mb-1">Ad Space</h4>
-                    <p class="text-gray-400 text-xs">Advertisement</p>
+                    <svg class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <p class="text-gray-400 text-sm">No popular videos available</p>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>

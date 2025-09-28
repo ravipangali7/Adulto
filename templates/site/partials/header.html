@@ -1,6 +1,6 @@
 <!-- Header Section -->
 <header class="bg-darker-custom border-b border-gray-700 sticky flex top-0 z-40" style="height: var(--header-height);">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div class="flex justify-between items-center h-full">
             <!-- Logo -->
             <div class="flex-shrink-0">
@@ -39,7 +39,7 @@
             </div>
             
             <!-- Authentication Buttons -->
-            <div class="flex items-center space-x-2 sm:space-x-4">
+            {% comment %} <div class="flex items-center space-x-2 sm:space-x-4">
                 {% if request.user.is_authenticated and request.user.name %}
                     <!-- User is logged in - show profile and logout -->
                     <div class="flex items-center space-x-2 sm:space-x-4">
@@ -65,7 +65,7 @@
                         Sign Up
                     </a>
                 {% endif %}
-            </div>
+            </div> {% endcomment %}
         </div>
         
         <!-- Mobile Search Bar -->

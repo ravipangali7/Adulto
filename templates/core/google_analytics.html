@@ -1,0 +1,671 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header with Date Range Filter -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="align-middle me-2" data-feather="bar-chart-2"></i>
+            <strong>Google Analytics</strong> Dashboard
+        </h1>
+        <div class="d-flex align-items-center gap-3">
+            <!-- Date Range Filter -->
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dateRangeDropdown" data-bs-toggle="dropdown">
+                    <i class="align-middle me-2" data-feather="calendar"></i>
+                    {{ current_range_label }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item {% if current_range == '1' %}active{% endif %}" href="?range=1">Today</a></li>
+                    <li><a class="dropdown-item {% if current_range == '2' %}active{% endif %}" href="?range=2">Yesterday</a></li>
+                    <li><a class="dropdown-item {% if current_range == '7' %}active{% endif %}" href="?range=7">Last 7 Days</a></li>
+                    <li><a class="dropdown-item {% if current_range == '30' %}active{% endif %}" href="?range=30">Last 30 Days</a></li>
+                    <li><a class="dropdown-item {% if current_range == '365' %}active{% endif %}" href="?range=365">Last Year</a></li>
+                    <li><a class="dropdown-item {% if current_range == 'all' %}active{% endif %}" href="?range=all">All Time</a></li>
+                </ul>
+            </div>
+            
+            <a href="{% url 'video_reports' %}" class="btn btn-outline-secondary">
+                <i class="align-middle me-2" data-feather="file-text"></i>
+                Video Reports
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="align-middle me-2" data-feather="home"></i>
+                Main Dashboard
+            </a>
+        </div>
+    </div>
+
+    {% if not ga_available %}
+    <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading">
+            <i class="align-middle me-2" data-feather="alert-triangle"></i>
+            Google Analytics Not Configured
+        </h4>
+        <p>To view Google Analytics data, you need to configure the integration first.</p>
+        <hr>
+        <p class="mb-0">
+            <strong>Setup Steps:</strong><br>
+            1. Create a Google Cloud service account<br>
+            2. Enable Analytics Reporting API<br>
+            3. Add credentials to your .env file<br>
+            4. See <code>GOOGLE_ANALYTICS_SETUP.md</code> for detailed instructions
+        </p>
+    </div>
+    {% else %}
+
+    <!-- Overview Statistics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Sessions</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-primary">
+                                <i class="align-middle" data-feather="users"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.sessions.value|floatformat:0 }}</h1>
+                    <div class="mb-0">
+                        <span class="{% if ga_overview.sessions.change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="mdi mdi-arrow-{% if ga_overview.sessions.change >= 0 %}top{% else %}bottom{% endif %}-right"></i> 
+                            {{ ga_overview.sessions.change|floatformat:1 }}% vs previous period
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Users</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-info">
+                                <i class="align-middle" data-feather="user"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.users.value|floatformat:0 }}</h1>
+                    <div class="mb-0">
+                        <span class="{% if ga_overview.users.change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="mdi mdi-arrow-{% if ga_overview.users.change >= 0 %}top{% else %}bottom{% endif %}-right"></i> 
+                            {{ ga_overview.users.change|floatformat:1 }}% vs previous period
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Page Views</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-success">
+                                <i class="align-middle" data-feather="eye"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.page_views.value|floatformat:0 }}</h1>
+                    <div class="mb-0">
+                        <span class="{% if ga_overview.page_views.change >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="mdi mdi-arrow-{% if ga_overview.page_views.change >= 0 %}top{% else %}bottom{% endif %}-right"></i> 
+                            {{ ga_overview.page_views.change|floatformat:1 }}% vs previous period
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Bounce Rate</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-warning">
+                                <i class="align-middle" data-feather="trending-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.bounce_rate.value|floatformat:1 }}%</h1>
+                    <div class="mb-0">
+                        <span class="{% if ga_overview.bounce_rate.change <= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <i class="mdi mdi-arrow-{% if ga_overview.bounce_rate.change <= 0 %}top{% else %}bottom{% endif %}-right"></i> 
+                            {{ ga_overview.bounce_rate.change|floatformat:1 }}% vs previous period
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Traffic Sources Chart -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Traffic Sources ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_traffic_sources %}
+                        <div class="chart chart-sm">
+                            <canvas id="trafficSourcesChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="bar-chart" style="width: 48px; height: 48px;"></i>
+                            <p>No traffic source data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Device Category Chart -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Device Categories ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_device_data %}
+                        <div class="chart chart-sm">
+                            <canvas id="deviceChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="smartphone" style="width: 48px; height: 48px;"></i>
+                            <p>No device data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Traffic Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Daily Traffic Trends ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_daily_traffic %}
+                        <div class="chart chart-sm">
+                            <canvas id="dailyTrafficChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="trending-up" style="width: 48px; height: 48px;"></i>
+                            <p>No daily traffic data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Data Tables Row -->
+    <div class="row mb-4">
+        <!-- Detailed Traffic Sources -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Detailed Traffic Sources ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_detailed_traffic %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Channel</th>
+                                        <th>Source</th>
+                                        <th>Medium</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                        <th>Bounce Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for source in ga_detailed_traffic %}
+                                    <tr>
+                                        <td><span class="badge bg-primary">{{ source.channel }}</span></td>
+                                        <td><small>{{ source.source|truncatechars:20 }}</small></td>
+                                        <td><small>{{ source.medium|truncatechars:15 }}</small></td>
+                                        <td><span class="badge bg-info">{{ source.sessions }}</span></td>
+                                        <td><span class="badge bg-success">{{ source.users }}</span></td>
+                                        <td><span class="badge bg-warning">{{ source.bounce_rate }}%</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="bar-chart" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No detailed traffic data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Geographic Data -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Geographic Data ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_enhanced_geo %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Country</th>
+                                        <th>City</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                        <th>Page Views</th>
+                                        <th>Bounce Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for geo in ga_enhanced_geo %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <strong>{{ geo.country }}</strong>
+                                                    {% if geo.region %}<br><small class="text-muted">{{ geo.region }}</small>{% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><small>{{ geo.city|truncatechars:15 }}</small></td>
+                                        <td><span class="badge bg-info">{{ geo.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ geo.users }}</span></td>
+                                        <td><span class="badge bg-success">{{ geo.page_views }}</span></td>
+                                        <td><span class="badge bg-warning">{{ geo.bounce_rate }}%</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="globe" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No geographic data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Views and Events Row -->
+    <div class="row mb-4">
+        <!-- Page Views Breakdown -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Page Views Breakdown ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_page_views_breakdown %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Page</th>
+                                        <th>Page Views</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                        <th>Bounce Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for page in ga_page_views_breakdown %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <strong class="text-truncate" style="max-width: 200px;">{{ page.title|truncatechars:30 }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ page.path|truncatechars:40 }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-info">{{ page.page_views }}</span></td>
+                                        <td><span class="badge bg-primary">{{ page.sessions }}</span></td>
+                                        <td><span class="badge bg-success">{{ page.users }}</span></td>
+                                        <td><span class="badge bg-warning">{{ page.bounce_rate }}%</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="file-text" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No page views data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Data -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Events ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_events %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Event Name</th>
+                                        <th>Event Count</th>
+                                        <th>Unique Users</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in ga_events %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <strong>{{ event.event_name }}</strong>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-info">{{ event.event_count }}</span></td>
+                                        <td><span class="badge bg-primary">{{ event.unique_users }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="activity" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No events data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Pages (Legacy) -->
+    <div class="row">
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Pages ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_top_pages %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Page</th>
+                                        <th>Page Views</th>
+                                        <th>Sessions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for page in ga_top_pages %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <strong class="text-truncate" style="max-width: 200px;">{{ page.title|truncatechars:40 }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ page.path|truncatechars:50 }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-info">{{ page.page_views }}</span></td>
+                                        <td><span class="badge bg-primary">{{ page.sessions }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="file-text" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No page data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Geographic Data (Legacy) -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Countries ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_geographic_data %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Country</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for geo in ga_geographic_data %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <strong>{{ geo.country }}</strong>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="badge bg-info">{{ geo.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ geo.users }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="globe" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No geographic data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    {% if ga_available %}
+    // Traffic Sources Chart
+    {% if ga_traffic_sources %}
+    const trafficSourcesData = {
+        labels: [
+            {% for source in ga_traffic_sources %}
+                '{{ source.source }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for source in ga_traffic_sources %}
+                    {{ source.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const trafficSourcesCtx = document.getElementById('trafficSourcesChart').getContext('2d');
+    new Chart(trafficSourcesCtx, {
+        type: 'doughnut',
+        data: trafficSourcesData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Device Category Chart
+    {% if ga_device_data %}
+    const deviceData = {
+        labels: ['Desktop', 'Mobile', 'Tablet'],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {{ ga_device_data.desktop }},
+                {{ ga_device_data.mobile }},
+                {{ ga_device_data.tablet }}
+            ],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 205, 86, 0.8)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 205, 86, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+    new Chart(deviceCtx, {
+        type: 'pie',
+        data: deviceData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Daily Traffic Chart
+    {% if ga_daily_traffic %}
+    const dailyTrafficData = {
+        labels: [
+            {% for day in ga_daily_traffic %}
+                '{{ day.date|slice:"5:" }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for day in ga_daily_traffic %}
+                    {{ day.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Users',
+            data: [
+                {% for day in ga_daily_traffic %}
+                    {{ day.users }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Page Views',
+            data: [
+                {% for day in ga_daily_traffic %}
+                    {{ day.page_views }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    };
+
+    const dailyTrafficCtx = document.getElementById('dailyTrafficChart').getContext('2d');
+    new Chart(dailyTrafficCtx, {
+        type: 'line',
+        data: dailyTrafficData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+    {% endif %}
+    {% endif %}
+</script>
+{% endblock %}

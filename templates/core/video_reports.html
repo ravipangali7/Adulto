@@ -1,0 +1,510 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="align-middle me-2" data-feather="file-text"></i>
+            <strong>Video Reports</strong>
+        </h1>
+        <div>
+            <a href="{% url 'google_analytics' %}" class="btn btn-outline-primary">
+                <i class="align-middle me-2" data-feather="bar-chart-2"></i>
+                Google Analytics
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="align-middle me-2" data-feather="home"></i>
+                Main Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Video Selection -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="align-middle me-2" data-feather="video"></i>
+                        Select Video for Analytics Report
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <select class="form-select" id="videoSelect" onchange="loadVideoReport()">
+                                <option value="">Choose a video to view analytics...</option>
+                                {% for video in videos %}
+                                <option value="{{ video.id }}" data-title="{{ video.title }}">
+                                    {{ video.title|truncatechars:60 }} ({{ video.views }} views, {{ video.likes }} likes)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="loadVideoReport()" disabled id="loadReportBtn">
+                                <i class="align-middle me-2" data-feather="bar-chart"></i>
+                                Load Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Report Content -->
+    <div id="videoReportContent" style="display: none;">
+        <!-- Video Info Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="align-middle me-2" data-feather="info"></i>
+                            Video Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div id="videoThumbnail" class="text-center">
+                                    <!-- Video thumbnail will be loaded here -->
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <h4 id="videoTitle" class="mb-2"></h4>
+                                <p id="videoDescription" class="text-muted mb-3"></p>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="align-middle me-2" data-feather="eye"></i>
+                                            <span><strong id="videoViews">0</strong> Views</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="align-middle me-2" data-feather="heart"></i>
+                                            <span><strong id="videoLikes">0</strong> Likes</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="align-middle me-2" data-feather="message-circle"></i>
+                                            <span><strong id="videoComments">0</strong> Comments</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="align-middle me-2" data-feather="calendar"></i>
+                                            <span id="videoDate">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col mt-0">
+                                <h5 class="card-title">Total Views</h5>
+                            </div>
+                            <div class="col-auto">
+                                <div class="stat text-primary">
+                                    <i class="align-middle" data-feather="eye"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <h1 class="mt-1 mb-3" id="totalViews">0</h1>
+                        <div class="mb-0">
+                            <span class="text-muted">All time views</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col mt-0">
+                                <h5 class="card-title">Peak Day Views</h5>
+                            </div>
+                            <div class="col-auto">
+                                <div class="stat text-info">
+                                    <i class="align-middle" data-feather="trending-up"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <h1 class="mt-1 mb-3" id="peakDayViews">0</h1>
+                        <div class="mb-0">
+                            <span class="text-muted">Highest single day</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col mt-0">
+                                <h5 class="card-title">Avg Views/Day</h5>
+                            </div>
+                            <div class="col-auto">
+                                <div class="stat text-success">
+                                    <i class="align-middle" data-feather="bar-chart"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <h1 class="mt-1 mb-3" id="avgViewsPerDay">0</h1>
+                        <div class="mb-0">
+                            <span class="text-muted">Daily average</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 d-flex">
+                <div class="card flex-fill">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col mt-0">
+                                <h5 class="card-title">Engagement Rate</h5>
+                            </div>
+                            <div class="col-auto">
+                                <div class="stat text-warning">
+                                    <i class="align-middle" data-feather="heart"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <h1 class="mt-1 mb-3" id="engagementRate">0%</h1>
+                        <div class="mb-0">
+                            <span class="text-muted">Likes per view</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <!-- Views Over Time Chart -->
+            <div class="col-xl-6 col-xxl-6">
+                <div class="card flex-fill w-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Views Over Time (Last 30 Days)</h5>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="chart chart-sm">
+                            <canvas id="viewsOverTimeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Engagement Breakdown Chart -->
+            <div class="col-xl-6 col-xxl-6">
+                <div class="card flex-fill w-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Engagement Breakdown</h5>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="chart chart-sm">
+                            <canvas id="engagementChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Comments -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Recent Comments</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentComments">
+                            <!-- Comments will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Video Selected Message -->
+    <div id="noVideoSelected" class="text-center py-5">
+        <i class="align-middle mb-3" data-feather="video" style="width: 64px; height: 64px; color: #6c757d;"></i>
+        <h4 class="text-muted">Select a Video</h4>
+        <p class="text-muted">Choose a video from the dropdown above to view its analytics report.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let currentVideoData = null;
+
+// Chart management
+const chartInstances = {
+    viewsOverTimeChart: null,
+    engagementChart: null
+};
+
+// Helper function to safely destroy charts
+function destroyChart(chartName) {
+    if (chartInstances[chartName] && typeof chartInstances[chartName].destroy === 'function') {
+        try {
+            chartInstances[chartName].destroy();
+            chartInstances[chartName] = null;
+        } catch (error) {
+            console.warn(`Error destroying chart ${chartName}:`, error);
+            chartInstances[chartName] = null;
+        }
+    }
+}
+
+// Enable/disable load button based on selection
+document.getElementById('videoSelect').addEventListener('change', function() {
+    const loadBtn = document.getElementById('loadReportBtn');
+    loadBtn.disabled = !this.value;
+});
+
+// Cleanup charts when page is unloaded
+window.addEventListener('beforeunload', function() {
+    destroyChart('viewsOverTimeChart');
+    destroyChart('engagementChart');
+});
+
+function loadVideoReport() {
+    const videoId = document.getElementById('videoSelect').value;
+    if (!videoId) return;
+
+    // Show loading state
+    const loadBtn = document.getElementById('loadReportBtn');
+    const originalText = loadBtn.innerHTML;
+    loadBtn.innerHTML = '<i class="align-middle me-2" data-feather="loader"></i>Loading...';
+    loadBtn.disabled = true;
+
+    // Fetch video data
+    fetch(`/core/api/video-analytics/${videoId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentVideoData = data.video;
+                displayVideoReport(data.video);
+                document.getElementById('videoReportContent').style.display = 'block';
+                document.getElementById('noVideoSelected').style.display = 'none';
+            } else {
+                alert('Error loading video data: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading video data');
+        })
+        .finally(() => {
+            loadBtn.innerHTML = originalText;
+            loadBtn.disabled = false;
+        });
+}
+
+function displayVideoReport(video) {
+    // Update video info
+    document.getElementById('videoTitle').textContent = video.title;
+    document.getElementById('videoDescription').textContent = video.description || 'No description available';
+    document.getElementById('videoViews').textContent = video.views;
+    document.getElementById('videoLikes').textContent = video.likes;
+    document.getElementById('videoComments').textContent = video.comments_count;
+    document.getElementById('videoDate').textContent = new Date(video.created_at).toLocaleDateString();
+
+    // Update analytics cards
+    document.getElementById('totalViews').textContent = video.views;
+    document.getElementById('peakDayViews').textContent = video.peak_day_views || 0;
+    document.getElementById('avgViewsPerDay').textContent = video.avg_views_per_day || 0;
+    document.getElementById('engagementRate').textContent = video.engagement_rate + '%';
+
+    // Update thumbnail
+    const thumbnailDiv = document.getElementById('videoThumbnail');
+    if (video.thumbnail_url) {
+        thumbnailDiv.innerHTML = `<img src="${video.thumbnail_url}" class="img-fluid rounded" style="max-width: 200px; max-height: 120px; object-fit: cover;">`;
+    } else {
+        thumbnailDiv.innerHTML = '<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 200px; height: 120px;"><i class="align-middle" data-feather="video" style="width: 48px; height: 48px; color: #6c757d;"></i></div>';
+    }
+
+    // Update charts
+    updateViewsOverTimeChart(video.views_over_time || []);
+    updateEngagementChart(video);
+    updateRecentComments(video.recent_comments || []);
+
+    // Refresh feather icons
+    feather.replace();
+}
+
+function updateViewsOverTimeChart(viewsData) {
+    const ctx = document.getElementById('viewsOverTimeChart').getContext('2d');
+    
+    // Use real data from API
+    const labels = [];
+    const data = [];
+    
+    if (viewsData && viewsData.length > 0) {
+        // Use real data
+        viewsData.forEach(day => {
+            const date = new Date(day.date);
+            labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            data.push(day.views);
+        });
+    } else {
+        // Fallback to sample data if no real data
+        for (let i = 29; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            data.push(0);
+        }
+    }
+
+    // Destroy existing chart if it exists
+    destroyChart('viewsOverTimeChart');
+
+    chartInstances.viewsOverTimeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Views',
+                data: data,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Views: ' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+function updateEngagementChart(video) {
+    const ctx = document.getElementById('engagementChart').getContext('2d');
+    
+    // Destroy existing chart if it exists
+    destroyChart('engagementChart');
+    
+    chartInstances.engagementChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Views', 'Likes', 'Comments'],
+            datasets: [{
+                data: [video.views, video.likes, video.comments_count],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(255, 205, 86, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 205, 86, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value.toLocaleString()} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateRecentComments(comments) {
+    const container = document.getElementById('recentComments');
+    
+    if (comments.length === 0) {
+        container.innerHTML = '<div class="text-center text-muted py-4"><i class="align-middle mb-2" data-feather="message-circle" style="width: 32px; height: 32px;"></i><p class="mb-0">No comments yet</p></div>';
+        return;
+    }
+
+    let html = '<div class="list-group list-group-flush">';
+    comments.forEach(comment => {
+        html += `
+            <div class="list-group-item px-0 py-2">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${comment.author_name}</h6>
+                    <small class="text-muted">${new Date(comment.created_at).toLocaleDateString()}</small>
+                </div>
+                <p class="mb-1">${comment.content}</p>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+</script>
+{% endblock %}

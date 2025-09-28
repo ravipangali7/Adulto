@@ -1,0 +1,81 @@
+{% load static %}
+
+<div class="video-card bg-grey-custom rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+    <!-- Video Thumbnail - Clickable -->
+    <a href="{{ video.get_absolute_url }}" class="block relative" onclick="trackVideoClick('{{ video.title|escapejs }}', '{{ video.id }}')">
+        {% if video.thumbnail %}
+        <img src="{{ video.thumbnail.url }}" alt="{{ video.title }} - Video thumbnail" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+        {% else %}
+        <div class="w-full h-48 bg-gray-600 flex items-center justify-center">
+            <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+        </div>
+        {% endif %}
+        
+        <!-- Play Button Overlay -->
+        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div class="bg-primary-gold rounded-full p-3 transform scale-90 group-hover:scale-100 transition-transform duration-200">
+                <svg class="h-8 w-8 text-black" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- Duration Badge -->
+        <div class="absolute bottom-2 right-2 duration-badge text-white text-xs px-2 py-1 rounded font-medium">
+            {{ video.get_duration_display }}
+        </div>
+        
+        <!-- HD Badge (if applicable) -->
+        {% if video.duration and video.duration > 300 %}
+        <div class="absolute top-2 right-2 hd-badge text-white text-xs px-2 py-1 rounded font-bold">
+            HD
+        </div>
+        {% endif %}
+    </a>
+    
+    <!-- Video Info -->
+    <div class="p-3">
+        <!-- Video Title -->
+        <h3 class="text-white font-semibold text-sm mb-2 line-clamp-2 leading-tight">
+            <a href="{{ video.get_absolute_url }}" class="hover:text-primary-gold transition-colors duration-200">
+                {{ video.title }}
+            </a>
+        </h3>
+        
+        <!-- Stats Row - Views, Likes, Time Ago -->
+        <div class="flex items-center justify-between text-xs text-gray-400 mb-2">
+            <!-- Views -->
+            <div class="flex items-center stats-text">
+                <svg class="h-3 w-3 mr-1 text-primary-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <span class="font-medium text-white">{{ video.views|floatformat:0 }}</span>
+            </div>
+            
+            <!-- Likes -->
+            <div class="flex items-center stats-text">
+                <svg class="h-3 w-3 mr-1 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                <span class="font-medium text-white">{{ video.likes|floatformat:0 }}</span>
+            </div>
+            
+            <!-- Time Ago -->
+            <div class="flex items-center stats-text">
+                <svg class="h-3 w-3 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium text-gray-300">{{ video.created_at|timesince }} ago</span>
+            </div>
+        </div>
+        
+        <!-- Uploader Info -->
+        <div class="flex items-center justify-between text-xs text-gray-500">
+            <span class="truncate">{{ video.uploader.name|default:"Anonymous" }}</span>
+            <span class="text-gray-600">{{ video.created_at|date:"M d" }}</span>
+        </div>
+    </div>
+</div>

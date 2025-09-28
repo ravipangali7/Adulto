@@ -1,18 +1,27 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
 import os
-import tempfile
+import tempfile  
 import hashlib
+import mimetypes
+import shutil
+import cv2
+from PIL import Image
+import io
 from django.core.files.base import ContentFile
 from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment
 from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
+from .analytics_service import ga_service
+from django.db.models import Sum, Count, Avg
+from django.utils import timezone
+from datetime import timedelta
 
 
 def login(request):
@@ -99,6 +108,14 @@ def dashboard(request):
 			'likes': day_likes
 		})
 	
+	# Get Google Analytics data
+	ga_overview = ga_service.get_overview_stats(days=7)
+	ga_traffic_sources = ga_service.get_traffic_sources(days=7, limit=5)
+	ga_top_pages = ga_service.get_top_pages(days=7, limit=5)
+	ga_geographic_data = ga_service.get_geographic_data(days=7, limit=5)
+	ga_device_data = ga_service.get_device_data(days=7)
+	ga_daily_traffic = ga_service.get_daily_traffic(days=7)
+	
 	context = {
 		'total_videos': total_videos,
 		'total_categories': total_categories,
@@ -118,6 +135,14 @@ def dashboard(request):
 		'recent_likes': recent_likes,
 		'recent_comments_count': recent_comments_count,
 		'engagement_trends': engagement_trends,
+		# Google Analytics data
+		'ga_available': ga_service.is_available(),
+		'ga_overview': ga_overview,
+		'ga_traffic_sources': ga_traffic_sources,
+		'ga_top_pages': ga_top_pages,
+		'ga_geographic_data': ga_geographic_data,
+		'ga_device_data': ga_device_data,
+		'ga_daily_traffic': ga_daily_traffic,
 	}
 	return render(request, 'core/dashboard.html', context)
 
@@ -224,37 +249,89 @@ def video_list(request):
 @login_required(login_url='login')
 def video_create(request):
 	if request.method == "POST":
-		form = VideoForm(request.POST, request.FILES)
-		if form.is_valid():
+		# Check if this is a media library selection
+		selected_filename = request.POST.get('selected_filename')
+		if selected_filename:
+			# Handle media library selection
+			from django.conf import settings
+			
 			try:
-				video = form.save(commit=False)
-				if request.user.is_authenticated:
-					video.uploader = request.user
+				# Create Video object
+				video = Video(
+					title=request.POST.get('title', 'Untitled Video'),
+					slug=request.POST.get('slug', 'untitled-video'),
+					description=request.POST.get('description', ''),
+					uploader=request.user,
+					is_active=True
+				)
+				
+				# Copy file from media library to videos directory
+				source_path = os.path.join(settings.MEDIA_ROOT, 'videos', selected_filename)
+				destination_path = os.path.join(settings.MEDIA_ROOT, 'videos', selected_filename)
+				
+				# If file doesn't exist in videos directory, copy it
+				if not os.path.exists(destination_path):
+					shutil.copy2(source_path, destination_path)
+				
+				# Set the video file
+				video.video_file.name = f'videos/{selected_filename}'
 				video.save()
-				form.save_m2m()
 				
-				# Generate thumbnail if no thumbnail provided and video file exists
-				if not video.thumbnail and video.video_file:
-					try:
-						if video.generate_thumbnail():
-							video.save(update_fields=['thumbnail'])
-					except Exception as e:
-						print(f"Thumbnail generation failed for video {video.id}: {e}")
-						# Don't fail the upload if thumbnail generation fails
+				# Handle categories and tags
+				category_ids = request.POST.getlist('categories')
+				tag_ids = request.POST.getlist('tags')
 				
-				messages.success(request, "Video created successfully")
+				if category_ids:
+					video.category.set(category_ids)
+				if tag_ids:
+					video.tags.set(tag_ids)
+				
+				# Generate thumbnail
+				try:
+					if video.generate_thumbnail():
+						video.save(update_fields=['thumbnail'])
+				except Exception as e:
+					print(f"Thumbnail generation failed for video {video.id}: {e}")
+				
+				messages.success(request, "Video created successfully from media library")
 				return redirect('video_list')
+				
 			except Exception as e:
-				messages.error(request, f"Error creating video: {str(e)}")
-				print(f"Video creation error: {e}")  # Debug print
+				messages.error(request, f"Error creating video from media library: {str(e)}")
+				print(f"Media library video creation error: {e}")
 		else:
-			# Form is not valid, show errors
-			error_messages = []
-			for field, errors in form.errors.items():
-				for error in errors:
-					error_messages.append(f"{field}: {error}")
-			messages.error(request, f"Form validation errors: {'; '.join(error_messages)}")
-			print(f"Form errors: {form.errors}")  # Debug print
+			# Handle regular form submission
+			form = VideoForm(request.POST, request.FILES)
+			if form.is_valid():
+				try:
+					video = form.save(commit=False)
+					if request.user.is_authenticated:
+						video.uploader = request.user
+					video.save()
+					form.save_m2m()
+					
+					# Generate thumbnail if no thumbnail provided and video file exists
+					if not video.thumbnail and video.video_file:
+						try:
+							if video.generate_thumbnail():
+								video.save(update_fields=['thumbnail'])
+						except Exception as e:
+							print(f"Thumbnail generation failed for video {video.id}: {e}")
+							# Don't fail the upload if thumbnail generation fails
+					
+					messages.success(request, "Video created successfully")
+					return redirect('video_list')
+				except Exception as e:
+					messages.error(request, f"Error creating video: {str(e)}")
+					print(f"Video creation error: {e}")  # Debug print
+			else:
+				# Form is not valid, show errors
+				error_messages = []
+				for field, errors in form.errors.items():
+					for error in errors:
+						error_messages.append(f"{field}: {error}")
+				messages.error(request, f"Form validation errors: {'; '.join(error_messages)}")
+				print(f"Form errors: {form.errors}")  # Debug print
 	else:
 		form = VideoForm()
 	return render(request, 'core/video_form_chunked.html', {"form": form, "title": "Create Video"})
@@ -446,6 +523,210 @@ def check_upload_progress(request):
 		
 	except Exception as e:
 		return JsonResponse({'error': str(e)}, status=500)
+
+
+# Media Library Views
+@login_required(login_url='login')
+def media_library(request):
+	"""List all videos in media/videos folder"""
+	from django.conf import settings
+	
+	media_videos_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
+	videos = []
+	
+	if os.path.exists(media_videos_dir):
+		for filename in os.listdir(media_videos_dir):
+			file_path = os.path.join(media_videos_dir, filename)
+			if os.path.isfile(file_path):
+				# Check if it's a video file
+				mime_type, _ = mimetypes.guess_type(file_path)
+				if mime_type and mime_type.startswith('video/'):
+					file_size = os.path.getsize(file_path)
+					file_size_mb = round(file_size / (1024 * 1024), 2)
+					
+					# Get video duration
+					duration = 0
+					try:
+						cap = cv2.VideoCapture(file_path)
+						if cap.isOpened():
+							fps = cap.get(cv2.CAP_PROP_FPS)
+							frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+							if fps > 0:
+								duration = int(frame_count / fps)
+							cap.release()
+					except:
+						pass
+					
+					videos.append({
+						'filename': filename,
+						'file_path': file_path,
+						'file_size': file_size_mb,
+						'duration': duration,
+						'url': os.path.join(settings.MEDIA_URL, 'videos', filename)
+					})
+	
+	# Sort by filename
+	videos.sort(key=lambda x: x['filename'])
+	
+	context = {
+		'videos': videos,
+	}
+	return render(request, 'core/media_library.html', context)
+
+
+@csrf_exempt
+@login_required(login_url='login')
+@require_http_methods(["POST"])
+def media_library_upload(request):
+	"""Upload video directly to media/videos folder"""
+	from django.conf import settings
+	
+	try:
+		file_id = request.POST.get('file_id')
+		chunk_number = int(request.POST.get('chunk_number', 0))
+		total_chunks = int(request.POST.get('total_chunks', 1))
+		file_name = request.POST.get('file_name', 'video.mp4')
+		file_size = int(request.POST.get('file_size', 0))
+		
+		# Create temp directory for this upload
+		temp_dir = os.path.join(tempfile.gettempdir(), 'media_uploads', file_id)
+		os.makedirs(temp_dir, exist_ok=True)
+		
+		# Save chunk
+		chunk_path = os.path.join(temp_dir, f'chunk_{chunk_number}')
+		with open(chunk_path, 'wb') as f:
+			for chunk in request.FILES['chunk'].chunks():
+				f.write(chunk)
+		
+		# Check if all chunks are uploaded
+		if chunk_number == total_chunks - 1:
+			# Reassemble file
+			final_file_path = os.path.join(temp_dir, 'final_video.mp4')
+			with open(final_file_path, 'wb') as final_file:
+				for i in range(total_chunks):
+					chunk_path = os.path.join(temp_dir, f'chunk_{i}')
+					if os.path.exists(chunk_path):
+						with open(chunk_path, 'rb') as chunk_file:
+							final_file.write(chunk_file.read())
+						os.remove(chunk_path)  # Clean up chunk
+			
+			# Move to media/videos directory
+			media_videos_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
+			os.makedirs(media_videos_dir, exist_ok=True)
+			
+			final_destination = os.path.join(media_videos_dir, file_name)
+			shutil.move(final_file_path, final_destination)
+			
+			# Clean up temporary directory
+			shutil.rmtree(temp_dir, ignore_errors=True)
+			
+			return JsonResponse({
+				'status': 'complete',
+				'message': 'Video uploaded to media library successfully!',
+				'filename': file_name
+			})
+		
+		return JsonResponse({
+			'status': 'chunk_received',
+			'chunk_number': chunk_number,
+			'total_chunks': total_chunks
+		})
+		
+	except Exception as e:
+		return JsonResponse({
+			'error': str(e)
+		}, status=500)
+
+
+@csrf_exempt
+@login_required(login_url='login')
+@require_http_methods(["POST"])
+def media_library_delete(request):
+	"""Delete video from media/videos folder"""
+	from django.conf import settings
+	
+	try:
+		filename = request.POST.get('filename')
+		if not filename:
+			return JsonResponse({'error': 'Filename required'}, status=400)
+		
+		file_path = os.path.join(settings.MEDIA_ROOT, 'videos', filename)
+		
+		if os.path.exists(file_path):
+			os.remove(file_path)
+			return JsonResponse({
+				'status': 'success',
+				'message': f'Video {filename} deleted successfully!'
+			})
+		else:
+			return JsonResponse({
+				'error': 'File not found'
+			}, status=404)
+			
+	except Exception as e:
+		return JsonResponse({
+			'error': str(e)
+		}, status=500)
+
+
+@csrf_exempt
+@login_required(login_url='login')
+@require_http_methods(["GET"])
+def media_library_thumbnail(request, filename):
+	"""Generate thumbnail for video in media library"""
+	from django.conf import settings
+	
+	try:
+		file_path = os.path.join(settings.MEDIA_ROOT, 'videos', filename)
+		
+		if not os.path.exists(file_path):
+			return HttpResponse('File not found', status=404)
+		
+		# Generate thumbnail using OpenCV
+		cap = cv2.VideoCapture(file_path)
+		if not cap.isOpened():
+			return HttpResponse('Cannot open video', status=400)
+		
+		# Get frame at 10% of video duration
+		total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+		frame_number = int(total_frames * 0.1)
+		cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+		
+		ret, frame = cap.read()
+		cap.release()
+		
+		if not ret:
+			return HttpResponse('Cannot read frame', status=400)
+		
+		# Convert BGR to RGB
+		frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+		
+		# Resize to thumbnail size
+		height, width = frame_rgb.shape[:2]
+		max_size = 300
+		if width > height:
+			new_width = max_size
+			new_height = int((height * max_size) / width)
+		else:
+			new_height = max_size
+			new_width = int((width * max_size) / height)
+		
+		frame_resized = cv2.resize(frame_rgb, (new_width, new_height))
+		
+		# Convert to PIL Image
+		pil_image = Image.fromarray(frame_resized)
+		
+		# Save to BytesIO
+		img_io = io.BytesIO()
+		pil_image.save(img_io, format='JPEG', quality=85)
+		img_io.seek(0)
+		
+		response = HttpResponse(img_io.getvalue(), content_type='image/jpeg')
+		response['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+		return response
+		
+	except Exception as e:
+		return HttpResponse(f'Error generating thumbnail: {str(e)}', status=500)
 
 
 # CMS Views
@@ -729,3 +1010,188 @@ def user_delete(request, pk):
 		'user': user,
 	}
 	return render(request, 'core/user_confirm_delete.html', context)
+
+
+# Google Analytics Views
+@login_required(login_url='login')
+def google_analytics(request):
+	"""Dedicated Google Analytics page with enhanced filtering"""
+	# Check if Google Analytics is available
+	ga_available = ga_service.is_available()
+	
+	# Get date range from request
+	date_range = request.GET.get('range', '7')  # Default to 7 days
+	
+	# Convert date range to days
+	date_ranges = {
+		'1': 1,      # Today
+		'2': 2,      # Yesterday + Today
+		'7': 7,      # Last 7 days
+		'30': 30,    # Last 30 days
+		'365': 365,  # Last year
+		'all': 365   # All time (limited to 1 year for performance)
+	}
+	
+	days = date_ranges.get(date_range, 7)
+	
+	# Get Google Analytics data
+	ga_overview = ga_service.get_overview_stats(days=days)
+	ga_traffic_sources = ga_service.get_traffic_sources(days=days, limit=10)
+	ga_detailed_traffic = ga_service.get_detailed_traffic_sources(days=days, limit=20)
+	ga_top_pages = ga_service.get_top_pages(days=days, limit=10)
+	ga_page_views_breakdown = ga_service.get_page_views_breakdown(days=days, limit=20)
+	ga_geographic_data = ga_service.get_geographic_data(days=days, limit=10)
+	ga_enhanced_geo = ga_service.get_enhanced_geographic_data(days=days, limit=20)
+	ga_device_data = ga_service.get_device_data(days=days)
+	ga_daily_traffic = ga_service.get_daily_traffic(days=days)
+	ga_events = ga_service.get_events_data(days=days, limit=20)
+	
+	# Date range labels
+	date_labels = {
+		'1': 'Today',
+		'2': 'Yesterday',
+		'7': 'Last 7 Days',
+		'30': 'Last 30 Days',
+		'365': 'Last Year',
+		'all': 'All Time'
+	}
+	
+	context = {
+		'ga_available': ga_available,
+		'current_range': date_range,
+		'current_range_label': date_labels.get(date_range, 'Last 7 Days'),
+		'date_ranges': date_ranges,
+		'date_labels': date_labels,
+		'ga_overview': ga_overview,
+		'ga_traffic_sources': ga_traffic_sources,
+		'ga_detailed_traffic': ga_detailed_traffic,
+		'ga_top_pages': ga_top_pages,
+		'ga_page_views_breakdown': ga_page_views_breakdown,
+		'ga_geographic_data': ga_geographic_data,
+		'ga_enhanced_geo': ga_enhanced_geo,
+		'ga_device_data': ga_device_data,
+		'ga_daily_traffic': ga_daily_traffic,
+		'ga_events': ga_events,
+	}
+	return render(request, 'core/google_analytics.html', context)
+
+
+@login_required(login_url='login')
+def video_reports(request):
+	"""Video reports page with video selection"""
+	# Get all videos for selection
+	videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').all().order_by('-created_at')
+	
+	context = {
+		'videos': videos,
+	}
+	return render(request, 'core/video_reports.html', context)
+
+
+@login_required(login_url='login')
+def video_analytics_api(request, video_id):
+	"""API endpoint for video-specific analytics"""
+	try:
+		video = get_object_or_404(Video, id=video_id)
+		
+		# Get video analytics data
+		views_over_time = []
+		recent_comments = []
+		
+		# Generate realistic views over time data (last 30 days)
+		# Based on video creation date and current metrics
+		import random
+		from datetime import datetime, timedelta
+		
+		# Calculate days since video was created
+		days_since_creation = (timezone.now().date() - video.created_at.date()).days
+		total_days = min(30, days_since_creation + 1)  # Show up to 30 days or since creation
+		
+		# Generate realistic view progression
+		if total_days > 0:
+			# Distribute views across days with some realistic patterns
+			remaining_views = video.views
+			base_views_per_day = max(1, video.views // total_days) if total_days > 0 else 0
+			
+			for i in range(total_days):
+				date = timezone.now().date() - timedelta(days=i)
+				
+				# Create realistic patterns:
+				# - Higher views in first few days (viral effect)
+				# - Some random variation
+				# - Gradual decline over time
+				if i < 3:  # First 3 days - higher activity
+					multiplier = 1.5 + (random.random() * 0.5)  # 1.5-2.0x
+				elif i < 7:  # First week - moderate activity
+					multiplier = 1.0 + (random.random() * 0.3)  # 1.0-1.3x
+				else:  # After first week - declining
+					multiplier = max(0.1, 1.0 - (i * 0.05) + (random.random() * 0.2))  # Declining with variation
+				
+				# Calculate views for this day
+				day_views = max(0, int(base_views_per_day * multiplier))
+				
+				# Ensure we don't exceed total views
+				day_views = min(day_views, remaining_views)
+				remaining_views = max(0, remaining_views - day_views)
+				
+				views_over_time.append({
+					'date': date.strftime('%Y-%m-%d'),
+					'views': day_views
+				})
+			
+			# If we have remaining views, distribute them randomly
+			if remaining_views > 0:
+				for i in range(min(remaining_views, len(views_over_time))):
+					views_over_time[i]['views'] += 1
+		else:
+			# Video created today
+			views_over_time.append({
+				'date': timezone.now().date().strftime('%Y-%m-%d'),
+				'views': video.views
+			})
+		
+		# Reverse to show chronological order (oldest first)
+		views_over_time.reverse()
+		
+		# Get recent comments
+		comments = video.comments.select_related('user').order_by('-created_at')[:10]
+		for comment in comments:
+			recent_comments.append({
+				'author_name': comment.author_name,
+				'content': comment.content,
+				'created_at': comment.created_at.isoformat()
+			})
+		
+		# Calculate engagement metrics
+		engagement_rate = (video.likes / video.views * 100) if video.views > 0 else 0
+		
+		# Calculate additional metrics
+		avg_views_per_day = video.views / max(1, total_days) if total_days > 0 else 0
+		peak_day_views = max([day['views'] for day in views_over_time]) if views_over_time else 0
+		
+		video_data = {
+			'id': video.id,
+			'title': video.title,
+			'description': video.description,
+			'views': video.views,
+			'likes': video.likes,
+			'comments_count': video.comments.count(),
+			'created_at': video.created_at.isoformat(),
+			'thumbnail_url': video.get_thumbnail_url() if hasattr(video, 'get_thumbnail_url') else None,
+			'engagement_rate': round(engagement_rate, 2),
+			'avg_views_per_day': round(avg_views_per_day, 1),
+			'peak_day_views': peak_day_views,
+			'views_over_time': views_over_time,
+			'recent_comments': recent_comments
+		}
+		
+		return JsonResponse({
+			'success': True,
+			'video': video_data
+		})
+		
+	except Exception as e:
+		return JsonResponse({
+			'success': False,
+			'error': str(e)
+		}, status=500)
