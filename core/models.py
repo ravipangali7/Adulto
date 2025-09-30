@@ -58,6 +58,7 @@ class User(AbstractUser):
 class Category(models.Model):
 	name = models.CharField(max_length=120, unique=True)
 	slug = models.SlugField(max_length=140, unique=True)
+	description = models.TextField(blank=True, null=True, help_text="Category description for SEO")
 	image = models.ImageField(upload_to='categories/', blank=True, null=True, help_text="Optional category image")
 
 	class Meta:

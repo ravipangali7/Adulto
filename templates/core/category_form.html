@@ -26,6 +26,14 @@
                             {% endif %}
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Description (Optional)</label>
+                            {{ form.description }}
+                            <div class="form-text">Category description for SEO purposes. This will be used as meta description.</div>
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors|join:', ' }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Image (Optional)</label>
                             {{ form.image }}
                             <div class="form-text">Upload an image for this category. Leave empty if not needed.</div>

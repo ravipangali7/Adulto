@@ -1,7 +1,87 @@
 {% extends 'site/base.html' %}
 {% load static %}
 
-{% block title %}All Videos - Desi X Zone{% endblock %}
+{% block title %}
+    {% if current_category %}
+        {{ current_category.name }} Videos - Desi X Zone
+    {% elif current_tag %}
+        #{{ current_tag.name }} Videos - Desi X Zone
+    {% else %}
+        All Videos - Desi X Zone
+    {% endif %}
+{% endblock %}
+
+{% block description %}
+    {% if current_category %}
+        {% if current_category.description %}
+            {{ current_category.description }}
+        {% else %}
+            Browse {{ current_category.name }} videos on Desi X Zone. Discover amazing content in the {{ current_category.name }} category.
+        {% endif %}
+    {% elif current_tag %}
+        Browse videos tagged with #{{ current_tag.name }} on Desi X Zone. Discover amazing content with the {{ current_tag.name }} tag.
+    {% else %}
+        Browse through our complete collection of videos on Desi X Zone. Discover amazing content across various categories.
+    {% endif %}
+{% endblock %}
+
+{% block keywords %}
+    {% if current_category %}
+        {{ current_category.name }}, {{ current_category.name }} videos, videos, entertainment, streaming, online videos, video platform, Desi X Zone
+    {% elif current_tag %}
+        {{ current_tag.name }}, #{{ current_tag.name }}, videos, entertainment, streaming, online videos, video platform, Desi X Zone
+    {% else %}
+        videos, entertainment, categories, latest, popular, streaming, online videos, video platform, Desi X Zone
+    {% endif %}
+{% endblock %}
+
+{% block og_title %}
+    {% if current_category %}
+        {{ current_category.name }} Videos - Desi X Zone
+    {% elif current_tag %}
+        #{{ current_tag.name }} Videos - Desi X Zone
+    {% else %}
+        All Videos - Desi X Zone
+    {% endif %}
+{% endblock %}
+
+{% block og_description %}
+    {% if current_category %}
+        {% if current_category.description %}
+            {{ current_category.description }}
+        {% else %}
+            Browse {{ current_category.name }} videos on Desi X Zone. Discover amazing content in the {{ current_category.name }} category.
+        {% endif %}
+    {% elif current_tag %}
+        Browse videos tagged with #{{ current_tag.name }} on Desi X Zone. Discover amazing content with the {{ current_tag.name }} tag.
+    {% else %}
+        Browse through our complete collection of videos on Desi X Zone. Discover amazing content across various categories.
+    {% endif %}
+{% endblock %}
+
+{% block twitter_title %}
+    {% if current_category %}
+        {{ current_category.name }} Videos - Desi X Zone
+    {% elif current_tag %}
+        #{{ current_tag.name }} Videos - Desi X Zone
+    {% else %}
+        All Videos - Desi X Zone
+    {% endif %}
+{% endblock %}
+
+{% block twitter_description %}
+    {% if current_category %}
+        {% if current_category.description %}
+            {{ current_category.description }}
+        {% else %}
+            Browse {{ current_category.name }} videos on Desi X Zone. Discover amazing content in the {{ current_category.name }} category.
+        {% endif %}
+    {% elif current_tag %}
+        Browse videos tagged with #{{ current_tag.name }} on Desi X Zone. Discover amazing content with the {{ current_tag.name }} tag.
+    {% else %}
+        Browse through our complete collection of videos on Desi X Zone. Discover amazing content across various categories.
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">

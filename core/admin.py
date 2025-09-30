@@ -11,9 +11,10 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-	list_display = ("name", "slug", "image")
-	search_fields = ("name", "slug")
+	list_display = ("name", "slug", "description", "image")
+	search_fields = ("name", "slug", "description")
 	prepopulated_fields = {"slug": ("name",)}
+	list_editable = ("description",)
 
 
 @admin.register(Tag)

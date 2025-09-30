@@ -6,10 +6,11 @@ from .models import Category, Tag, Video, Comment, CMS, Settings, AgeVerificatio
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "slug", "image"]
+        fields = ["name", "slug", "description", "image"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Category name"}),
             "slug": forms.TextInput(attrs={"class": "form-control", "placeholder": "category-slug"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4, "placeholder": "Category description for SEO"}),
             "image": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
 

@@ -35,19 +35,21 @@ def videos(request):
     
     # Filter by category if provided
     category_slug = request.GET.get('category')
+    current_category = None
     if category_slug:
         try:
-            category = Category.objects.get(slug=category_slug)
-            videos = videos.filter(category=category)
+            current_category = Category.objects.get(slug=category_slug)
+            videos = videos.filter(category=current_category)
         except Category.DoesNotExist:
             pass
     
     # Filter by tag if provided
     tag_slug = request.GET.get('tag')
+    current_tag = None
     if tag_slug:
         try:
-            tag = Tag.objects.get(slug=tag_slug)
-            videos = videos.filter(tags=tag)
+            current_tag = Tag.objects.get(slug=tag_slug)
+            videos = videos.filter(tags=current_tag)
         except Tag.DoesNotExist:
             pass
     
@@ -58,8 +60,10 @@ def videos(request):
         'categories': categories,
         'tags': tags,
         'videos': videos,
-        'current_category': category_slug,
-        'current_tag': tag_slug,
+        'current_category': current_category,
+        'current_tag': current_tag,
+        'category_slug': category_slug,
+        'tag_slug': tag_slug,
     }
     return render(request, 'site/videos.html', context)
 
