@@ -51,7 +51,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Video File *</label>
                                     <div class="input-group">
-                                        <input type="file" id="video-file-input" class="form-control" accept="video/*" required>
+                                        <input type="file" id="video-file-input" class="form-control" accept="video/*">
                                         <button class="btn btn-outline-secondary" type="button" onclick="openVideoSelectionModal()">
                                             <i class="fas fa-folder-open"></i> Select from Media Library
                                         </button>
@@ -217,25 +217,204 @@
     </div>
 </div>
 
-<!-- Video Selection Modal -->
-<div class="modal fade" id="videoSelectionModal" tabindex="-1" aria-labelledby="videoSelectionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="videoSelectionModalLabel">Select Video from Media Library</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row" id="video-selection-grid">
-                    <!-- Videos will be loaded here -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            </div>
-        </div>
+<!-- Video Selection Modal Content (Hidden) -->
+<div id="video-selection-content" style="display: none;">
+    <div class="row" id="video-selection-grid">
+        <!-- Videos will be loaded here -->
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* SweetAlert2 Custom Styles for Video Selection */
+.video-selection-popup {
+    border-radius: 20px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.video-selection-title {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    padding: 20px 24px !important;
+    margin: -20px -20px 20px -20px !important;
+    border-radius: 20px 20px 0 0 !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.video-selection-body {
+    padding: 0 !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+}
+
+.video-selection-cancel {
+    background: #6c757d !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s !important;
+}
+
+.video-selection-cancel:hover {
+    background: #5a6268 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Video Grid Styles */
+#video-selection-grid .card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 15px;
+}
+
+#video-selection-grid .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+}
+
+#video-selection-grid .card video {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+}
+
+#video-selection-grid .card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+}
+
+#video-selection-grid .card-body {
+    padding: 15px;
+}
+
+#video-selection-grid .card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151;
+}
+
+#video-selection-grid .card-text {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 5px;
+}
+
+#video-selection-grid .position-relative {
+    position: relative;
+}
+
+#video-selection-grid .position-absolute {
+    position: absolute;
+}
+
+#video-selection-grid .bottom-0 {
+    bottom: 0;
+}
+
+#video-selection-grid .start-0 {
+    left: 0;
+}
+
+#video-selection-grid .bg-dark {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+#video-selection-grid .text-white {
+    color: white !important;
+}
+
+#video-selection-grid .px-2 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+#video-selection-grid .py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+/* Video Preview Modal Styles */
+.video-preview-popup {
+    border-radius: 20px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.video-preview-title {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white !important;
+    padding: 20px 24px !important;
+    margin: -20px -20px 20px -20px !important;
+    border-radius: 20px 20px 0 0 !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.video-preview-body {
+    padding: 20px !important;
+    text-align: center !important;
+}
+
+.video-preview-confirm {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s !important;
+}
+
+.video-preview-confirm:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4) !important;
+}
+
+.video-preview-cancel {
+    background: #6c757d !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s !important;
+}
+
+.video-preview-cancel:hover {
+    background: #5a6268 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .video-selection-popup {
+        width: 95% !important;
+        margin: 20px !important;
+    }
+    
+    .video-preview-popup {
+        width: 95% !important;
+        margin: 20px !important;
+    }
+    
+    #video-selection-grid .col-md-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -305,7 +484,12 @@
         e.preventDefault();
         
         if (uploadInProgress) {
-            alert('Upload in progress. Please wait...');
+            Swal.fire({
+                icon: 'info',
+                title: 'Upload in Progress',
+                text: 'Please wait for the current upload to complete',
+                confirmButtonColor: '#007bff'
+            });
             return false;
         }
         
@@ -314,19 +498,34 @@
         
         // Basic validation
         if (!titleField.value.trim()) {
-            alert('Please enter a video title');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Title Required',
+                text: 'Please enter a video title',
+                confirmButtonColor: '#007bff'
+            });
             titleField.focus();
             return false;
         }
         
         if (!slugField.value.trim()) {
-            alert('Please enter a video slug');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Slug Required',
+                text: 'Please enter a video slug',
+                confirmButtonColor: '#007bff'
+            });
             slugField.focus();
             return false;
         }
         
         if (!videoFileInput.files[0]) {
-            alert('Please select a video file');
+            Swal.fire({
+                icon: 'warning',
+                title: 'No File Selected',
+                text: 'Please select a video file',
+                confirmButtonColor: '#007bff'
+            });
             return false;
         }
         
@@ -475,56 +674,145 @@
     
     // Video Selection from Media Library - Make functions global
     window.openVideoSelectionModal = function() {
-        loadVideoSelection();
-        const modal = new bootstrap.Modal(document.getElementById('videoSelectionModal'));
-        modal.show();
-    };
-    
-    window.loadVideoSelection = function() {
-        fetch('{% url "media_library" %}')
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const videoGrid = doc.getElementById('video-grid');
+        console.log('Opening video selection modal');
+        
+        // Load videos first, then open modal
+        fetch('{% url "media_library_api" %}')
+            .then(response => response.json())
+            .then(data => {
+                console.log('API Response:', data);
+                const videos = data.videos;
+                console.log('Videos found:', videos.length);
                 
-                if (videoGrid) {
-                    document.getElementById('video-selection-grid').innerHTML = videoGrid.innerHTML;
-                    
-                    // Add click handlers for video selection
-                    document.querySelectorAll('#video-selection-grid .card').forEach(card => {
-                        card.style.cursor = 'pointer';
-                        card.addEventListener('click', function() {
-                            const filename = this.closest('[data-filename]').getAttribute('data-filename');
-                            selectVideoFromLibrary(filename);
-                        });
+                let html = '';
+                if (videos.length > 0) {
+                    videos.forEach(video => {
+                        const duration = video.duration > 0 ? `${video.duration}s` : 'Unknown';
+                        html += `
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card" data-filename="${video.filename}">
+                                    <div class="position-relative">
+                                        <video class="card-img-top" style="height: 150px; object-fit: cover;" preload="metadata">
+                                            <source src="${video.url}" type="video/mp4">
+                                        </video>
+                                        <div class="position-absolute bottom-0 start-0 bg-dark text-white px-2 py-1" style="font-size: 0.75rem;">
+                                            <i class="fas fa-clock me-1"></i>${duration}
+                                        </div>
+                                        <div class="position-absolute top-0 end-0 p-2">
+                                            <button type="button" class="btn btn-sm btn-outline-light" onclick="event.stopPropagation(); previewVideoFromLibrary('${video.url}', '${video.filename}')" title="Preview Video">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title text-truncate" style="font-size: 0.85rem;">${video.filename}</h6>
+                                        <p class="card-text text-muted" style="font-size: 0.75rem;">
+                                            <i class="fas fa-hdd me-1"></i>${video.file_size} MB
+                                        </p>
+                                        <div class="d-flex gap-1 mt-2">
+                                            <button type="button" class="btn btn-sm btn-primary flex-fill" onclick="event.stopPropagation(); selectVideoFromLibrary('${video.filename}')">
+                                                <i class="fas fa-check me-1"></i>Select
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation(); previewVideoFromLibrary('${video.url}', '${video.filename}')">
+                                                <i class="fas fa-play me-1"></i>Preview
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     });
+                } else {
+                    html = `
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-video text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="text-muted mt-3">No videos in media library</h5>
+                            <p class="text-muted">Upload some videos to get started</p>
+                        </div>
+                    `;
                 }
+                
+                console.log('Generated HTML:', html);
+                
+                // Now open the modal with the loaded content
+                Swal.fire({
+                    title: '<i class="fas fa-folder-open text-2xl text-white mr-3"></i>Select Video from Media Library',
+                    html: `<div class="row" id="video-selection-grid">${html}</div>`,
+                    width: '1200px',
+                    showCancelButton: true,
+                    showConfirmButton: false,
+                    cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancel',
+                    cancelButtonColor: '#6c757d',
+                    background: '#ffffff',
+                    customClass: {
+                        popup: 'video-selection-popup',
+                        title: 'video-selection-title',
+                        htmlContainer: 'video-selection-body',
+                        cancelButton: 'video-selection-cancel'
+                    },
+                    didOpen: () => {
+                        // Re-initialize video selection functionality
+                        initializeVideoSelection();
+                    }
+                });
             })
             .catch(error => {
                 console.error('Error loading videos:', error);
-                alert('Error loading videos from media library');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Error loading videos from media library',
+                    confirmButtonColor: '#dc3545'
+                });
             });
     };
     
+    
+    window.initializeVideoSelection = function() {
+        // Add click handlers for video selection in the modal
+        document.querySelectorAll('#video-selection-grid .card').forEach(card => {
+            card.style.cursor = 'pointer';
+            card.style.transition = 'all 0.3s ease';
+            
+            // Add hover effects
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+            });
+            
+            card.addEventListener('click', function() {
+                const filename = this.closest('[data-filename]').getAttribute('data-filename');
+                selectVideoFromLibrary(filename);
+            });
+        });
+    };
+    
     window.selectVideoFromLibrary = function(filename) {
-        // Create a fake file input event with the selected video
+        // Set the selected video filename
         const fileInput = document.getElementById('video-file-input');
-        
-        // Create a custom event to simulate file selection
-        const event = new Event('change', { bubbles: true });
-        
-        // Set the filename in a data attribute for reference
         fileInput.setAttribute('data-selected-filename', filename);
         
-        // Trigger the change event
-        fileInput.dispatchEvent(event);
+        // Clear any existing file selection
+        fileInput.value = '';
         
-        // Show a visual indicator that a video was selected
+        // Show a visual indicator that a video was selected from media library
         const inputGroup = fileInput.closest('.input-group');
         const selectedIndicator = document.createElement('div');
-        selectedIndicator.className = 'form-text text-success';
-        selectedIndicator.innerHTML = `<i class="fas fa-check"></i> Selected: ${filename}`;
+        selectedIndicator.className = 'form-text text-success mt-2';
+        selectedIndicator.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Selected from Media Library: <strong>${filename}</strong></span>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="clearVideoSelection()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+        `;
         
         // Remove any existing indicator
         const existingIndicator = inputGroup.querySelector('.text-success');
@@ -534,11 +822,57 @@
         
         inputGroup.appendChild(selectedIndicator);
         
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('videoSelectionModal'));
-        if (modal) {
-            modal.hide();
+        // Close SweetAlert2 modal
+        Swal.close();
+    };
+    
+    // Function to clear video selection
+    window.clearVideoSelection = function() {
+        const fileInput = document.getElementById('video-file-input');
+        fileInput.removeAttribute('data-selected-filename');
+        fileInput.value = '';
+        
+        // Remove selection indicator
+        const inputGroup = fileInput.closest('.input-group');
+        const existingIndicator = inputGroup.querySelector('.text-success');
+        if (existingIndicator) {
+            existingIndicator.remove();
         }
+    };
+    
+    // Function to preview video from media library
+    window.previewVideoFromLibrary = function(videoUrl, filename) {
+        Swal.fire({
+            title: `<i class="fas fa-play-circle text-2xl text-white mr-3"></i>Video Preview: ${filename}`,
+            html: `
+                <div class="text-center">
+                    <video controls style="width: 100%; max-width: 800px; height: auto;" preload="metadata">
+                        <source src="${videoUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            `,
+            width: '900px',
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: '<i class="fas fa-check mr-2"></i>Select This Video',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancel',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            background: '#ffffff',
+            customClass: {
+                popup: 'video-preview-popup',
+                title: 'video-preview-title',
+                htmlContainer: 'video-preview-body',
+                confirmButton: 'video-preview-confirm',
+                cancelButton: 'video-preview-cancel'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Select this video
+                selectVideoFromLibrary(filename);
+            }
+        });
     };
     
     // Override the form submission to handle media library selection
@@ -547,7 +881,12 @@
         e.preventDefault();
         
         if (uploadInProgress) {
-            alert('Upload in progress. Please wait...');
+            Swal.fire({
+                icon: 'info',
+                title: 'Upload in Progress',
+                text: 'Please wait for the current upload to complete',
+                confirmButtonColor: '#007bff'
+            });
             return false;
         }
         
@@ -556,28 +895,51 @@
         
         // Basic validation
         if (!titleField.value.trim()) {
-            alert('Please enter a video title');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Title Required',
+                text: 'Please enter a video title',
+                confirmButtonColor: '#007bff'
+            });
             titleField.focus();
             return false;
         }
         
         if (!slugField.value.trim()) {
-            alert('Please enter a video slug');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Slug Required',
+                text: 'Please enter a video slug',
+                confirmButtonColor: '#007bff'
+            });
             slugField.focus();
             return false;
-        }
+        } 
         
-        // Check if a video is selected from media library
+        // Check if a video is selected from media library or file upload
         const selectedFilename = videoFileInput.getAttribute('data-selected-filename');
+        const hasFileUpload = videoFileInput.files && videoFileInput.files[0];
+        
+        console.log('Selected filename:', selectedFilename);
+        console.log('Has file upload:', hasFileUpload);
+        
         if (selectedFilename) {
             // Handle media library selection
+            console.log('Handling media library selection');
             handleMediaLibrarySelection(selectedFilename);
-        } else if (!videoFileInput.files[0]) {
-            alert('Please select a video file or choose from media library');
-            return false;
-        } else {
+        } else if (hasFileUpload) {
             // Handle regular file upload
+            console.log('Handling regular file upload');
             startChunkedUpload();
+        } else {
+            // No video selected
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Video Selected',
+                text: 'Please select a video file or choose from media library',
+                confirmButtonColor: '#007bff'
+            });
+            return false;
         }
     });
     
@@ -621,7 +983,12 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error creating video. Please try again.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Error creating video. Please try again.',
+                confirmButtonColor: '#dc3545'
+            });
             submitBtn.disabled = false;
             submitBtn.textContent = 'Save Video';
         });

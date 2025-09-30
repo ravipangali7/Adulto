@@ -304,12 +304,22 @@ function loadVideoReport() {
                 document.getElementById('videoReportContent').style.display = 'block';
                 document.getElementById('noVideoSelected').style.display = 'none';
             } else {
-                alert('Error loading video data: ' + data.error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Error loading video data: ' + data.error,
+                    confirmButtonColor: '#dc3545'
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error loading video data');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Error loading video data',
+                confirmButtonColor: '#dc3545'
+            });
         })
         .finally(() => {
             loadBtn.innerHTML = originalText;

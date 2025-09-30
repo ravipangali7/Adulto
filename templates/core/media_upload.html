@@ -1,0 +1,472 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Upload Video</h1>
+        <a href="{% url 'media_library' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Media Library
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>
+                        Upload Video to Media Library
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="media-upload-form">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-video me-2 text-primary"></i>Select Video File
+                            </label>
+                            
+                            <!-- File Upload Area -->
+                            <div id="file-upload-area" class="file-upload-area">
+                                <input type="file" id="media-video-file" class="file-input" accept="video/*" required>
+                                
+                                <div id="upload-content" class="upload-content">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <h4 class="upload-title">Drop your video here or click to browse</h4>
+                                    <p class="upload-subtitle">Supports MP4, AVI, MOV, WMV, FLV, WebM, MKV</p>
+                                    <p class="upload-info">Maximum file size: 1GB</p>
+                                </div>
+                                
+                                <div id="file-selected-content" class="file-selected-content" style="display: none;">
+                                    <div class="selected-icon">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <h4 class="selected-title" id="selected-file-name">File Selected</h4>
+                                    <p class="selected-subtitle" id="selected-file-size">Ready to upload</p>
+                                </div>
+                            </div>
+                            
+                            <div class="form-text mt-3">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Large files will be uploaded in chunks automatically for better reliability.
+                            </div>
+                            
+                            <!-- Upload Progress -->
+                            <div id="media-upload-progress" class="upload-progress mt-4" style="display: none;">
+                                <div class="progress-header">
+                                    <span class="progress-text">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Uploading...
+                                    </span>
+                                    <span id="media-progress-percentage" class="progress-percentage">0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div id="media-progress-bar" class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-info">
+                                    <span id="media-uploaded-size" class="uploaded-size">
+                                        <i class="fas fa-download me-1"></i>0 MB
+                                    </span>
+                                    <span id="media-total-size" class="total-size">
+                                        <i class="fas fa-hdd me-1"></i>0 MB
+                                    </span>
+                                </div>
+                                <div id="media-upload-status" class="upload-status">
+                                    <div class="status-spinner"></div>
+                                    <span>Preparing upload...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-primary" id="media-upload-btn" onclick="startMediaUpload()">
+                                <i class="fas fa-upload me-2"></i>Upload Video
+                            </button>
+                            <a href="{% url 'media_library' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* File Upload Area */
+.file-upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.file-upload-area:hover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f2ff 100%);
+    transform: translateY(-2px);
+}
+
+.file-upload-area.dragover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #e8f2ff 0%, #d1e7ff 100%);
+    transform: scale(1.02);
+}
+
+.file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-content {
+    display: block;
+}
+
+.file-selected-content {
+    display: none;
+}
+
+.upload-icon, .selected-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+}
+
+.upload-icon {
+    color: #3b82f6;
+}
+
+.selected-icon {
+    color: #10b981;
+}
+
+.upload-title, .selected-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #1f2937;
+}
+
+.selected-title {
+    color: #10b981;
+}
+
+.upload-subtitle, .selected-subtitle {
+    color: #6b7280;
+    margin: 0 0 4px 0;
+    font-size: 0.875rem;
+}
+
+.upload-info {
+    color: #9ca3af;
+    margin: 0;
+    font-size: 0.75rem;
+}
+
+/* Upload Progress */
+.upload-progress {
+    margin-top: 24px;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-percentage {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.uploaded-size, .total-size {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.upload-status {
+    text-align: center;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.status-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .file-upload-area {
+        padding: 30px 15px;
+        min-height: 150px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Media Library Upload System
+let mediaUploadInProgress = false;
+let currentMediaFile = null;
+let mediaFileId = null;
+
+// File upload initialization
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFileUpload();
+});
+
+function initializeFileUpload() {
+    const fileInput = document.getElementById('media-video-file');
+    const uploadArea = document.getElementById('file-upload-area');
+    const uploadContent = document.getElementById('upload-content');
+    const fileSelectedContent = document.getElementById('file-selected-content');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const selectedFileSize = document.getElementById('selected-file-size');
+    
+    if (!fileInput || !uploadArea) return;
+    
+    // File input change handler
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Show file selected state
+            uploadContent.style.display = 'none';
+            fileSelectedContent.style.display = 'block';
+            
+            selectedFileName.textContent = file.name;
+            selectedFileSize.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+            
+            // Change upload area style
+            uploadArea.style.background = 'linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%)';
+            uploadArea.style.borderColor = '#10b981';
+        }
+    });
+    
+    // Click to upload area
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
+function startMediaUpload() {
+    const fileInput = document.getElementById('media-video-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No File Selected',
+            text: 'Please select a video file to upload',
+            confirmButtonColor: '#007bff'
+        });
+        return;
+    }
+    
+    currentMediaFile = file;
+    mediaFileId = generateFileId();
+    
+    // Show progress bar
+    const progressContainer = document.getElementById('media-upload-progress');
+    const uploadBtn = document.getElementById('media-upload-btn');
+    
+    progressContainer.style.display = 'block';
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    mediaUploadInProgress = true;
+    
+    // Update file size info
+    const fileSizeMB = (currentMediaFile.size / (1024 * 1024)).toFixed(1);
+    document.getElementById('media-total-size').textContent = fileSizeMB + ' MB';
+    document.getElementById('media-uploaded-size').textContent = '0 MB';
+    document.getElementById('media-progress-percentage').textContent = '0%';
+    document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Preparing upload...</span>';
+    
+    // Reset progress bar
+    const progressBar = document.getElementById('media-progress-bar');
+    progressBar.style.width = '0%';
+    
+    // Start uploading chunks
+    uploadMediaChunks();
+}
+
+function uploadMediaChunks() {
+    const chunkSize = 1024 * 1024; // 1MB chunks
+    const totalChunks = Math.ceil(currentMediaFile.size / chunkSize);
+    let uploadedChunks = 0;
+    
+    document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Uploading ' + totalChunks + ' chunks...</span>';
+    
+    function uploadChunk(chunkIndex) {
+        if (chunkIndex >= totalChunks) {
+            // All chunks uploaded
+            document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Finalizing upload...</span>';
+            return;
+        }
+        
+        const start = chunkIndex * chunkSize;
+        const end = Math.min(start + chunkSize, currentMediaFile.size);
+        const chunk = currentMediaFile.slice(start, end);
+        
+        const formData = new FormData();
+        formData.append('chunk', chunk);
+        formData.append('chunk_number', chunkIndex);
+        formData.append('total_chunks', totalChunks);
+        formData.append('file_id', mediaFileId);
+        formData.append('file_name', currentMediaFile.name);
+        formData.append('file_size', currentMediaFile.size);
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "media_library_upload" %}', true);
+        xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const response = JSON.parse(xhr.responseText);
+                
+                if (response.status === 'complete') {
+                    // Upload completed successfully
+                    const progressBar = document.getElementById('media-progress-bar');
+                    progressBar.style.background = 'linear-gradient(135deg, #38a169 0%, #2f855a 100%)';
+                    document.getElementById('media-upload-status').innerHTML = '<div class="text-center"><i class="fas fa-check-circle text-success me-2"></i><span class="text-success fw-semibold">Upload completed!</span></div>';
+                    
+                    // Redirect to media library after success
+                    setTimeout(function() {
+                        window.location.href = '{% url "media_library" %}';
+                    }, 2000);
+                } else if (response.status === 'chunk_received') {
+                    // Chunk uploaded successfully, continue with next chunk
+                    uploadedChunks++;
+                    const progress = Math.round((uploadedChunks / totalChunks) * 100);
+                    
+                    const progressBar = document.getElementById('media-progress-bar');
+                    progressBar.style.width = progress + '%';
+                    document.getElementById('media-progress-percentage').textContent = progress + '%';
+                    
+                    const uploadedMB = ((uploadedChunks * chunkSize) / (1024 * 1024)).toFixed(1);
+                    document.getElementById('media-uploaded-size').textContent = uploadedMB + ' MB';
+                    
+                    document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Uploading chunk ' + (uploadedChunks + 1) + ' of ' + totalChunks + '...</span>';
+                    
+                    // Upload next chunk
+                    setTimeout(() => uploadChunk(chunkIndex + 1), 100);
+                }
+            } else {
+                // Error occurred
+                handleMediaUploadError('Upload failed. Please try again.');
+            }
+        };
+        
+        xhr.onerror = function() {
+            handleMediaUploadError('Upload failed. Please check your connection.');
+        };
+        
+        xhr.send(formData);
+    }
+    
+    // Start uploading first chunk
+    uploadChunk(0);
+}
+
+function handleMediaUploadError(message) {
+    const progressBar = document.getElementById('media-progress-bar');
+    progressBar.style.background = 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)';
+    document.getElementById('media-upload-status').innerHTML = '<div class="text-center"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span class="text-danger fw-semibold">' + message + '</span></div>';
+    
+    const uploadBtn = document.getElementById('media-upload-btn');
+    uploadBtn.disabled = false;
+    uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Video';
+    mediaUploadInProgress = false;
+}
+
+function generateFileId() {
+    return 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+</script>
+{% endblock %}

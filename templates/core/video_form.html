@@ -327,14 +327,24 @@
             
             // Basic validation
             if (!titleField.value.trim()) {
-                alert('Please enter a video title');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Title Required',
+                    text: 'Please enter a video title',
+                    confirmButtonColor: '#007bff'
+                });
                 titleField.focus();
                 e.preventDefault();
                 return false;
             }
             
             if (!slugField.value.trim()) {
-                alert('Please enter a video slug');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Slug Required',
+                    text: 'Please enter a video slug',
+                    confirmButtonColor: '#007bff'
+                });
                 slugField.focus();
                 e.preventDefault();
                 return false;
@@ -342,7 +352,12 @@
             
             // Only require video file for new videos, not when editing
             if (!isEdit && !videoFile) {
-                alert('Please select a video file');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No File Selected',
+                    text: 'Please select a video file',
+                    confirmButtonColor: '#007bff'
+                });
                 e.preventDefault();
                 return false;
             }
@@ -352,7 +367,12 @@
                 // Check file size (1GB limit)
                 const maxSize = 1024 * 1024 * 1024; // 1GB in bytes
                 if (videoFile.size > maxSize) {
-                    alert('File size too large. Maximum allowed size is 1GB.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Too Large',
+                        text: 'File size too large. Maximum allowed size is 1GB.',
+                        confirmButtonColor: '#dc3545'
+                    });
                     e.preventDefault();
                     return false;
                 }

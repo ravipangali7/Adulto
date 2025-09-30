@@ -78,7 +78,12 @@
                         <td>{{ item.uploader }}</td>
                         <td>{{ item.created_at|date:'Y-m-d H:i' }}</td>
                         <td class="text-end">
-                            <a class="btn btn-sm btn-secondary" href="{% url 'video_update' item.id %}">Edit</a>
+                            {% if item.video_file %}
+                                <button class="btn btn-sm btn-info me-1" onclick="previewVideo('{{ item.video_file.url }}', '{{ item.title }}')">
+                                    <i class="fas fa-play"></i> Preview
+                                </button>
+                            {% endif %}
+                            <a class="btn btn-sm btn-secondary me-1" href="{% url 'video_update' item.id %}">Edit</a>
                             <a class="btn btn-sm btn-danger" href="{% url 'video_delete' item.id %}">Delete</a>
                         </td>
                     </tr>
@@ -135,7 +140,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     statusBadge.innerHTML = isActive ? 
                         '<span class="badge bg-secondary"><i class="fas fa-times-circle"></i> Inactive</span>' :
                         '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Active</span>';
-                    alert('Error updating status: ' + (data.error || 'Unknown error'));
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Error updating status: ' + (data.error || 'Unknown error'),
+                        confirmButtonColor: '#dc3545'
+                    });
                 }
             })
             .catch(error => {
@@ -145,15 +155,94 @@ document.addEventListener('DOMContentLoaded', function() {
                 statusBadge.innerHTML = isActive ? 
                     '<span class="badge bg-secondary"><i class="fas fa-times-circle"></i> Inactive</span>' :
                     '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Active</span>';
-                alert('Error updating status. Please try again.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Error updating status. Please try again.',
+                    confirmButtonColor: '#dc3545'
+                });
             })
             .finally(() => {
                 this.disabled = false;
             });
         });
+        });
     });
-});
+    
+    // Video preview function
+    function previewVideo(videoUrl, title) {
+        Swal.fire({
+            title: `<i class="fas fa-play-circle text-2xl text-white mr-3"></i>Video Preview: ${title}`,
+            html: `
+                <div class="text-center">
+                    <video controls style="width: 100%; max-width: 800px; height: auto;" preload="metadata">
+                        <source src="${videoUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            `,
+            width: '900px',
+            showCancelButton: false,
+            showConfirmButton: true,
+            confirmButtonText: '<i class="fas fa-times mr-2"></i>Close',
+            confirmButtonColor: '#6c757d',
+            background: '#ffffff',
+            customClass: {
+                popup: 'video-preview-popup',
+                title: 'video-preview-title',
+                htmlContainer: 'video-preview-body',
+                confirmButton: 'video-preview-close'
+            }
+        });
+    }
 </script>
+
+<style>
+/* Video Preview Modal Styles */
+.video-preview-popup {
+    border-radius: 20px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.video-preview-title {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    color: white !important;
+    padding: 20px 24px !important;
+    margin: -20px -20px 20px -20px !important;
+    border-radius: 20px 20px 0 0 !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.video-preview-body {
+    padding: 20px !important;
+    text-align: center !important;
+}
+
+.video-preview-close {
+    background: #6c757d !important;
+    border: none !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s !important;
+}
+
+.video-preview-close:hover {
+    background: #5a6268 !important;
+    transform: translateY(-1px) !important;
+}
+
+@media (max-width: 768px) {
+    .video-preview-popup {
+        width: 95% !important;
+        margin: 20px !important;
+    }
+}
+</style>
 {% endblock %}
 
 

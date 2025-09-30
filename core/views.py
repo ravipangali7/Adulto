@@ -372,12 +372,6 @@ def video_delete(request, pk: int):
 
 
 @login_required(login_url='login')
-def test_upload(request):
-	"""Test page for chunked upload system"""
-	return render(request, 'core/test_upload.html')
-
-
-@login_required(login_url='login')
 @require_http_methods(["POST"])
 def video_toggle_status(request, pk: int):
 	"""Toggle video active status via AJAX"""
@@ -557,12 +551,13 @@ def media_library(request):
 					except:
 						pass
 					
+					from urllib.parse import quote
 					videos.append({
 						'filename': filename,
 						'file_path': file_path,
 						'file_size': file_size_mb,
 						'duration': duration,
-						'url': os.path.join(settings.MEDIA_URL, 'videos', filename)
+						'url': f"{settings.MEDIA_URL}videos/{quote(filename)}"
 					})
 	
 	# Sort by filename
@@ -572,6 +567,57 @@ def media_library(request):
 		'videos': videos,
 	}
 	return render(request, 'core/media_library.html', context)
+
+
+@login_required(login_url='login')
+def media_library_upload_page(request):
+	"""Upload page for media library"""
+	return render(request, 'core/media_upload.html')
+
+
+@login_required(login_url='login')
+def media_library_api(request):
+	"""API endpoint to return video data for selection modal"""
+	from django.conf import settings
+	
+	media_videos_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
+	videos = []
+	
+	if os.path.exists(media_videos_dir):
+		for filename in os.listdir(media_videos_dir):
+			file_path = os.path.join(media_videos_dir, filename)
+			if os.path.isfile(file_path):
+				# Check if it's a video file
+				mime_type, _ = mimetypes.guess_type(file_path)
+				if mime_type and mime_type.startswith('video/'):
+					file_size = os.path.getsize(file_path)
+					file_size_mb = round(file_size / (1024 * 1024), 2)
+					
+					# Get video duration
+					duration = 0
+					try:
+						cap = cv2.VideoCapture(file_path)
+						if cap.isOpened():
+							fps = cap.get(cv2.CAP_PROP_FPS)
+							frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+							if fps > 0:
+								duration = int(frame_count / fps)
+							cap.release()
+					except:
+						pass
+					
+					from urllib.parse import quote
+					videos.append({
+						'filename': filename,
+						'file_size': file_size_mb,
+						'duration': duration,
+						'url': f"{settings.MEDIA_URL}videos/{quote(filename)}"
+					})
+	
+	# Sort by filename
+	videos.sort(key=lambda x: x['filename'])
+	
+	return JsonResponse({'videos': videos})
 
 
 @csrf_exempt

@@ -37,13 +37,14 @@ urlpatterns = [
 	# Chunked Upload System
 	path('upload-chunk/', views.upload_chunk, name='upload_chunk'),
 	path('check-progress/', views.check_upload_progress, name='check_upload_progress'),
-	path('test-upload/', views.test_upload, name='test_upload'),
 	
 	# Media Library
 	path('media-library/', views.media_library, name='media_library'),
 	path('media-library/upload/', views.media_library_upload, name='media_library_upload'),
+	path('media-library/upload-page/', views.media_library_upload_page, name='media_library_upload_page'),
 	path('media-library/delete/', views.media_library_delete, name='media_library_delete'),
 	path('media-library/thumbnail/<str:filename>/', views.media_library_thumbnail, name='media_library_thumbnail'),
+	path('media-library/api/videos/', views.media_library_api, name='media_library_api'),
 
 	# CMS CRUD
 	path('cms/', views.cms_list, name='cms_list'),
