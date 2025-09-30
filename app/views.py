@@ -139,7 +139,7 @@ def login_view(request):
             if user.is_email_verified:
                 from django.contrib.auth import login as auth_login
                 auth_login(request, user)
-                return redirect('home')
+                return redirect('dashboard')
             else:
                 messages.error(request, 'Please check your email and activate your account before logging in.')
         else:

@@ -2,9 +2,12 @@
 {% block content %}
 <div class="container-fluid p-0">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h3 d-inline align-middle">Upload Video</h1>
+        <h1 class="h3 d-inline align-middle">
+            <i class="fas fa-cloud-upload-alt me-2"></i>
+            Upload Video
+        </h1>
         <a href="{% url 'media_library' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Media Library
+            <i class="fas fa-arrow-left me-2"></i> Back to Media Library
         </a>
     </div>
     
@@ -13,74 +16,96 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-cloud-upload-alt me-2"></i>
+                        <i class="fas fa-video me-2"></i>
                         Upload Video to Media Library
                     </h5>
                 </div>
                 <div class="card-body">
                     <form id="media-upload-form">
                         {% csrf_token %}
+                        
+                        <!-- File Upload Area -->
                         <div class="mb-4">
                             <label class="form-label fw-semibold">
-                                <i class="fas fa-video me-2 text-primary"></i>Select Video File
+                                <i class="fas fa-file-video me-2 text-primary"></i>Select Video File
                             </label>
                             
-                            <!-- File Upload Area -->
                             <div id="file-upload-area" class="file-upload-area">
                                 <input type="file" id="media-video-file" class="file-input" accept="video/*" required>
                                 
                                 <div id="upload-content" class="upload-content">
-                                    <div class="upload-icon">
-                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    <div class="text-center">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Drop your video here or click to browse</h5>
+                                        <p class="text-muted mb-2">Supports MP4, AVI, MOV, WMV, FLV, WebM, MKV</p>
+                                        <small class="text-muted">Maximum file size: 1GB</small>
                                     </div>
-                                    <h4 class="upload-title">Drop your video here or click to browse</h4>
-                                    <p class="upload-subtitle">Supports MP4, AVI, MOV, WMV, FLV, WebM, MKV</p>
-                                    <p class="upload-info">Maximum file size: 1GB</p>
                                 </div>
                                 
                                 <div id="file-selected-content" class="file-selected-content" style="display: none;">
-                                    <div class="selected-icon">
-                                        <i class="fas fa-file-video"></i>
+                                    <div class="text-center">
+                                        <i class="fas fa-file-video fa-3x text-success mb-3"></i>
+                                        <h5 class="text-success" id="selected-file-name">File Selected</h5>
+                                        <p class="text-muted" id="selected-file-size">Ready to upload</p>
+                                        <div class="mt-2">
+                                            <span class="badge bg-success me-2" id="file-type">Video File</span>
+                                            <span class="badge bg-info" id="file-duration">Ready to process</span>
+                                        </div>
                                     </div>
-                                    <h4 class="selected-title" id="selected-file-name">File Selected</h4>
-                                    <p class="selected-subtitle" id="selected-file-size">Ready to upload</p>
                                 </div>
                             </div>
                             
-                            <div class="form-text mt-3">
+                            <div class="form-text mt-2">
                                 <i class="fas fa-info-circle me-1"></i>
                                 Large files will be uploaded in chunks automatically for better reliability.
                             </div>
                             
                             <!-- Upload Progress -->
-                            <div id="media-upload-progress" class="upload-progress mt-4" style="display: none;">
-                                <div class="progress-header">
-                                    <span class="progress-text">
-                                        <i class="fas fa-spinner fa-spin me-2"></i>Uploading...
-                                    </span>
-                                    <span id="media-progress-percentage" class="progress-percentage">0%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div id="media-progress-bar" class="progress-fill" style="width: 0%"></div>
-                                </div>
-                                <div class="progress-info">
-                                    <span id="media-uploaded-size" class="uploaded-size">
-                                        <i class="fas fa-download me-1"></i>0 MB
-                                    </span>
-                                    <span id="media-total-size" class="total-size">
-                                        <i class="fas fa-hdd me-1"></i>0 MB
-                                    </span>
-                                </div>
-                                <div id="media-upload-status" class="upload-status">
-                                    <div class="status-spinner"></div>
-                                    <span>Preparing upload...</span>
+                            <div id="media-upload-progress" class="mt-4" style="display: none;">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>Uploading Video
+                                            </h6>
+                                            <span class="badge bg-primary" id="media-progress-percentage">0%</span>
+                                        </div>
+                                        
+                                        <div class="progress mb-3" style="height: 8px;">
+                                            <div id="media-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                                 role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-download me-1"></i>
+                                                    <span id="media-uploaded-size">0 MB</span> uploaded
+                                                </small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-hdd me-1"></i>
+                                                    <span id="media-total-size">0 MB</span> total
+                                                </small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center mt-3">
+                                            <small class="text-muted" id="media-upload-status">
+                                                <i class="fas fa-spinner fa-spin me-1"></i>Preparing upload...
+                                            </small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-primary" id="media-upload-btn" onclick="startMediaUpload()">
-                                <i class="fas fa-upload me-2"></i>Upload Video
+                            <button type="button" class="btn btn-secondary" id="media-upload-btn" onclick="startMediaUpload()" disabled>
+                                <i class="fas fa-upload me-2"></i>
+                                <span class="btn-text">Select a file first</span>
                             </button>
                             <a href="{% url 'media_library' %}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>Cancel
@@ -96,15 +121,15 @@
 
 {% block extra_css %}
 <style>
-/* File Upload Area */
+/* File Upload Area - Dashboard Style */
 .file-upload-area {
     border: 2px dashed #d1d5db;
-    border-radius: 12px;
-    padding: 40px 20px;
+    border-radius: 8px;
+    padding: 3rem 2rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+    background: #f8f9fa;
     min-height: 200px;
     display: flex;
     align-items: center;
@@ -113,14 +138,13 @@
 }
 
 .file-upload-area:hover {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #f0f4ff 0%, #e8f2ff 100%);
-    transform: translateY(-2px);
+    border-color: #007bff;
+    background: #e3f2fd;
 }
 
 .file-upload-area.dragover {
-    border-color: #667eea;
-    background: linear-gradient(135deg, #e8f2ff 0%, #d1e7ff 100%);
+    border-color: #007bff;
+    background: #e3f2fd;
     transform: scale(1.02);
 }
 
@@ -140,131 +164,6 @@
 
 .file-selected-content {
     display: none;
-}
-
-.upload-icon, .selected-icon {
-    font-size: 4rem;
-    margin-bottom: 16px;
-}
-
-.upload-icon {
-    color: #3b82f6;
-}
-
-.selected-icon {
-    color: #10b981;
-}
-
-.upload-title, .selected-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin: 0 0 8px 0;
-    color: #1f2937;
-}
-
-.selected-title {
-    color: #10b981;
-}
-
-.upload-subtitle, .selected-subtitle {
-    color: #6b7280;
-    margin: 0 0 4px 0;
-    font-size: 0.875rem;
-}
-
-.upload-info {
-    color: #9ca3af;
-    margin: 0;
-    font-size: 0.75rem;
-}
-
-/* Upload Progress */
-.upload-progress {
-    margin-top: 24px;
-}
-
-.progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.progress-text {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.progress-percentage {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #3b82f6;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 12px;
-    background: #e5e7eb;
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    border-radius: 6px;
-    transition: width 0.3s ease;
-}
-
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-
-.uploaded-size, .total-size {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.upload-status {
-    text-align: center;
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
-.status-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .file-upload-area {
-        padding: 30px 15px;
-        min-height: 150px;
-    }
 }
 </style>
 {% endblock %}
@@ -291,9 +190,8 @@ function initializeFileUpload() {
     
     if (!fileInput || !uploadArea) return;
     
-    // File input change handler
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
+    // Function to handle file selection
+    function handleFileSelection(file) {
         if (file) {
             // Show file selected state
             uploadContent.style.display = 'none';
@@ -302,15 +200,39 @@ function initializeFileUpload() {
             selectedFileName.textContent = file.name;
             selectedFileSize.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
             
+            // Update file details
+            const fileType = file.type.split('/')[1].toUpperCase() || 'VIDEO';
+            const fileDuration = 'Ready to process';
+            
+            document.getElementById('file-type').textContent = fileType;
+            document.getElementById('file-duration').textContent = fileDuration;
+            
             // Change upload area style
-            uploadArea.style.background = 'linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%)';
-            uploadArea.style.borderColor = '#10b981';
+            uploadArea.style.background = '#e8f5e8';
+            uploadArea.style.borderColor = '#28a745';
+            
+            // Enable upload button
+            const uploadBtn = document.getElementById('media-upload-btn');
+            const btnText = uploadBtn.querySelector('.btn-text');
+            uploadBtn.disabled = false;
+            uploadBtn.classList.remove('btn-secondary');
+            uploadBtn.classList.add('btn-primary');
+            btnText.textContent = 'Upload Video';
         }
+    }
+
+    // File input change handler
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        handleFileSelection(file);
     });
     
     // Click to upload area
-    uploadArea.addEventListener('click', function() {
-        fileInput.click();
+    uploadArea.addEventListener('click', function(e) {
+        // Only trigger if not clicking on the file input itself
+        if (e.target !== fileInput) {
+            fileInput.click();
+        }
     });
     
     // Drag and drop functionality
@@ -329,8 +251,10 @@ function initializeFileUpload() {
         uploadArea.classList.remove('dragover');
         const files = e.dataTransfer.files;
         if (files.length > 0) {
+            // Directly handle the file without dispatching change event
+            handleFileSelection(files[0]);
+            // Also set the file input for form submission
             fileInput.files = files;
-            fileInput.dispatchEvent(new Event('change'));
         }
     });
 }
@@ -358,7 +282,9 @@ function startMediaUpload() {
     
     progressContainer.style.display = 'block';
     uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    const btnText = uploadBtn.querySelector('.btn-text');
+    btnText.textContent = 'Uploading...';
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span class="btn-text">Uploading...</span>';
     mediaUploadInProgress = true;
     
     // Update file size info
@@ -366,7 +292,7 @@ function startMediaUpload() {
     document.getElementById('media-total-size').textContent = fileSizeMB + ' MB';
     document.getElementById('media-uploaded-size').textContent = '0 MB';
     document.getElementById('media-progress-percentage').textContent = '0%';
-    document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Preparing upload...</span>';
+    document.getElementById('media-upload-status').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Preparing upload...';
     
     // Reset progress bar
     const progressBar = document.getElementById('media-progress-bar');
@@ -381,12 +307,12 @@ function uploadMediaChunks() {
     const totalChunks = Math.ceil(currentMediaFile.size / chunkSize);
     let uploadedChunks = 0;
     
-    document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Uploading ' + totalChunks + ' chunks...</span>';
+    document.getElementById('media-upload-status').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Uploading ' + totalChunks + ' chunks...';
     
     function uploadChunk(chunkIndex) {
         if (chunkIndex >= totalChunks) {
             // All chunks uploaded
-            document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Finalizing upload...</span>';
+            document.getElementById('media-upload-status').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Finalizing upload...';
             return;
         }
         
@@ -402,9 +328,17 @@ function uploadMediaChunks() {
         formData.append('file_name', currentMediaFile.name);
         formData.append('file_size', currentMediaFile.size);
         
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            handleMediaUploadError('CSRF token not found. Please refresh the page and try again.');
+            return;
+        }
+        
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '{% url "media_library_upload" %}', true);
-        xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        xhr.setRequestHeader('X-CSRFToken', csrfToken.value);
         
         xhr.onload = function() {
             if (xhr.status === 200) {
@@ -413,8 +347,9 @@ function uploadMediaChunks() {
                 if (response.status === 'complete') {
                     // Upload completed successfully
                     const progressBar = document.getElementById('media-progress-bar');
-                    progressBar.style.background = 'linear-gradient(135deg, #38a169 0%, #2f855a 100%)';
-                    document.getElementById('media-upload-status').innerHTML = '<div class="text-center"><i class="fas fa-check-circle text-success me-2"></i><span class="text-success fw-semibold">Upload completed!</span></div>';
+                    progressBar.classList.remove('progress-bar-animated');
+                    progressBar.classList.add('bg-success');
+                    document.getElementById('media-upload-status').innerHTML = '<i class="fas fa-check-circle text-success me-1"></i><span class="text-success fw-semibold">Upload completed!</span>';
                     
                     // Redirect to media library after success
                     setTimeout(function() {
@@ -432,7 +367,7 @@ function uploadMediaChunks() {
                     const uploadedMB = ((uploadedChunks * chunkSize) / (1024 * 1024)).toFixed(1);
                     document.getElementById('media-uploaded-size').textContent = uploadedMB + ' MB';
                     
-                    document.getElementById('media-upload-status').innerHTML = '<div class="status-spinner"></div><span>Uploading chunk ' + (uploadedChunks + 1) + ' of ' + totalChunks + '...</span>';
+                    document.getElementById('media-upload-status').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Uploading chunk ' + (uploadedChunks + 1) + ' of ' + totalChunks + '...';
                     
                     // Upload next chunk
                     setTimeout(() => uploadChunk(chunkIndex + 1), 100);
@@ -456,12 +391,13 @@ function uploadMediaChunks() {
 
 function handleMediaUploadError(message) {
     const progressBar = document.getElementById('media-progress-bar');
-    progressBar.style.background = 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)';
-    document.getElementById('media-upload-status').innerHTML = '<div class="text-center"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span class="text-danger fw-semibold">' + message + '</span></div>';
+    progressBar.classList.remove('progress-bar-animated');
+    progressBar.classList.add('bg-danger');
+    document.getElementById('media-upload-status').innerHTML = '<i class="fas fa-exclamation-triangle text-danger me-1"></i><span class="text-danger fw-semibold">' + message + '</span>';
     
     const uploadBtn = document.getElementById('media-upload-btn');
     uploadBtn.disabled = false;
-    uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Video';
+    uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i><span class="btn-text">Upload Video</span>';
     mediaUploadInProgress = false;
 }
 

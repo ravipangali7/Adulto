@@ -114,11 +114,19 @@ document.addEventListener('DOMContentLoaded', function() {
             this.disabled = true;
             statusBadge.innerHTML = '<span class="badge bg-warning"><i class="fas fa-spinner fa-spin"></i> Updating...</span>';
             
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                statusBadge.innerHTML = originalBadge;
+                return;
+            }
+            
             // Send AJAX request
             fetch(`/core/videos/${videoId}/toggle-status/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-CSRFToken': csrfToken.value,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({

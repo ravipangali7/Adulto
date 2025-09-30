@@ -501,9 +501,19 @@
                 submitBtn.textContent = 'Save Video';
             });
             
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Video';
+                alert('Error: CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+            
             // Start upload
             xhr.open('POST', form.action || window.location.href);
-            xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            xhr.setRequestHeader('X-CSRFToken', csrfToken.value);
             xhr.send(formData);
         }
     })();

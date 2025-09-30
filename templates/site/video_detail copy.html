@@ -370,10 +370,17 @@ document.addEventListener('DOMContentLoaded', function() {
         likeBtn.addEventListener('click', function() {
             const videoId = this.getAttribute('data-video-id');
             
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+            
             fetch(`/video/${videoId}/like/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-CSRFToken': csrfToken.value,
                     'Content-Type': 'application/json',
                 },
             })
@@ -419,10 +426,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             const videoId = formData.get('video_id');
             
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+            
             fetch(`/video/${videoId}/comment/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-CSRFToken': csrfToken.value,
                 },
                 body: formData
             })

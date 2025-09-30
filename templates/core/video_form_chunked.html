@@ -480,58 +480,8 @@
     let currentFile = null;
     let fileId = null;
     
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (uploadInProgress) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Upload in Progress',
-                text: 'Please wait for the current upload to complete',
-                confirmButtonColor: '#007bff'
-            });
-            return false;
-        }
-        
-        const titleField = document.getElementById('id_title');
-        const slugField = document.getElementById('id_slug');
-        
-        // Basic validation
-        if (!titleField.value.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Title Required',
-                text: 'Please enter a video title',
-                confirmButtonColor: '#007bff'
-            });
-            titleField.focus();
-            return false;
-        }
-        
-        if (!slugField.value.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Slug Required',
-                text: 'Please enter a video slug',
-                confirmButtonColor: '#007bff'
-            });
-            slugField.focus();
-            return false;
-        }
-        
-        if (!videoFileInput.files[0]) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'No File Selected',
-                text: 'Please select a video file',
-                confirmButtonColor: '#007bff'
-            });
-            return false;
-        }
-        
-        // Start chunked upload
-        startChunkedUpload();
-    });
+    // Note: Form submission is handled by the second event listener below (line 890)
+    // which properly handles both file uploads and media library selections
     
     function startChunkedUpload() {
         currentFile = videoFileInput.files[0];
@@ -600,9 +550,19 @@
                 formData.append('tags', checkbox.value);
             });
             
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                progressBar.classList.remove('progress-bar-animated');
+                progressBar.classList.add('bg-danger');
+                progressBar.textContent = 'Error: CSRF token not found';
+                return;
+            }
+            
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '{% url "upload_chunk" %}', true);
-            xhr.setRequestHeader('X-CSRFToken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+            xhr.setRequestHeader('X-CSRFToken', csrfToken.value);
             
             xhr.onload = function() {
                 if (xhr.status === 200) {
@@ -924,7 +884,7 @@
         console.log('Has file upload:', hasFileUpload);
         
         if (selectedFilename) {
-            // Handle media library selection
+            // Handle media library selection - this should only happen on form submit
             console.log('Handling media library selection');
             handleMediaLibrarySelection(selectedFilename);
         } else if (hasFileUpload) {
@@ -963,6 +923,16 @@
             formData.append('tags', checkbox.value);
         });
         
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Video';
+            alert('Error: CSRF token not found. Please refresh the page and try again.');
+            return;
+        }
+        
         // Show loading state
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creating Video...';
@@ -971,7 +941,7 @@
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': csrfToken.value
             }
         })
         .then(response => {
