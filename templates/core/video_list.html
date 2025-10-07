@@ -8,92 +8,193 @@
     </div>
     <div class="card">
         <div class="card-body">
-            <table class="table table-hover my-0">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Categories</th>
-                        <th>Tags</th>
-                        <th>Status</th>
-                        <th>Uploader</th>
-                        <th>Created</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in videos %}
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
+            <!-- Desktop Table View -->
+            <div class="d-none d-lg-block">
+                <table class="table table-hover my-0">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Categories</th>
+                            <th>Tags</th>
+                            <th>Status</th>
+                            <th>Uploader</th>
+                            <th>Created</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in videos %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% with thumbnail_url=item.get_thumbnail_url %}
+                                        {% if thumbnail_url %}
+                                            <img src="{{ thumbnail_url }}" class="rounded me-2" style="width: 40px; height: 24px; object-fit: cover;">
+                                        {% endif %}
+                                    {% endwith %}
+                                    <span class="text-break" style="word-wrap: break-word; white-space: normal;">{{ item.title }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% for c in item.category.all|slice:":5" %}
+                                    <span class="badge bg-secondary">{{ c.name }}</span>
+                                {% empty %}
+                                    <span class="text-muted">—</span>
+                                {% endfor %}
+                                {% if item.category.all|length > 5 %}
+                                    <span class="text-muted">...</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% for t in item.tags.all|slice:":5" %}
+                                    <span class="badge bg-info text-dark">{{ t.name }}</span>
+                                {% empty %}
+                                    <span class="text-muted">—</span>
+                                {% endfor %}
+                                {% if item.tags.all|length > 5 %}
+                                    <span class="text-muted">...</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check form-switch me-2">
+                                        <input class="form-check-input status-toggle" 
+                                               type="checkbox" 
+                                               data-video-id="{{ item.id }}"
+                                               {% if item.is_active %}checked{% endif %}
+                                               id="status-{{ item.id }}">
+                                    </div>
+                                    <span class="status-badge">
+                                        {% if item.is_active %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle"></i> Active
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-times-circle"></i> Inactive
+                                            </span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>{{ item.uploader }}</td>
+                            <td>{{ item.created_at|date:'Y-m-d H:i' }}</td>
+                            <td class="text-end">
+                                {% if item.video_file %}
+                                    <button class="btn btn-sm btn-info me-1" onclick="previewVideo('{{ item.video_file.url }}', '{{ item.title }}')">
+                                        <i class="fas fa-play"></i> Preview
+                                    </button>
+                                {% endif %}
+                                <a class="btn btn-sm btn-secondary me-1" href="{% url 'video_update' item.id %}">Edit</a>
+                                <a class="btn btn-sm btn-danger" href="{% url 'video_delete' item.id %}">Delete</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No videos found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card View -->
+            <div class="d-lg-none">
+                {% for item in videos %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-3">
                                 {% with thumbnail_url=item.get_thumbnail_url %}
                                     {% if thumbnail_url %}
-                                        <img src="{{ thumbnail_url }}" class="rounded me-2" style="width: 40px; height: 24px; object-fit: cover;">
+                                        <img src="{{ thumbnail_url }}" class="img-fluid rounded" style="width: 100%; height: 80px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 100%; height: 80px;">
+                                            <i class="fas fa-video text-muted"></i>
+                                        </div>
                                     {% endif %}
                                 {% endwith %}
-                                <span class="text-break" style="word-wrap: break-word; white-space: normal;">{{ item.title }}</span>
                             </div>
-                        </td>
-                        <td>
-                            {% for c in item.category.all|slice:":5" %}
-                                <span class="badge bg-secondary">{{ c.name }}</span>
-                            {% empty %}
-                                <span class="text-muted">—</span>
-                            {% endfor %}
-                            {% if item.category.all|length > 5 %}
-                                <span class="text-muted">...</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% for t in item.tags.all|slice:":5" %}
-                                <span class="badge bg-info text-dark">{{ t.name }}</span>
-                            {% empty %}
-                                <span class="text-muted">—</span>
-                            {% endfor %}
-                            {% if item.tags.all|length > 5 %}
-                                <span class="text-muted">...</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="form-check form-switch me-2">
-                                    <input class="form-check-input status-toggle" 
-                                           type="checkbox" 
-                                           data-video-id="{{ item.id }}"
-                                           {% if item.is_active %}checked{% endif %}
-                                           id="status-{{ item.id }}">
-                                </div>
-                                <span class="status-badge">
-                                    {% if item.is_active %}
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check-circle"></i> Active
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">
-                                            <i class="fas fa-times-circle"></i> Inactive
-                                        </span>
+                            <div class="col-9">
+                                <h6 class="card-title mb-2" style="word-wrap: break-word; white-space: normal; line-height: 1.3;">{{ item.title }}</h6>
+                                
+                                <!-- Categories -->
+                                <div class="mb-2">
+                                    <small class="text-muted">Categories:</small>
+                                    {% for c in item.category.all|slice:":3" %}
+                                        <span class="badge bg-secondary me-1">{{ c.name }}</span>
+                                    {% empty %}
+                                        <span class="text-muted">None</span>
+                                    {% endfor %}
+                                    {% if item.category.all|length > 3 %}
+                                        <span class="text-muted">+{{ item.category.all|length|add:"-3" }} more</span>
                                     {% endif %}
-                                </span>
+                                </div>
+                                
+                                <!-- Tags -->
+                                <div class="mb-2">
+                                    <small class="text-muted">Tags:</small>
+                                    {% for t in item.tags.all|slice:":3" %}
+                                        <span class="badge bg-info text-dark me-1">{{ t.name }}</span>
+                                    {% empty %}
+                                        <span class="text-muted">None</span>
+                                    {% endfor %}
+                                    {% if item.tags.all|length > 3 %}
+                                        <span class="text-muted">+{{ item.tags.all|length|add:"-3" }} more</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Status and Uploader -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check form-switch me-2">
+                                            <input class="form-check-input status-toggle" 
+                                                   type="checkbox" 
+                                                   data-video-id="{{ item.id }}"
+                                                   {% if item.is_active %}checked{% endif %}
+                                                   id="status-mobile-{{ item.id }}">
+                                        </div>
+                                        <span class="status-badge">
+                                            {% if item.is_active %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle"></i> Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-times-circle"></i> Inactive
+                                                </span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">{{ item.created_at|date:'M d, Y' }}</small>
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="d-flex gap-1">
+                                    {% if item.video_file %}
+                                        <button class="btn btn-sm btn-info" onclick="previewVideo('{{ item.video_file.url }}', '{{ item.title }}')">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                    {% endif %}
+                                    <a class="btn btn-sm btn-secondary" href="{% url 'video_update' item.id %}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a class="btn btn-sm btn-danger" href="{% url 'video_delete' item.id %}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
                             </div>
-                        </td>
-                        <td>{{ item.uploader }}</td>
-                        <td>{{ item.created_at|date:'Y-m-d H:i' }}</td>
-                        <td class="text-end">
-                            {% if item.video_file %}
-                                <button class="btn btn-sm btn-info me-1" onclick="previewVideo('{{ item.video_file.url }}', '{{ item.title }}')">
-                                    <i class="fas fa-play"></i> Preview
-                                </button>
-                            {% endif %}
-                            <a class="btn btn-sm btn-secondary me-1" href="{% url 'video_update' item.id %}">Edit</a>
-                            <a class="btn btn-sm btn-danger" href="{% url 'video_delete' item.id %}">Delete</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">No videos found</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-video fa-3x mb-3"></i>
+                    <h5>No videos found</h5>
+                    <p>Start by adding your first video!</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
@@ -108,7 +209,16 @@ document.addEventListener('DOMContentLoaded', function() {
         toggle.addEventListener('change', function() {
             const videoId = this.dataset.videoId;
             const isActive = this.checked;
-            const statusBadge = this.closest('td').querySelector('.status-badge');
+            
+            // Find status badge - works for both desktop and mobile views
+            let statusBadge;
+            if (this.closest('td')) {
+                // Desktop view
+                statusBadge = this.closest('td').querySelector('.status-badge');
+            } else {
+                // Mobile view
+                statusBadge = this.closest('.card-body').querySelector('.status-badge');
+            }
             
             // Show loading state
             this.disabled = true;
@@ -173,7 +283,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .finally(() => {
                 this.disabled = false;
             });
-        });
         });
     });
     
@@ -248,6 +357,71 @@ document.addEventListener('DOMContentLoaded', function() {
     .video-preview-popup {
         width: 95% !important;
         margin: 20px !important;
+    }
+    
+    /* Mobile card improvements */
+    .d-lg-none .card {
+        border: 1px solid #e9ecef;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .d-lg-none .card-body {
+        padding: 1rem;
+    }
+    
+    .d-lg-none .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .d-lg-none .badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .d-lg-none .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+    
+    .d-lg-none .card-title {
+        word-wrap: break-word;
+        white-space: normal;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        line-height: 1.3;
+        max-height: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .d-lg-none .card-body .row .col-3 {
+        flex: 0 0 30%;
+        max-width: 30%;
+    }
+    
+    .d-lg-none .card-body .row .col-9 {
+        flex: 0 0 70%;
+        max-width: 70%;
+    }
+    
+    .d-lg-none .d-flex.gap-1 {
+        flex-wrap: wrap;
+        gap: 0.25rem !important;
+    }
+    
+    .d-lg-none .d-flex.gap-1 .btn {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    /* Ensure card can expand vertically for long titles */
+    .d-lg-none .card {
+        min-height: auto;
+    }
+    
+    .d-lg-none .card-body {
+        min-height: auto;
     }
 }
 </style>
