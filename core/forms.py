@@ -35,8 +35,8 @@ class VideoForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 4, "placeholder": "Description"}),
             "category": forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
             "tags": forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
-            "video_file": forms.ClearableFileInput(attrs={"class": "form-control", "required": True}),
-            "thumbnail": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "video_file": forms.ClearableFileInput(attrs={"class": "form-control", "required": True, "accept": "video/mp4"}),
+            "thumbnail": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/jpeg,image/jpg"}),
             "seo_title": forms.TextInput(attrs={"class": "form-control", "placeholder": "SEO title"}),
             "seo_description": forms.TextInput(attrs={"class": "form-control", "placeholder": "SEO description"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -65,18 +65,30 @@ class VideoForm(forms.ModelForm):
             return self.instance.video_file
         
         if video_file:
-            # Check file size (1GB limit)
-            max_size = 1024 * 1024 * 1024  # 1GB in bytes
+            # Check file size (300MB limit)
+            max_size = 300 * 1024 * 1024  # 300MB in bytes
             if video_file.size > max_size:
-                raise forms.ValidationError(f"File size too large. Maximum allowed size is 1GB. Your file is {video_file.size / (1024 * 1024):.1f}MB.")
+                raise forms.ValidationError(f"File size too large. Maximum allowed size is 300MB. Your file is {video_file.size / (1024 * 1024):.1f}MB.")
             
-            # Check file extension
-            allowed_extensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv']
+            # Check file extension - only MP4 allowed
+            allowed_extensions = ['.mp4']
             file_extension = os.path.splitext(video_file.name)[1].lower()
             if file_extension not in allowed_extensions:
-                raise forms.ValidationError(f"Invalid file type. Allowed formats: {', '.join(allowed_extensions)}")
+                raise forms.ValidationError(f"Invalid file type. Only MP4 format is allowed.")
         
         return video_file
+    
+    def clean_thumbnail(self):
+        thumbnail = self.cleaned_data.get('thumbnail')
+        
+        if thumbnail:
+            # Check file extension - only JPG allowed
+            allowed_extensions = ['.jpg', '.jpeg']
+            file_extension = os.path.splitext(thumbnail.name)[1].lower()
+            if file_extension not in allowed_extensions:
+                raise forms.ValidationError(f"Invalid thumbnail format. Only JPG/JPEG format is allowed.")
+        
+        return thumbnail
     
     def clean(self):
         cleaned_data = super().clean()

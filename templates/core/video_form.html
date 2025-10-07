@@ -51,6 +51,9 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Categories</label>
+                                    <div class="mb-2">
+                                        <input type="text" id="category-search" class="form-control form-control-sm" placeholder="Search categories..." autocomplete="off">
+                                    </div>
                                     <div class="d-flex gap-2 mb-2">
                                         <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-categories">
                                             <i class="fas fa-check-square"></i> Select All
@@ -59,9 +62,9 @@
                                             <i class="fas fa-square"></i> Deselect All
                                         </button>
                                     </div>
-                                    <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                    <div class="border rounded p-3" id="category-container" style="max-height: 200px; overflow-y: auto;">
                                         {% for checkbox in form.category %}
-                                            <div class="form-check">
+                                            <div class="form-check category-item" data-name="{{ checkbox.choice_label|lower }}">
                                                 {{ checkbox.tag }}
                                                 <label class="form-check-label" for="{{ checkbox.id_for_label }}">
                                                     {{ checkbox.choice_label }}
@@ -76,6 +79,9 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Tags</label>
+                                    <div class="mb-2">
+                                        <input type="text" id="tag-search" class="form-control form-control-sm" placeholder="Search tags..." autocomplete="off">
+                                    </div>
                                     <div class="d-flex gap-2 mb-2">
                                         <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-tags">
                                             <i class="fas fa-check-square"></i> Select All
@@ -84,9 +90,9 @@
                                             <i class="fas fa-square"></i> Deselect All
                                         </button>
                                     </div>
-                                    <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                    <div class="border rounded p-3" id="tag-container" style="max-height: 200px; overflow-y: auto;">
                                         {% for checkbox in form.tags %}
-                                            <div class="form-check">
+                                            <div class="form-check tag-item" data-name="{{ checkbox.choice_label|lower }}">
                                                 {{ checkbox.tag }}
                                                 <label class="form-check-label" for="{{ checkbox.id_for_label }}">
                                                     {{ checkbox.choice_label }}
@@ -112,7 +118,7 @@
                                     <div class="form-text">
                                         <small class="text-muted">
                                             <i class="fas fa-info-circle"></i> 
-                                            Maximum file size: 1GB. Large files may take time to upload.
+                                            Maximum file size: 300MB. Only MP4 format supported.
                                             {% if form.instance and form.instance.pk %}
                                                 <br><i class="fas fa-edit"></i> 
                                                 Leave empty to keep current video file.
@@ -145,6 +151,12 @@
                                 <div class="mb-3">
                                     <label class="form-label">Thumbnail</label>
                                     {{ form.thumbnail }}
+                                    <div class="form-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i> 
+                                            Only JPG/JPEG format supported.
+                                        </small>
+                                    </div>
                                     {% if form.thumbnail.errors %}
                                         <div class="text-danger small">{{ form.thumbnail.errors|join:', ' }}</div>
                                     {% endif %}
@@ -307,6 +319,50 @@
         setupSelectAllButtons('select-all-categories', 'deselect-all-categories', 'category');
         setupSelectAllButtons('select-all-tags', 'deselect-all-tags', 'tags');
 
+        // Search functionality for categories and tags
+        function setupSearch(searchInputId, containerId, itemClass) {
+            const searchInput = document.getElementById(searchInputId);
+            const container = document.getElementById(containerId);
+            const items = container.querySelectorAll(`.${itemClass}`);
+            
+            if (searchInput && container && items.length > 0) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    
+                    items.forEach(item => {
+                        const itemName = item.getAttribute('data-name') || '';
+                        const matches = itemName.includes(searchTerm);
+                        
+                        if (matches || searchTerm === '') {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    // Show "No results" message if no items match
+                    const visibleItems = Array.from(items).filter(item => item.style.display !== 'none');
+                    let noResultsMsg = container.querySelector('.no-results-msg');
+                    
+                    if (visibleItems.length === 0 && searchTerm !== '') {
+                        if (!noResultsMsg) {
+                            noResultsMsg = document.createElement('div');
+                            noResultsMsg.className = 'no-results-msg text-muted text-center py-3';
+                            noResultsMsg.innerHTML = '<i class="fas fa-search me-2"></i>No matching items found';
+                            container.appendChild(noResultsMsg);
+                        }
+                        noResultsMsg.style.display = 'block';
+                    } else if (noResultsMsg) {
+                        noResultsMsg.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // Initialize search functionality
+        setupSearch('category-search', 'category-container', 'category-item');
+        setupSearch('tag-search', 'tag-container', 'tag-item');
+
         // Form validation and progress tracking
         const form = document.getElementById('video-form');
         const submitBtn = document.getElementById('submit-btn');
@@ -364,13 +420,13 @@
             
             // Only validate file size and show progress if a new file is selected
             if (videoFile) {
-                // Check file size (1GB limit)
-                const maxSize = 1024 * 1024 * 1024; // 1GB in bytes
+                // Check file size (300MB limit)
+                const maxSize = 300 * 1024 * 1024; // 300MB in bytes
                 if (videoFile.size > maxSize) {
                     Swal.fire({
                         icon: 'error',
                         title: 'File Too Large',
-                        text: 'File size too large. Maximum allowed size is 1GB.',
+                        text: 'File size too large. Maximum allowed size is 300MB.',
                         confirmButtonColor: '#dc3545'
                     });
                     e.preventDefault();
