@@ -9,17 +9,42 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from django.conf import settings
 from django.core.cache import cache
-from google.analytics.data_v1beta import BetaAnalyticsDataClient
-from google.analytics.data_v1beta.types import (
-    DateRange,
-    Dimension,
-    Metric,
-    RunReportRequest,
-    OrderBy,
-    Filter,
-    FilterExpression
-)
-from google.oauth2 import service_account
+try:
+    from google.analytics.data_v1beta import BetaAnalyticsDataClient
+    from google.analytics.data_v1beta.types import (
+        DateRange,
+        Dimension,
+        Metric,
+        RunReportRequest,
+        OrderBy,
+        Filter,
+        FilterExpression
+    )
+    from google.oauth2 import service_account
+    GOOGLE_ANALYTICS_AVAILABLE = True
+except ImportError:
+    GOOGLE_ANALYTICS_AVAILABLE = False
+    # Create dummy classes for when GA is not available
+    class BetaAnalyticsDataClient:
+        pass
+    class DateRange:
+        pass
+    class Dimension:
+        pass
+    class Metric:
+        pass
+    class RunReportRequest:
+        pass
+    class OrderBy:
+        pass
+    class Filter:
+        pass
+    class FilterExpression:
+        pass
+    class service_account:
+        @staticmethod
+        def Credentials():
+            pass
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,509 +57,625 @@ class GoogleAnalyticsService:
         self.credentials_path = getattr(settings, 'GOOGLE_ANALYTICS_CREDENTIALS_PATH', None)
         self.client = None
         
-        if self.property_id and self.credentials_path:
-            self._initialize_client()
-    
-    def _initialize_client(self):
-        """Initialize the GA4 client with service account credentials"""
-        try:
-            if os.path.exists(self.credentials_path):
+        # Initialize client if credentials are available
+        if self.property_id and self.credentials_path and os.path.exists(self.credentials_path):
+            try:
                 credentials = service_account.Credentials.from_service_account_file(
                     self.credentials_path,
                     scopes=['https://www.googleapis.com/auth/analytics.readonly']
                 )
                 self.client = BetaAnalyticsDataClient(credentials=credentials)
-                logger.info("Google Analytics client initialized successfully")
-            else:
-                logger.warning(f"GA4 credentials file not found at: {self.credentials_path}")
-        except Exception as e:
-            logger.error(f"Failed to initialize GA4 client: {str(e)}")
+            except Exception as e:
+                logger.error(f"Failed to initialize Google Analytics client: {e}")
+                self.client = None
     
-    def is_available(self) -> bool:
-        """Check if the service is properly configured and available"""
-        return self.client is not None and self.property_id is not None
+    def _get_client(self):
+        """Get or create the Analytics client"""
+        if not GOOGLE_ANALYTICS_AVAILABLE:
+            return None
+            
+        if not self.client:
+            if not self.property_id or not self.credentials_path:
+                return None
+            try:
+                credentials = service_account.Credentials.from_service_account_file(
+                    self.credentials_path,
+                    scopes=['https://www.googleapis.com/auth/analytics.readonly']
+                )
+                self.client = BetaAnalyticsDataClient(credentials=credentials)
+            except Exception as e:
+                logger.error(f"Failed to create Google Analytics client: {e}")
+                return None
+        return self.client
     
-    def _run_report(self, dimensions: List[str], metrics: List[str], 
-                   date_ranges: List[DateRange], 
-                   order_by: Optional[List[OrderBy]] = None,
-                   limit: Optional[int] = None) -> Dict[str, Any]:
-        """Run a GA4 report and return the results"""
-        if not self.is_available():
-            return {}
-        
+    def is_available(self):
+        """Check if Google Analytics is available and configured"""
+        return (
+            GOOGLE_ANALYTICS_AVAILABLE and
+            self.property_id is not None and 
+            self.credentials_path is not None and 
+            os.path.exists(self.credentials_path) and
+            self._get_client() is not None
+        )
+    
+    def get_overview_stats(self, days=7):
+        """Get overview statistics for the dashboard"""
         try:
-            request = RunReportRequest(
-                property=f"properties/{self.property_id}",
-                dimensions=[Dimension(name=dim) for dim in dimensions],
-                metrics=[Metric(name=metric) for metric in metrics],
-                date_ranges=date_ranges,
-                order_bys=order_by or [],
-                limit=limit or 1000
+            client = self._get_client()
+            if not client or not self.property_id:
+                return self._get_default_stats()
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
             )
             
-            response = self.client.run_report(request)
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                metrics=[
+                    Metric(name="sessions"),
+                    Metric(name="totalUsers"),
+                    Metric(name="screenPageViews"),
+                    Metric(name="bounceRate"),
+                    Metric(name="averageSessionDuration"),
+                    Metric(name="newUsers")
+                ]
+            )
             
-            # Process the response
-            results = {
-                'dimension_headers': [header.name for header in response.dimension_headers],
-                'metric_headers': [header.name for header in response.metric_headers],
-                'rows': []
+            # Execute request
+            response = client.run_report(request)
+            
+            # Extract metrics
+            if response.rows:
+                row = response.rows[0]
+                metrics = row.metric_values
+                
+                return {
+                    'sessions': int(metrics[0].value) if metrics[0].value else 0,
+                    'total_users': int(metrics[1].value) if metrics[1].value else 0,
+                    'page_views': int(metrics[2].value) if metrics[2].value else 0,
+                    'bounce_rate': float(metrics[3].value) if metrics[3].value else 0,
+                    'avg_session_duration': float(metrics[4].value) if metrics[4].value else 0,
+                    'new_users': int(metrics[5].value) if metrics[5].value else 0,
+                }
+            else:
+                return self._get_default_stats()
+                
+        except Exception as e:
+            logger.error(f"Error fetching overview stats: {e}")
+            return self._get_default_stats()
+    
+    def get_page_views(self, days=30):
+        """Get page views data"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="date")],
+                metrics=[Metric(name="screenPageViews")],
+                order_bys=[OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name="date"))]
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                date_str = row.dimension_values[0].value
+                page_views = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                data.append({
+                    'date': date_str,
+                    'page_views': page_views
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching page views: {e}")
+            return []
+    
+    def get_top_pages(self, days=30, limit=10):
+        """Get top pages by views"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="pagePath")],
+                metrics=[Metric(name="screenPageViews")],
+                order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="screenPageViews"))],
+                limit=limit
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                page_path = row.dimension_values[0].value
+                page_views = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                data.append({
+                    'page_path': page_path,
+                    'page_views': page_views
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching top pages: {e}")
+            return []
+    
+    def get_traffic_sources(self, days=30, limit=10):
+        """Get traffic sources data"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="sessionSource")],
+                metrics=[Metric(name="sessions")],
+                order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="sessions"))],
+                limit=limit
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                source = row.dimension_values[0].value
+                sessions = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                data.append({
+                    'source': source,
+                    'sessions': sessions
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching traffic sources: {e}")
+            return []
+    
+    def get_geographic_data(self, days=30, limit=10):
+        """Get geographic data"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="country")],
+                metrics=[Metric(name="sessions")],
+                order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="sessions"))],
+                limit=limit
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                country = row.dimension_values[0].value
+                sessions = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                data.append({
+                    'country': country,
+                    'sessions': sessions
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching geographic data: {e}")
+            return []
+    
+    def get_device_data(self, days=30):
+        """Get device data"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return {
+                    'desktop': 0,
+                    'mobile': 0,
+                    'tablet': 0
+                }
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="deviceCategory")],
+                metrics=[Metric(name="sessions")]
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            device_data = {
+                'desktop': 0,
+                'mobile': 0,
+                'tablet': 0
             }
             
             for row in response.rows:
-                row_data = {
-                    'dimensions': [dim.value for dim in row.dimension_values],
-                    'metrics': [float(met.value) for met in row.metric_values]
-                }
-                results['rows'].append(row_data)
+                device = row.dimension_values[0].value.lower()
+                sessions = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                if device in device_data:
+                    device_data[device] = sessions
             
-            return results
+            return device_data
             
         except Exception as e:
-            logger.error(f"Error running GA4 report: {str(e)}")
-            return {}
-    
-    def get_overview_stats(self, days: int = 7) -> Dict[str, Any]:
-        """Get overview statistics for the dashboard"""
-        cache_key = f"ga4_overview_{days}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
-            return self._get_empty_overview()
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        # Get basic metrics
-        metrics = ['sessions', 'totalUsers', 'screenPageViews', 'bounceRate']
-        result = self._run_report([], metrics, [date_range])
-        
-        if not result or not result.get('rows'):
-            return self._get_empty_overview()
-        
-        row = result['rows'][0]
-        metrics_data = dict(zip(result['metric_headers'], row['metrics']))
-        
-        # Get previous period for comparison
-        prev_start = start_date - timedelta(days=days)
-        prev_end = start_date - timedelta(days=1)
-        prev_date_range = DateRange(start_date=prev_start.strftime('%Y-%m-%d'), 
-                                  end_date=prev_end.strftime('%Y-%m-%d'))
-        
-        prev_result = self._run_report([], metrics, [prev_date_range])
-        prev_metrics = {}
-        if prev_result and prev_result.get('rows'):
-            prev_row = prev_result['rows'][0]
-            prev_metrics = dict(zip(prev_result['metric_headers'], prev_row['metrics']))
-        
-        # Calculate percentage changes
-        def calculate_change(current, previous):
-            if previous == 0:
-                return 100 if current > 0 else 0
-            return round(((current - previous) / previous) * 100, 1)
-        
-        overview_data = {
-            'sessions': {
-                'value': int(metrics_data.get('sessions', 0)),
-                'change': calculate_change(metrics_data.get('sessions', 0), prev_metrics.get('sessions', 0))
-            },
-            'users': {
-                'value': int(metrics_data.get('totalUsers', 0)),
-                'change': calculate_change(metrics_data.get('totalUsers', 0), prev_metrics.get('totalUsers', 0))
-            },
-            'page_views': {
-                'value': int(metrics_data.get('screenPageViews', 0)),
-                'change': calculate_change(metrics_data.get('screenPageViews', 0), prev_metrics.get('screenPageViews', 0))
-            },
-            'bounce_rate': {
-                'value': round(metrics_data.get('bounceRate', 0), 2),
-                'change': calculate_change(metrics_data.get('bounceRate', 0), prev_metrics.get('bounceRate', 0))
+            logger.error(f"Error fetching device data: {e}")
+            return {
+                'desktop': 0,
+                'mobile': 0,
+                'tablet': 0
             }
-        }
-        
-        # Cache for 15 minutes
-        cache.set(cache_key, overview_data, 900)
-        return overview_data
     
-    def get_traffic_sources(self, days: int = 7, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get traffic sources data"""
-        cache_key = f"ga4_traffic_sources_{days}_{limit}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
+    def get_daily_traffic(self, days=30):
+        """Get daily traffic data"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="date")],
+                metrics=[
+                    Metric(name="sessions"),
+                    Metric(name="totalUsers"),
+                    Metric(name="screenPageViews")
+                ],
+                order_bys=[OrderBy(dimension=OrderBy.DimensionOrderBy(dimension_name="date"))]
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                date_str = row.dimension_values[0].value
+                sessions = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                users = int(row.metric_values[1].value) if row.metric_values[1].value else 0
+                page_views = int(row.metric_values[2].value) if row.metric_values[2].value else 0
+                data.append({
+                    'date': date_str,
+                    'sessions': sessions,
+                    'users': users,
+                    'page_views': page_views
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching daily traffic: {e}")
             return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['sessionDefaultChannelGrouping']
-        metrics = ['sessions', 'totalUsers']
-        
-        result = self._run_report(dimensions, metrics, [date_range], limit=limit)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        traffic_sources = []
-        for row in result['rows']:
-            traffic_sources.append({
-                'source': row['dimensions'][0],
-                'sessions': int(row['metrics'][0]),
-                'users': int(row['metrics'][1])
-            })
-        
-        # Cache for 30 minutes
-        cache.set(cache_key, traffic_sources, 1800)
-        return traffic_sources
     
-    def get_top_pages(self, days: int = 7, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get top pages by page views"""
-        cache_key = f"ga4_top_pages_{days}_{limit}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
+    def get_detailed_traffic_sources(self, days=30, limit=20):
+        """Get detailed traffic sources data"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[
+                    Dimension(name="sessionSource"),
+                    Dimension(name="sessionMedium")
+                ],
+                metrics=[
+                    Metric(name="sessions"),
+                    Metric(name="totalUsers"),
+                    Metric(name="bounceRate")
+                ],
+                order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="sessions"))],
+                limit=limit
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                source = row.dimension_values[0].value
+                medium = row.dimension_values[1].value
+                sessions = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                users = int(row.metric_values[1].value) if row.metric_values[1].value else 0
+                bounce_rate = float(row.metric_values[2].value) if row.metric_values[2].value else 0
+                data.append({
+                    'source': source,
+                    'medium': medium,
+                    'sessions': sessions,
+                    'users': users,
+                    'bounce_rate': bounce_rate
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching detailed traffic sources: {e}")
             return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['pagePath', 'pageTitle']
-        metrics = ['screenPageViews', 'sessions']
-        
-        order_by = [OrderBy(metric={'metric_name': 'screenPageViews'}, desc=True)]
-        
-        result = self._run_report(dimensions, metrics, [date_range], order_by=order_by, limit=limit)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        top_pages = []
-        for row in result['rows']:
-            top_pages.append({
-                'path': row['dimensions'][0],
-                'title': row['dimensions'][1] or 'Untitled',
-                'page_views': int(row['metrics'][0]),
-                'sessions': int(row['metrics'][1])
-            })
-        
-        # Cache for 30 minutes
-        cache.set(cache_key, top_pages, 1800)
-        return top_pages
     
-    def get_geographic_data(self, days: int = 7, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get geographic data (countries)"""
-        cache_key = f"ga4_geographic_{days}_{limit}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
+    def get_page_views_breakdown(self, days=30, limit=20):
+        """Get page views breakdown by page"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="pagePath")],
+                metrics=[
+                    Metric(name="screenPageViews"),
+                    Metric(name="sessions"),
+                    Metric(name="averageSessionDuration")
+                ],
+                order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="screenPageViews"))],
+                limit=limit
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                page_path = row.dimension_values[0].value
+                page_views = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                sessions = int(row.metric_values[1].value) if row.metric_values[1].value else 0
+                avg_duration = float(row.metric_values[2].value) if row.metric_values[2].value else 0
+                data.append({
+                    'page_path': page_path,
+                    'page_views': page_views,
+                    'sessions': sessions,
+                    'avg_duration': avg_duration
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching page views breakdown: {e}")
             return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['country']
-        metrics = ['sessions', 'totalUsers']
-        
-        order_by = [OrderBy(metric={'metric_name': 'sessions'}, desc=True)]
-        
-        result = self._run_report(dimensions, metrics, [date_range], order_by=order_by, limit=limit)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        geographic_data = []
-        for row in result['rows']:
-            geographic_data.append({
-                'country': row['dimensions'][0],
-                'sessions': int(row['metrics'][0]),
-                'users': int(row['metrics'][1])
-            })
-        
-        # Cache for 1 hour
-        cache.set(cache_key, geographic_data, 3600)
-        return geographic_data
     
-    def get_device_data(self, days: int = 7) -> Dict[str, Any]:
-        """Get device category breakdown"""
-        cache_key = f"ga4_device_data_{days}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
-            return {'desktop': 0, 'mobile': 0, 'tablet': 0}
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['deviceCategory']
-        metrics = ['sessions']
-        
-        result = self._run_report(dimensions, metrics, [date_range])
-        
-        if not result or not result.get('rows'):
-            return {'desktop': 0, 'mobile': 0, 'tablet': 0}
-        
-        device_data = {'desktop': 0, 'mobile': 0, 'tablet': 0}
-        for row in result['rows']:
-            device = row['dimensions'][0].lower()
-            sessions = int(row['metrics'][0])
-            if device in device_data:
-                device_data[device] = sessions
-        
-        # Cache for 1 hour
-        cache.set(cache_key, device_data, 3600)
-        return device_data
-    
-    def get_daily_traffic(self, days: int = 7) -> List[Dict[str, Any]]:
-        """Get daily traffic data for charts"""
-        cache_key = f"ga4_daily_traffic_{days}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
-            return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['date']
-        metrics = ['sessions', 'totalUsers', 'screenPageViews']
-        
-        order_by = [OrderBy(dimension={'dimension_name': 'date'})]
-        
-        result = self._run_report(dimensions, metrics, [date_range], order_by=order_by)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        daily_data = []
-        for row in result['rows']:
-            date_str = row['dimensions'][0]
-            # Convert YYYYMMDD to readable format
-            date_obj = datetime.strptime(date_str, '%Y%m%d').date()
-            daily_data.append({
-                'date': date_obj.strftime('%Y-%m-%d'),
-                'sessions': int(row['metrics'][0]),
-                'users': int(row['metrics'][1]),
-                'page_views': int(row['metrics'][2])
-            })
-        
-        # Cache for 30 minutes
-        cache.set(cache_key, daily_data, 1800)
-        return daily_data
-    
-    def get_detailed_traffic_sources(self, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get detailed traffic sources with more granular data"""
-        cache_key = f"ga4_detailed_traffic_{days}_{limit}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
-            return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['sessionDefaultChannelGrouping', 'sessionSource', 'sessionMedium']
-        metrics = ['sessions', 'totalUsers', 'screenPageViews', 'bounceRate']
-        
-        order_by = [OrderBy(metric={'metric_name': 'sessions'}, desc=True)]
-        
-        result = self._run_report(dimensions, metrics, [date_range], order_by=order_by, limit=limit)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        traffic_sources = []
-        for row in result['rows']:
-            traffic_sources.append({
-                'channel': row['dimensions'][0],
-                'source': row['dimensions'][1],
-                'medium': row['dimensions'][2],
-                'sessions': int(row['metrics'][0]),
-                'users': int(row['metrics'][1]),
-                'page_views': int(row['metrics'][2]),
-                'bounce_rate': round(float(row['metrics'][3]), 2)
-            })
-        
-        # Cache for 30 minutes
-        cache.set(cache_key, traffic_sources, 1800)
-        return traffic_sources
-    
-    def get_events_data(self, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get events data"""
-        cache_key = f"ga4_events_{days}_{limit}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
-            return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['eventName']
-        metrics = ['eventCount', 'totalUsers']
-        
-        order_by = [OrderBy(metric={'metric_name': 'eventCount'}, desc=True)]
-        
-        result = self._run_report(dimensions, metrics, [date_range], order_by=order_by, limit=limit)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        events_data = []
-        for row in result['rows']:
-            events_data.append({
-                'event_name': row['dimensions'][0],
-                'event_count': int(row['metrics'][0]),
-                'unique_users': int(row['metrics'][1])
-            })
-        
-        # Cache for 30 minutes
-        cache.set(cache_key, events_data, 1800)
-        return events_data
-    
-    def get_enhanced_geographic_data(self, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_enhanced_geographic_data(self, days=30, limit=20):
         """Get enhanced geographic data with more details"""
-        cache_key = f"ga4_enhanced_geo_{days}_{limit}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[
+                    Dimension(name="country"),
+                    Dimension(name="city")
+                ],
+                metrics=[
+                    Metric(name="sessions"),
+                    Metric(name="totalUsers"),
+                    Metric(name="screenPageViews")
+                ],
+                order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="sessions"))],
+                limit=limit
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                country = row.dimension_values[0].value
+                city = row.dimension_values[1].value
+                sessions = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                users = int(row.metric_values[1].value) if row.metric_values[1].value else 0
+                page_views = int(row.metric_values[2].value) if row.metric_values[2].value else 0
+                data.append({
+                    'country': country,
+                    'city': city,
+                    'sessions': sessions,
+                    'users': users,
+                    'page_views': page_views
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching enhanced geographic data: {e}")
             return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['country', 'city', 'region']
-        metrics = ['sessions', 'totalUsers', 'screenPageViews', 'bounceRate', 'averageSessionDuration']
-        
-        order_by = [OrderBy(metric={'metric_name': 'sessions'}, desc=True)]
-        
-        result = self._run_report(dimensions, metrics, [date_range], order_by=order_by, limit=limit)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        geo_data = []
-        for row in result['rows']:
-            geo_data.append({
-                'country': row['dimensions'][0],
-                'city': row['dimensions'][1],
-                'region': row['dimensions'][2],
-                'sessions': int(row['metrics'][0]),
-                'users': int(row['metrics'][1]),
-                'page_views': int(row['metrics'][2]),
-                'bounce_rate': round(float(row['metrics'][3]), 2),
-                'avg_session_duration': round(float(row['metrics'][4]), 2)
-            })
-        
-        # Cache for 1 hour
-        cache.set(cache_key, geo_data, 3600)
-        return geo_data
     
-    def get_page_views_breakdown(self, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get detailed page views breakdown"""
-        cache_key = f"ga4_page_views_{days}_{limit}"
-        cached_data = cache.get(cache_key)
-        
-        if cached_data:
-            return cached_data
-        
-        if not self.is_available():
+    def get_events_data(self, days=30, limit=20):
+        """Get events data"""
+        try:
+            client = self._get_client()
+            if not client or not self.property_id:
+                return []
+            
+            # Calculate date range
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=days)
+            
+            # Create date range
+            date_range = DateRange(
+                start_date=start_date.strftime('%Y-%m-%d'),
+                end_date=end_date.strftime('%Y-%m-%d')
+            )
+            
+            # Create request
+            request = RunReportRequest(
+                property=f"properties/{self.property_id}",
+                date_ranges=[date_range],
+                dimensions=[Dimension(name="eventName")],
+                metrics=[
+                    Metric(name="eventCount"),
+                    Metric(name="totalUsers")
+                ],
+                order_bys=[OrderBy(metric=OrderBy.MetricOrderBy(metric_name="eventCount"))],
+                limit=limit
+            )
+            
+            # Execute request
+            response = client.run_report(request)
+            
+            # Process data
+            data = []
+            for row in response.rows:
+                event_name = row.dimension_values[0].value
+                event_count = int(row.metric_values[0].value) if row.metric_values[0].value else 0
+                users = int(row.metric_values[1].value) if row.metric_values[1].value else 0
+                data.append({
+                    'event_name': event_name,
+                    'event_count': event_count,
+                    'users': users
+                })
+            
+            return data
+            
+        except Exception as e:
+            logger.error(f"Error fetching events data: {e}")
             return []
-        
-        end_date = datetime.now().date()
-        start_date = end_date - timedelta(days=days)
-        
-        date_range = DateRange(start_date=start_date.strftime('%Y-%m-%d'), 
-                              end_date=end_date.strftime('%Y-%m-%d'))
-        
-        dimensions = ['pagePath', 'pageTitle', 'landingPage']
-        metrics = ['screenPageViews', 'sessions', 'totalUsers', 'bounceRate', 'averageSessionDuration']
-        
-        order_by = [OrderBy(metric={'metric_name': 'screenPageViews'}, desc=True)]
-        
-        result = self._run_report(dimensions, metrics, [date_range], order_by=order_by, limit=limit)
-        
-        if not result or not result.get('rows'):
-            return []
-        
-        page_data = []
-        for row in result['rows']:
-            page_data.append({
-                'path': row['dimensions'][0],
-                'title': row['dimensions'][1] or 'Untitled',
-                'landing_page': row['dimensions'][2],
-                'page_views': int(row['metrics'][0]),
-                'sessions': int(row['metrics'][1]),
-                'users': int(row['metrics'][2]),
-                'bounce_rate': round(float(row['metrics'][3]), 2),
-                'avg_session_duration': round(float(row['metrics'][4]), 2)
-            })
-        
-        # Cache for 30 minutes
-        cache.set(cache_key, page_data, 1800)
-        return page_data
     
-    def _get_empty_overview(self) -> Dict[str, Any]:
-        """Return empty overview data when GA4 is not available"""
+    def _get_default_stats(self):
+        """Return default stats when GA is not available"""
         return {
-            'sessions': {'value': 0, 'change': 0},
-            'users': {'value': 0, 'change': 0},
-            'page_views': {'value': 0, 'change': 0},
-            'bounce_rate': {'value': 0, 'change': 0}
+            'sessions': 0,
+            'total_users': 0,
+            'page_views': 0,
+            'bounce_rate': 0.0,
+            'avg_session_duration': 0.0,
+            'new_users': 0,
         }
 
-# Global instance
+# Create instance
 ga_service = GoogleAnalyticsService()

@@ -1,6 +1,7 @@
 from django import template
 from django.utils.safestring import mark_safe
 import json
+import os
 
 register = template.Library()
 
@@ -82,3 +83,13 @@ def generate_meta_description(content, max_length=160):
         truncated = truncated[:last_space]
     
     return truncated + "..."
+
+
+@register.filter
+def basename(value):
+    """
+    Extract filename from file path
+    """
+    if not value:
+        return ""
+    return os.path.basename(str(value))

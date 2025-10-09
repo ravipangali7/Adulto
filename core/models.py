@@ -94,6 +94,7 @@ class Video(models.Model):
 	likes = models.PositiveIntegerField(default=0)
 	duration = models.PositiveIntegerField(default=0, help_text="Duration in seconds")
 	is_active = models.BooleanField(default=True, help_text="If checked, video will be visible on the site")
+	scheduled_publish_at = models.DateTimeField(blank=True, null=True, help_text="Schedule video to be published at this time")
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:
@@ -119,6 +120,29 @@ class Video(models.Model):
 			return f"{hours}:{minutes:02d}:{seconds:02d}"
 		else:
 			return f"{minutes}:{seconds:02d}"
+	
+	@property
+	def is_scheduled(self):
+		"""Check if video is scheduled for future publishing"""
+		if not self.scheduled_publish_at:
+			return False
+		from django.utils import timezone
+		return self.scheduled_publish_at > timezone.now()
+	
+	@property
+	def is_draft(self):
+		"""Check if video is in draft status (not active and not scheduled)"""
+		return not self.is_active and not self.is_scheduled
+	
+	@property
+	def status_display(self):
+		"""Return human-readable status"""
+		if self.is_active:
+			return "Published"
+		elif self.is_scheduled:
+			return "Scheduled"
+		else:
+			return "Draft"
 
 	def extract_duration(self):
 		"""Extract duration from video file using OpenCV"""

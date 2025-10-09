@@ -1,4 +1,5 @@
 {% extends 'core/layout/base.html' %}
+{% load seo_tags %}
 {% block content %}
 <div class="container-fluid p-0">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -15,6 +16,9 @@
                 <div class="card-body">
                     <form id="video-form" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
+                        {% if form.instance.pk and form.instance.video_file %}
+                            <input type="hidden" name="existing_video" value="true">
+                        {% endif %}
                         
                         <div class="row">
                             <div class="col-md-12">
@@ -62,6 +66,15 @@
                                             Maximum file size: 300MB. Only MP4 format supported.
                                         </small>
                                     </div>
+                                    
+                                    {% if form.instance.pk and form.instance.video_file %}
+                                    <div class="alert alert-info mt-2">
+                                        <i class="fas fa-video"></i> 
+                                        <strong>Current Video:</strong> {{ form.instance.video_file.name|basename }}
+                                        <br>
+                                        <small class="text-muted">Leave empty to keep the current video file</small>
+                                    </div>
+                                    {% endif %}
                                     
                                     <!-- Upload Progress Bar -->
                                     <div id="upload-progress" class="mt-2" style="display: none;">
@@ -175,15 +188,56 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <div class="form-check">
-                                {{ form.is_active }}
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                    Active (Video will be visible on the site)
-                                </label>
+                        <!-- Publishing Options -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Publishing Options</strong></label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_option" value="publish_now" id="publish_now" 
+                                               {% if form.publish_option.value == 'publish_now' or not form.publish_option.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="publish_now">
+                                            <strong>Publish Now</strong>
+                                            <small class="text-muted d-block">Make video visible immediately</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_option" value="draft" id="draft" 
+                                               {% if form.publish_option.value == 'draft' %}checked{% endif %}>
+                                        <label class="form-check-label" for="draft">
+                                            <strong>Save as Draft</strong>
+                                            <small class="text-muted d-block">Save but don't publish yet</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_option" value="schedule" id="schedule" 
+                                               {% if form.publish_option.value == 'schedule' %}checked{% endif %}>
+                                        <label class="form-check-label" for="schedule">
+                                            <strong>Schedule</strong>
+                                            <small class="text-muted d-block">Publish at specific time</small>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                            {% if form.is_active.errors %}
-                                <div class="text-danger small">{{ form.is_active.errors|join:', ' }}</div>
+                            {% if form.publish_option.errors %}
+                                <div class="text-danger small">{{ form.publish_option.errors|join:', ' }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Schedule Date/Time (shown when schedule is selected) -->
+                        <div class="mb-3" id="schedule-section" style="display: none;">
+                            <label class="form-label">Schedule Publish Date & Time</label>
+                            {{ form.scheduled_publish_at }}
+                            <div class="form-text">
+                                <i class="fas fa-clock me-1"></i>
+                                Select when you want the video to be published (Nepal Time - UTC+5:45)
+                            </div>
+                            {% if form.scheduled_publish_at.errors %}
+                                <div class="text-danger small">{{ form.scheduled_publish_at.errors|join:', ' }}</div>
                             {% endif %}
                         </div>
                         
@@ -906,8 +960,14 @@
         const selectedFilename = videoFileInput.getAttribute('data-selected-filename');
         const hasFileUpload = videoFileInput.files && videoFileInput.files[0];
         
+        // Check if this is an edit form with existing video
+        const isEditForm = window.location.pathname.includes('/edit/') || document.querySelector('input[name="video_id"]');
+        const hasExistingVideo = document.querySelector('input[name="existing_video"]') && document.querySelector('input[name="existing_video"]').value === 'true';
+        
         console.log('Selected filename:', selectedFilename);
         console.log('Has file upload:', hasFileUpload);
+        console.log('Is edit form:', isEditForm);
+        console.log('Has existing video:', hasExistingVideo);
         
         if (selectedFilename) {
             // Handle media library selection - this should only happen on form submit
@@ -917,6 +977,10 @@
             // Handle regular file upload
             console.log('Handling regular file upload');
             startChunkedUpload();
+        } else if (isEditForm && hasExistingVideo) {
+            // For edit forms, if there's an existing video, proceed without requiring new upload
+            console.log('Edit form with existing video - proceeding with form submission');
+            submitFormDirectly();
         } else {
             // No video selected
             Swal.fire({
@@ -928,6 +992,18 @@
             return false;
         }
     });
+    
+    function submitFormDirectly() {
+        // Submit the form directly without chunked upload for edit forms with existing video
+        const form = document.getElementById('video-form');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+        
+        // Submit the form normally
+        form.submit();
+    }
     
     function handleMediaLibrarySelection(filename) {
         // Create a Video object with the selected file from media library
@@ -989,6 +1065,29 @@
             submitBtn.textContent = 'Save Video';
         });
     }
+
+    // Handle publishing options
+    document.addEventListener('DOMContentLoaded', function() {
+        const publishOptions = document.querySelectorAll('input[name="publish_option"]');
+        const scheduleSection = document.getElementById('schedule-section');
+        
+        function toggleScheduleSection() {
+            const scheduleOption = document.getElementById('schedule');
+            if (scheduleOption && scheduleOption.checked) {
+                scheduleSection.style.display = 'block';
+            } else {
+                scheduleSection.style.display = 'none';
+            }
+        }
+        
+        // Add event listeners to all radio buttons
+        publishOptions.forEach(option => {
+            option.addEventListener('change', toggleScheduleSection);
+        });
+        
+        // Initialize on page load
+        toggleScheduleSection();
+    });
 })();
 </script>
 {% endblock %}

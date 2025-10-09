@@ -171,16 +171,53 @@
                             <label class="form-label">SEO Description</label>
                             {{ form.seo_description }}
                         </div>
-                        <div class="mb-3">
-                            <div class="form-check">
-                                {{ form.is_active }}
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                    <strong>Active</strong>
-                                    <small class="text-muted d-block">If checked, video will be visible on the public site</small>
-                                </label>
+                        <!-- Publishing Options -->
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Publishing Options</strong></label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_option" value="publish_now" id="publish_now" 
+                                               {% if form.publish_option.value == 'publish_now' or not form.publish_option.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="publish_now">
+                                            <strong>Publish Now</strong>
+                                            <small class="text-muted d-block">Make video visible immediately</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_option" value="draft" id="draft" 
+                                               {% if form.publish_option.value == 'draft' %}checked{% endif %}>
+                                        <label class="form-check-label" for="draft">
+                                            <strong>Save as Draft</strong>
+                                            <small class="text-muted d-block">Save but don't publish yet</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="publish_option" value="schedule" id="schedule" 
+                                               {% if form.publish_option.value == 'schedule' %}checked{% endif %}>
+                                        <label class="form-check-label" for="schedule">
+                                            <strong>Schedule</strong>
+                                            <small class="text-muted d-block">Publish at specific time</small>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
-                            {% if form.is_active.errors %}
-                                <div class="text-danger small">{{ form.is_active.errors|join:', ' }}</div>
+                            {% if form.publish_option.errors %}
+                                <div class="text-danger small">{{ form.publish_option.errors|join:', ' }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Schedule Date/Time (shown when schedule is selected) -->
+                        <div class="mb-3" id="schedule-section" style="display: none;">
+                            <label class="form-label">Schedule Publish Date & Time</label>
+                            {{ form.scheduled_publish_at }}
+                            <div class="form-text">Select when you want the video to be published</div>
+                            {% if form.scheduled_publish_at.errors %}
+                                <div class="text-danger small">{{ form.scheduled_publish_at.errors|join:', ' }}</div>
                             {% endif %}
                         </div>
                         <button id="submit-btn" class="btn btn-primary" type="submit">Save Video</button>
@@ -573,6 +610,29 @@
             xhr.send(formData);
         }
     })();
+
+    // Handle publishing options
+    document.addEventListener('DOMContentLoaded', function() {
+        const publishOptions = document.querySelectorAll('input[name="publish_option"]');
+        const scheduleSection = document.getElementById('schedule-section');
+        
+        function toggleScheduleSection() {
+            const scheduleOption = document.getElementById('schedule');
+            if (scheduleOption && scheduleOption.checked) {
+                scheduleSection.style.display = 'block';
+            } else {
+                scheduleSection.style.display = 'none';
+            }
+        }
+        
+        // Add event listeners to all radio buttons
+        publishOptions.forEach(option => {
+            option.addEventListener('change', toggleScheduleSection);
+        });
+        
+        // Initialize on page load
+        toggleScheduleSection();
+    });
 </script>
 {% endblock %}
 

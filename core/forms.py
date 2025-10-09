@@ -40,6 +40,7 @@ class VideoForm(forms.ModelForm):
             "seo_title": forms.TextInput(attrs={"class": "form-control", "placeholder": "SEO title"}),
             "seo_description": forms.TextInput(attrs={"class": "form-control", "placeholder": "SEO description"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "scheduled_publish_at": forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -48,21 +49,60 @@ class VideoForm(forms.ModelForm):
         self.fields['title'].required = True
         self.fields['slug'].required = True
         
+        # Add custom fields for publishing options
+        self.fields['publish_option'] = forms.ChoiceField(
+            choices=[
+                ('publish_now', 'Publish Now'),
+                ('draft', 'Save as Draft'),
+                ('schedule', 'Schedule for Later')
+            ],
+            widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+            initial='publish_now'
+        )
+        
         # For edit forms, video_file is not required (existing file is kept)
         if self.instance and self.instance.pk:
             self.fields['video_file'].required = False
             self.fields['video_file'].help_text = "Leave empty to keep current video file"
             # Remove required attribute from widget for edit forms
             self.fields['video_file'].widget.attrs.pop('required', None)
+            
+            # Set initial publish option based on current state
+            if self.instance.is_active:
+                self.fields['publish_option'].initial = 'publish_now'
+            elif self.instance.scheduled_publish_at:
+                self.fields['publish_option'].initial = 'schedule'
+            else:
+                self.fields['publish_option'].initial = 'draft'
         else:
             self.fields['video_file'].required = True
+        
+        # Make scheduled_publish_at not required initially
+        self.fields['scheduled_publish_at'].required = False
+        
+        # Convert scheduled_publish_at to Nepal timezone for display
+        if self.instance and self.instance.pk and self.instance.scheduled_publish_at:
+            import pytz
+            from django.utils import timezone
+            nepal_tz = pytz.timezone('Asia/Kathmandu')
+            utc_time = self.instance.scheduled_publish_at
+            if utc_time.tzinfo is None:
+                utc_time = timezone.make_aware(utc_time)
+            nepal_time = utc_time.astimezone(nepal_tz)
+            # Format for datetime-local input (YYYY-MM-DDTHH:MM)
+            self.fields['scheduled_publish_at'].initial = nepal_time.strftime('%Y-%m-%dT%H:%M')
     
     def clean_video_file(self):
         video_file = self.cleaned_data.get('video_file')
         
         # For edit forms, if no new file is provided, keep the existing one
         if not video_file and self.instance and self.instance.pk and self.instance.video_file:
-            return self.instance.video_file
+            # Check if the existing file actually exists
+            if hasattr(self.instance.video_file, 'path') and os.path.exists(self.instance.video_file.path):
+                return self.instance.video_file
+            else:
+                # If file doesn't exist, return None to indicate no file
+                return None
         
         if video_file:
             # Check file size (300MB limit)
@@ -92,28 +132,70 @@ class VideoForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        title = cleaned_data.get('title')
-        slug = cleaned_data.get('slug')
-        video_file = cleaned_data.get('video_file')
+        publish_option = cleaned_data.get('publish_option')
+        scheduled_publish_at = cleaned_data.get('scheduled_publish_at')
         
-        # Additional validation
-        if not title or not title.strip():
-            raise forms.ValidationError("Title is required.")
-        
-        if not slug or not slug.strip():
-            raise forms.ValidationError("Slug is required.")
-        
-        # For new videos, video file is required
-        # For edit forms, either new file or existing file is required
-        if not video_file:
-            # If this is a new video (no instance or no pk), video file is required
-            if not self.instance or not self.instance.pk:
-                raise forms.ValidationError("Video file is required.")
-            # If this is an edit but no existing video file, video file is required
-            elif not self.instance.video_file:
-                raise forms.ValidationError("Video file is required.")
+        # Validate scheduling
+        if publish_option == 'schedule':
+            if not scheduled_publish_at:
+                raise forms.ValidationError("Please select a date and time for scheduling.")
+            
+            # Convert Nepal time to UTC for storage
+            import pytz
+            from django.utils import timezone
+            nepal_tz = pytz.timezone('Asia/Kathmandu')
+            
+            # If scheduled_publish_at is naive, assume it's Nepal time
+            if scheduled_publish_at.tzinfo is None:
+                # Make it timezone-aware as Nepal time
+                nepal_time = nepal_tz.localize(scheduled_publish_at)
+                # Convert to UTC
+                utc_time = nepal_time.astimezone(pytz.UTC)
+                cleaned_data['scheduled_publish_at'] = utc_time
+            
+            # Check if the converted time is in the future
+            if cleaned_data['scheduled_publish_at'] <= timezone.now():
+                raise forms.ValidationError("Scheduled time must be in the future.")
         
         return cleaned_data
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        publish_option = self.cleaned_data.get('publish_option')
+        
+        # Generate unique slug if not provided or if it's a new instance
+        if not instance.slug or not instance.pk:
+            from django.utils.text import slugify
+            base_slug = slugify(instance.title)
+            slug = base_slug
+            
+            # Ensure slug is unique
+            counter = 1
+            while instance.__class__.objects.filter(slug=slug).exclude(pk=instance.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            instance.slug = slug
+        
+        # Handle publishing options
+        if publish_option == 'publish_now':
+            instance.is_active = True
+            instance.scheduled_publish_at = None
+        elif publish_option == 'draft':
+            instance.is_active = False
+            instance.scheduled_publish_at = None
+        elif publish_option == 'schedule':
+            instance.is_active = False
+            instance.scheduled_publish_at = self.cleaned_data.get('scheduled_publish_at')
+        
+        if commit:
+            instance.save()
+            self.save_m2m()
+            
+            # Video scheduling is handled automatically by the background scheduler
+            # No need to manually schedule - the scheduler will check every 30 seconds
+        
+        return instance
 
 
 class CommentForm(forms.ModelForm):

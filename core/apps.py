@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.conf import settings
 
 
 class CoreConfig(AppConfig):
@@ -7,3 +8,8 @@ class CoreConfig(AppConfig):
     
     def ready(self):
         import core.signals
+        
+        # Start video scheduler if enabled
+        if getattr(settings, 'VIDEO_SCHEDULING_ENABLED', False):
+            from core.tasks import start_video_scheduler
+            start_video_scheduler()

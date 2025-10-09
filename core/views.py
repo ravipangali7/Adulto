@@ -256,10 +256,24 @@ def video_create(request):
 			from django.conf import settings
 			
 			try:
+				# Generate unique slug
+				from django.utils.text import slugify
+				from django.utils import timezone
+				
+				title = request.POST.get('title', 'Untitled Video')
+				base_slug = slugify(title)
+				slug = base_slug
+				
+				# Ensure slug is unique
+				counter = 1
+				while Video.objects.filter(slug=slug).exists():
+					slug = f"{base_slug}-{counter}"
+					counter += 1
+				
 				# Create Video object
 				video = Video(
-					title=request.POST.get('title', 'Untitled Video'),
-					slug=request.POST.get('slug', 'untitled-video'),
+					title=title,
+					slug=slug,
 					description=request.POST.get('description', ''),
 					uploader=request.user,
 					is_active=True
@@ -334,6 +348,7 @@ def video_create(request):
 				print(f"Form errors: {form.errors}")  # Debug print
 	else:
 		form = VideoForm()
+	
 	return render(request, 'core/video_form_chunked.html', {"form": form, "title": "Create Video"})
 
 
