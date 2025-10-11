@@ -6,7 +6,7 @@ DB_HOST=localhost
 DB_PORT=3306
 
 # Site Configuration
-SITE_BRAND=Desi X Zone
+SITE_BRAND=Desi Sexy Videos
 SITE_LOGO_URL=/static/core/logo.png
 
 # Google Analytics
