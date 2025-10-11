@@ -229,7 +229,7 @@
                         </div>
 
                         <!-- Schedule Date/Time (shown when schedule is selected) -->
-                        <div class="mb-3" id="schedule-section" style="display: none;">
+                        <div class="mb-3" id="schedule-section" style="{% if form.publish_option.value == 'schedule' %}display: block;{% else %}display: none;{% endif %}">
                             <label class="form-label">Schedule Publish Date & Time</label>
                             {{ form.scheduled_publish_at }}
                             <div class="form-text">

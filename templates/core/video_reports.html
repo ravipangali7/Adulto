@@ -25,13 +25,28 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">
                         <i class="align-middle me-2" data-feather="video"></i>
-                        Select Video for Analytics Report
+                        Select Video and Date Range for Analytics Report
                     </h5>
                 </div>
                 <div class="card-body">
+                    <!-- Quick Filter Buttons -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">Quick Filters</label>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="setDateRange('day', this)">Last Day</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setDateRange('week', this)">Last Week</button>
+                                <button type="button" class="btn btn-outline-primary active" onclick="setDateRange('month', this)">Last Month</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setDateRange('year', this)">Last Year</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="setDateRange('all', this)">All Time</button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="row">
-                        <div class="col-md-8">
-                            <select class="form-select" id="videoSelect" onchange="loadVideoReport()">
+                        <div class="col-md-4">
+                            <label for="videoSelect" class="form-label">Select Video</label>
+                            <select class="form-select" id="videoSelect" onchange="enableLoadButton()">
                                 <option value="">Choose a video to view analytics...</option>
                                 {% for video in videos %}
                                 <option value="{{ video.id }}" data-title="{{ video.title }}">
@@ -40,7 +55,16 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <div class="col-md-2">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDate" onchange="enableLoadButton()">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="endDate" onchange="enableLoadButton()">
+                        </div>
                         <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
                             <button class="btn btn-primary w-100" onclick="loadVideoReport()" disabled id="loadReportBtn">
                                 <i class="align-middle me-2" data-feather="bar-chart"></i>
                                 Load Report
@@ -278,6 +302,72 @@ document.getElementById('videoSelect').addEventListener('change', function() {
     loadBtn.disabled = !this.value;
 });
 
+// Set default date range (last 30 days)
+document.addEventListener('DOMContentLoaded', function() {
+    setDateRange('month', null); // Set default to last month
+    feather.replace();
+});
+
+function setDateRange(period, clickedButton) {
+    const today = new Date();
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('btn-outline-primary');
+        btn.classList.remove('btn-primary');
+    });
+    
+    // Add active class to clicked button
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+        clickedButton.classList.remove('btn-outline-primary');
+        clickedButton.classList.add('btn-primary');
+    }
+    
+    let startDate;
+    
+    switch(period) {
+        case 'day':
+            startDate = new Date(today.getTime() - (1 * 24 * 60 * 60 * 1000));
+            break;
+        case 'week':
+            startDate = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+            break;
+        case 'month':
+            startDate = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            break;
+        case 'year':
+            startDate = new Date(today.getTime() - (365 * 24 * 60 * 60 * 1000));
+            break;
+        case 'all':
+            // Set to a very early date to include all data
+            startDate = new Date('2020-01-01');
+            break;
+        default:
+            startDate = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    }
+    
+    startDateInput.value = startDate.toISOString().split('T')[0];
+    endDateInput.value = today.toISOString().split('T')[0];
+    
+    // Enable load button if video is selected
+    enableLoadButton();
+}
+
+function enableLoadButton() {
+    const videoSelect = document.getElementById('videoSelect');
+    const loadBtn = document.getElementById('loadReportBtn');
+    
+    if (videoSelect.value) {
+        loadBtn.disabled = false;
+    } else {
+        loadBtn.disabled = true;
+    }
+}
+
 // Cleanup charts when page is unloaded
 window.addEventListener('beforeunload', function() {
     destroyChart('viewsOverTimeChart');
@@ -286,7 +376,18 @@ window.addEventListener('beforeunload', function() {
 
 function loadVideoReport() {
     const videoId = document.getElementById('videoSelect').value;
-    if (!videoId) return;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    if (!videoId) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No Video Selected',
+            text: 'Please select a video to view its analytics.',
+            confirmButtonColor: '#dc3545'
+        });
+        return;
+    }
 
     // Show loading state
     const loadBtn = document.getElementById('loadReportBtn');
@@ -294,8 +395,15 @@ function loadVideoReport() {
     loadBtn.innerHTML = '<i class="align-middle me-2" data-feather="loader"></i>Loading...';
     loadBtn.disabled = true;
 
+    // Build API URL with date parameters
+    let apiUrl = `/core/api/video-analytics/${videoId}/`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    if (params.toString()) apiUrl += '?' + params.toString();
+
     // Fetch video data
-    fetch(`/core/api/video-analytics/${videoId}/`)
+    fetch(apiUrl)
         .then(response => response.json())
         .then(data => {
             if (data.success) {

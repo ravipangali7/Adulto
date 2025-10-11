@@ -75,7 +75,9 @@ urlpatterns = [
 	# Analytics Pages
 	path('google-analytics/', views.google_analytics, name='google_analytics'),
 	path('video-reports/', views.video_reports, name='video_reports'),
+	path('user-reports/', views.user_reports, name='user_reports'),
 	path('api/video-analytics/<int:video_id>/', views.video_analytics_api, name='video_analytics_api'),
+	path('api/user-analytics/<int:user_id>/', views.user_analytics_api, name='user_analytics_api'),
 
 	# Sitemap
 	path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

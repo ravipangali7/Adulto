@@ -68,7 +68,7 @@ class VideoForm(forms.ModelForm):
             self.fields['video_file'].widget.attrs.pop('required', None)
             
             # Set initial publish option based on current state
-            if self.instance.is_active:
+            if self.instance.is_active and not self.instance.scheduled_publish_at:
                 self.fields['publish_option'].initial = 'publish_now'
             elif self.instance.scheduled_publish_at:
                 self.fields['publish_option'].initial = 'schedule'

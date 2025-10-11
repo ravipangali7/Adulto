@@ -1151,22 +1151,40 @@ def video_reports(request):
 
 @login_required(login_url='login')
 def video_analytics_api(request, video_id):
-	"""API endpoint for video-specific analytics"""
+	"""API endpoint for video-specific analytics with date range filtering"""
 	try:
+		from django.utils import timezone
+		from datetime import datetime, timedelta
+		from django.db.models import Q
+		
 		video = get_object_or_404(Video, id=video_id)
+		
+		# Get date range from request parameters
+		start_date = request.GET.get('start_date')
+		end_date = request.GET.get('end_date')
+		
+		# Parse dates or use defaults
+		if start_date:
+			start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+		else:
+			start_date = datetime.strptime('2020-01-01', '%Y-%m-%d').date()  # Default to show all data
+			
+		if end_date:
+			end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+		else:
+			end_date = timezone.now().date()
 		
 		# Get video analytics data
 		views_over_time = []
 		recent_comments = []
 		
-		# Generate realistic views over time data (last 30 days)
+		# Generate realistic views over time data for the specified date range
 		# Based on video creation date and current metrics
 		import random
-		from datetime import datetime, timedelta
 		
-		# Calculate days since video was created
-		days_since_creation = (timezone.now().date() - video.created_at.date()).days
-		total_days = min(30, days_since_creation + 1)  # Show up to 30 days or since creation
+		# Calculate days in the date range
+		date_range_days = (end_date - start_date).days + 1
+		total_days = min(date_range_days, (timezone.now().date() - video.created_at.date()).days + 1)
 		
 		# Generate realistic view progression
 		if total_days > 0:
@@ -1175,7 +1193,7 @@ def video_analytics_api(request, video_id):
 			base_views_per_day = max(1, video.views // total_days) if total_days > 0 else 0
 			
 			for i in range(total_days):
-				date = timezone.now().date() - timedelta(days=i)
+				date = end_date - timedelta(days=i)
 				
 				# Create realistic patterns:
 				# - Higher views in first few days (viral effect)
@@ -1214,8 +1232,11 @@ def video_analytics_api(request, video_id):
 		# Reverse to show chronological order (oldest first)
 		views_over_time.reverse()
 		
-		# Get recent comments
-		comments = video.comments.select_related('user').order_by('-created_at')[:10]
+		# Get recent comments within date range
+		comments = video.comments.filter(
+			created_at__date__gte=start_date,
+			created_at__date__lte=end_date
+		).select_related('user').order_by('-created_at')[:10]
 		for comment in comments:
 			recent_comments.append({
 				'author_name': comment.author_name,
@@ -1243,7 +1264,11 @@ def video_analytics_api(request, video_id):
 			'avg_views_per_day': round(avg_views_per_day, 1),
 			'peak_day_views': peak_day_views,
 			'views_over_time': views_over_time,
-			'recent_comments': recent_comments
+			'recent_comments': recent_comments,
+			'date_range': {
+				'start_date': start_date.isoformat(),
+				'end_date': end_date.isoformat(),
+			}
 		}
 		
 		return JsonResponse({
@@ -1251,6 +1276,156 @@ def video_analytics_api(request, video_id):
 			'video': video_data
 		})
 		
+	except Exception as e:
+		return JsonResponse({
+			'success': False,
+			'error': str(e)
+		}, status=500)
+
+
+@login_required(login_url='login')
+def user_reports(request):
+	"""User reports page with user selection and date range filtering"""
+	# Get all users for selection
+	users = User.objects.all().order_by('-date_joined')
+	
+	context = {
+		'users': users,
+	}
+	return render(request, 'core/user_reports.html', context)
+
+
+@login_required(login_url='login')
+def user_analytics_api(request, user_id):
+	"""API endpoint for user-specific analytics with date range filtering"""
+	try:
+		from django.utils import timezone
+		from datetime import datetime, timedelta
+		from django.db.models import Count, Sum, Avg, Q
+		
+		# Get date range from request parameters
+		start_date = request.GET.get('start_date')
+		end_date = request.GET.get('end_date')
+		
+		# Parse dates or use defaults
+		if start_date:
+			start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+		else:
+			start_date = datetime.strptime('2020-01-01', '%Y-%m-%d').date()  # Default to show all data
+			
+		if end_date:
+			end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+		else:
+			end_date = timezone.now().date()
+		
+		# Get user
+		user = User.objects.get(id=user_id)
+		
+		# Build date filter for videos - use datetime range to be more inclusive
+		from django.utils import timezone
+		from datetime import datetime as dt
+		start_datetime = timezone.make_aware(dt.combine(start_date, dt.min.time()))
+		end_datetime = timezone.make_aware(dt.combine(end_date, dt.max.time()))
+		date_filter = Q(created_at__gte=start_datetime, created_at__lte=end_datetime)
+		
+		# Get user's videos in date range
+		user_videos = Video.objects.filter(uploader=user).filter(date_filter)
+		
+		# Debug logging
+		print(f"DEBUG: Date range: {start_date} to {end_date}")
+		print(f"DEBUG: Datetime range: {start_datetime} to {end_datetime}")
+		print(f"DEBUG: User {user.email} has {user_videos.count()} videos in date range")
+		
+		# Also get all user's videos for overall stats
+		all_user_videos = Video.objects.filter(uploader=user)
+		print(f"DEBUG: User {user.email} has {all_user_videos.count()} total videos")
+		
+		# Debug: Show all videos with their creation dates
+		for video in all_user_videos:
+			print(f"DEBUG: Video '{video.title}' created at: {video.created_at}")
+			print(f"DEBUG: Video datetime >= start_datetime ({video.created_at >= start_datetime}): {video.created_at} >= {start_datetime}")
+			print(f"DEBUG: Video datetime <= end_datetime ({video.created_at <= end_datetime}): {video.created_at} <= {end_datetime}")
+		
+		# Calculate analytics for the selected date range
+		total_videos = user_videos.count()
+		total_views = user_videos.aggregate(total=Sum('views'))['total'] or 0
+		total_likes = user_videos.aggregate(total=Sum('likes'))['total'] or 0
+		avg_views_per_video = user_videos.aggregate(avg=Avg('views'))['avg'] or 0
+		avg_likes_per_video = user_videos.aggregate(avg=Avg('likes'))['avg'] or 0
+		
+		# Get most popular video in date range
+		most_popular_video = user_videos.order_by('-views').first()
+		
+		# Get recent videos in date range (last 5)
+		recent_videos = user_videos.order_by('-created_at')[:5]
+		
+		# Get videos by category in date range
+		from django.db.models import Count
+		videos_by_category = user_videos.values('category__name').annotate(
+			count=Count('id')
+		).order_by('-count')[:5]
+		
+		# Get engagement rate (likes per view) for date range
+		engagement_rate = (total_likes / total_views * 100) if total_views > 0 else 0
+		
+		# Get user's comments count in date range
+		from .models import Comment
+		total_comments = Comment.objects.filter(user=user).filter(
+			created_at__date__gte=start_date, 
+			created_at__date__lte=end_date
+		).count()
+		
+		# Prepare user data
+		user_data = {
+			'id': user.id,
+			'name': user.name or 'No Name',
+			'email': user.email,
+			'date_joined': user.date_joined.isoformat(),
+			'is_email_verified': user.is_email_verified,
+			'is_active': user.is_active,
+			# Date range filtered statistics
+			'total_videos': total_videos,
+			'total_views': total_views,
+			'total_likes': total_likes,
+			'total_comments': total_comments,
+			'avg_views_per_video': round(avg_views_per_video, 2),
+			'avg_likes_per_video': round(avg_likes_per_video, 2),
+			'engagement_rate': round(engagement_rate, 2),
+			'most_popular_video': {
+				'id': most_popular_video.id,
+				'title': most_popular_video.title,
+				'views': most_popular_video.views,
+				'likes': most_popular_video.likes,
+				'created_at': most_popular_video.created_at.isoformat(),
+			} if most_popular_video else None,
+			'recent_videos': [
+				{
+					'id': video.id,
+					'title': video.title,
+					'views': video.views,
+					'likes': video.likes,
+					'created_at': video.created_at.isoformat(),
+					'thumbnail_url': video.thumbnail.url if video.thumbnail else None,
+				}
+				for video in recent_videos
+			],
+			'videos_by_category': list(videos_by_category),
+			'date_range': {
+				'start_date': start_date.isoformat(),
+				'end_date': end_date.isoformat(),
+			}
+		}
+		
+		return JsonResponse({
+			'success': True,
+			'user': user_data
+		})
+		
+	except User.DoesNotExist:
+		return JsonResponse({
+			'success': False,
+			'error': 'User not found'
+		}, status=404)
 	except Exception as e:
 		return JsonResponse({
 			'success': False,

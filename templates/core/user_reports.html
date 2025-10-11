@@ -1,0 +1,533 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="align-middle me-2" data-feather="user-check"></i>
+            <strong>User Reports</strong>
+        </h1>
+        <div>
+            <a href="{% url 'video_reports' %}" class="btn btn-outline-primary">
+                <i class="align-middle me-2" data-feather="bar-chart-2"></i>
+                Video Reports
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="align-middle me-2" data-feather="home"></i>
+                Main Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- User Selection and Date Range -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="align-middle me-2" data-feather="users"></i>
+                        Select User and Date Range for Analytics Report
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Quick Filter Buttons -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">Quick Filters</label>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="setDateRange('day', this)">Last Day</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setDateRange('week', this)">Last Week</button>
+                                <button type="button" class="btn btn-outline-primary active" onclick="setDateRange('month', this)">Last Month</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setDateRange('year', this)">Last Year</button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="setDateRange('all', this)">All Time</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="userSelect" class="form-label">Select User</label>
+                            <select class="form-select" id="userSelect" onchange="enableLoadButton()">
+                                <option value="">Choose a user to view analytics...</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}" data-name="{{ user.name|default:'No Name' }}" data-email="{{ user.email }}">
+                                    {{ user.name|default:"No Name" }} ({{ user.email }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDate" onchange="enableLoadButton()">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="endDate" onchange="enableLoadButton()">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-primary w-100" onclick="loadUserReport()" disabled id="loadReportBtn">
+                                <i class="align-middle me-2" data-feather="bar-chart"></i>
+                                Load Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Report Content -->
+    <div id="userReportContent" style="display: none;">
+        <!-- User Info Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="align-middle me-2" data-feather="user"></i>
+                            User Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h4 id="userName" class="mb-2"></h4>
+                                <p class="text-muted mb-1" id="userEmail"></p>
+                                <p class="text-muted mb-0" id="userJoinDate"></p>
+                                <div class="mt-2">
+                                    <span id="userStatus" class="badge me-2"></span>
+                                    <span id="userVerified" class="badge"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div id="userAvatar" class="w-20 h-20 bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                                    <span class="text-white font-weight-bold" style="font-size: 2rem;" id="userInitials"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="align-middle text-primary" data-feather="video" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small">Total Videos</div>
+                                <div class="h4 mb-0" id="totalVideos">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="align-middle text-success" data-feather="eye" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small">Total Views</div>
+                                <div class="h4 mb-0" id="totalViews">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="align-middle text-warning" data-feather="heart" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small">Total Likes</div>
+                                <div class="h4 mb-0" id="totalLikes">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="align-middle text-info" data-feather="message-circle" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small">Total Comments</div>
+                                <div class="h4 mb-0" id="totalComments">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="align-middle text-primary" data-feather="trending-up" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small">Avg Views/Video</div>
+                                <div class="h4 mb-0" id="avgViewsPerVideo">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="align-middle text-success" data-feather="thumbs-up" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small">Avg Likes/Video</div>
+                                <div class="h4 mb-0" id="avgLikesPerVideo">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="align-middle text-warning" data-feather="percent" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <div class="text-muted small">Engagement Rate</div>
+                                <div class="h4 mb-0" id="engagementRate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Popular Video -->
+        <div class="row mb-4" id="mostPopularSection" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="align-middle me-2" data-feather="star"></i>
+                            Most Popular Video
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="mostPopularVideo">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Videos -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="align-middle me-2" data-feather="clock"></i>
+                            Recent Videos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentVideos">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Videos by Category -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="align-middle me-2" data-feather="folder"></i>
+                            Videos by Category
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="videosByCategory">
+                            <!-- Content will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No User Selected Message -->
+    <div id="noUserSelected" class="text-center py-5">
+        <i class="align-middle" data-feather="users" style="width: 64px; height: 64px; color: #6c757d;"></i>
+        <h4 class="mt-3 text-muted">No User Selected</h4>
+        <p class="text-muted">Please select a user and date range to view their analytics report.</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let currentUserData = null;
+
+// Set default date range (last 30 days)
+document.addEventListener('DOMContentLoaded', function() {
+    setDateRange('month', null); // Set default to last month
+    feather.replace();
+});
+
+function setDateRange(period, clickedButton) {
+    const today = new Date();
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('btn-outline-primary');
+        btn.classList.remove('btn-primary');
+    });
+    
+    // Add active class to clicked button
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+        clickedButton.classList.remove('btn-outline-primary');
+        clickedButton.classList.add('btn-primary');
+    }
+    
+    let startDate;
+    
+    switch(period) {
+        case 'day':
+            startDate = new Date(today.getTime() - (1 * 24 * 60 * 60 * 1000));
+            break;
+        case 'week':
+            startDate = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+            break;
+        case 'month':
+            startDate = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            break;
+        case 'year':
+            startDate = new Date(today.getTime() - (365 * 24 * 60 * 60 * 1000));
+            break;
+        case 'all':
+            // Set to a very early date to include all data
+            startDate = new Date('2020-01-01');
+            break;
+        default:
+            startDate = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    }
+    
+    startDateInput.value = startDate.toISOString().split('T')[0];
+    endDateInput.value = today.toISOString().split('T')[0];
+    
+    // Enable load button if user is selected
+    enableLoadButton();
+}
+
+function enableLoadButton() {
+    const userSelect = document.getElementById('userSelect');
+    const loadBtn = document.getElementById('loadReportBtn');
+    
+    if (userSelect.value) {
+        loadBtn.disabled = false;
+    } else {
+        loadBtn.disabled = true;
+    }
+}
+
+function loadUserReport() {
+    const userId = document.getElementById('userSelect').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    if (!userId) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'No User Selected',
+            text: 'Please select a user to view their analytics.',
+            confirmButtonColor: '#dc3545'
+        });
+        return;
+    }
+    
+    const loadBtn = document.getElementById('loadReportBtn');
+    const originalText = loadBtn.innerHTML;
+    loadBtn.innerHTML = '<i class="align-middle me-2" data-feather="loader"></i>Loading...';
+    loadBtn.disabled = true;
+
+    // Build API URL with date parameters
+    let apiUrl = `/core/api/user-analytics/${userId}/`;
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    if (params.toString()) apiUrl += '?' + params.toString();
+
+    // Fetch user data
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentUserData = data.user;
+                displayUserReport(data.user);
+                document.getElementById('userReportContent').style.display = 'block';
+                document.getElementById('noUserSelected').style.display = 'none';
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'Error loading user data: ' + data.error,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Error loading user data',
+                confirmButtonColor: '#dc3545'
+            });
+        })
+        .finally(() => {
+            loadBtn.innerHTML = originalText;
+            loadBtn.disabled = false;
+            feather.replace();
+        });
+}
+
+function displayUserReport(user) {
+    // Update user info
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('userJoinDate').textContent = 'Joined: ' + new Date(user.date_joined).toLocaleDateString();
+    
+    // Update user initials
+    const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
+    document.getElementById('userInitials').textContent = initials;
+    
+    // Update status badges
+    const statusBadge = document.getElementById('userStatus');
+    const verifiedBadge = document.getElementById('userVerified');
+    
+    statusBadge.textContent = user.is_active ? 'Active' : 'Inactive';
+    statusBadge.className = user.is_active ? 'badge bg-success me-2' : 'badge bg-danger me-2';
+    
+    verifiedBadge.textContent = user.is_email_verified ? 'Verified' : 'Unverified';
+    verifiedBadge.className = user.is_email_verified ? 'badge bg-success' : 'badge bg-warning';
+
+    // Update analytics cards
+    document.getElementById('totalVideos').textContent = user.total_videos;
+    document.getElementById('totalViews').textContent = user.total_views.toLocaleString();
+    document.getElementById('totalLikes').textContent = user.total_likes.toLocaleString();
+    document.getElementById('totalComments').textContent = user.total_comments.toLocaleString();
+    document.getElementById('avgViewsPerVideo').textContent = user.avg_views_per_video.toLocaleString();
+    document.getElementById('avgLikesPerVideo').textContent = user.avg_likes_per_video.toLocaleString();
+    document.getElementById('engagementRate').textContent = user.engagement_rate + '%';
+
+    // Update most popular video
+    if (user.most_popular_video) {
+        document.getElementById('mostPopularSection').style.display = 'block';
+        const popularVideo = user.most_popular_video;
+        document.getElementById('mostPopularVideo').innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${popularVideo.title}</h6>
+                    <p class="text-muted mb-1">${popularVideo.views.toLocaleString()} views • ${popularVideo.likes.toLocaleString()} likes</p>
+                    <small class="text-muted">Published: ${new Date(popularVideo.created_at).toLocaleDateString()}</small>
+                </div>
+            </div>
+        `;
+    } else {
+        document.getElementById('mostPopularSection').style.display = 'none';
+    }
+
+    // Show message if no data in date range
+    if (user.total_videos === 0) {
+        // Add a message above the analytics cards
+        const analyticsRow = document.querySelector('.row.mb-4:first-of-type');
+        if (analyticsRow && !document.getElementById('noDataMessage')) {
+            const noDataAlert = document.createElement('div');
+            noDataAlert.id = 'noDataMessage';
+            noDataAlert.className = 'alert alert-info mb-4';
+            noDataAlert.innerHTML = `
+                <i class="align-middle me-2" data-feather="info"></i>
+                <strong>No Data Found</strong> - No videos were uploaded by this user in the selected date range (${new Date(user.date_range.start_date).toLocaleDateString()} to ${new Date(user.date_range.end_date).toLocaleDateString()}).
+            `;
+            analyticsRow.parentNode.insertBefore(noDataAlert, analyticsRow);
+            feather.replace();
+        }
+    } else {
+        // Remove no data message if it exists
+        const noDataMessage = document.getElementById('noDataMessage');
+        if (noDataMessage) {
+            noDataMessage.remove();
+        }
+    }
+
+    // Update recent videos
+    const recentVideosDiv = document.getElementById('recentVideos');
+    if (user.recent_videos && user.recent_videos.length > 0) {
+        recentVideosDiv.innerHTML = user.recent_videos.map(video => `
+            <div class="d-flex align-items-center mb-3">
+                <div class="flex-shrink-0 me-3">
+                    ${video.thumbnail_url ? 
+                        `<img src="${video.thumbnail_url}" class="rounded" style="width: 60px; height: 40px; object-fit: cover;">` :
+                        `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 40px;"><i class="align-middle" data-feather="video" style="width: 20px; height: 20px; color: #6c757d;"></i></div>`
+                    }
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">${video.title}</h6>
+                    <p class="text-muted mb-1">${video.views.toLocaleString()} views • ${video.likes.toLocaleString()} likes</p>
+                    <small class="text-muted">${new Date(video.created_at).toLocaleDateString()}</small>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        recentVideosDiv.innerHTML = '<p class="text-muted text-center">No videos found in the selected date range.</p>';
+    }
+
+    // Update videos by category
+    const categoryDiv = document.getElementById('videosByCategory');
+    if (user.videos_by_category && user.videos_by_category.length > 0) {
+        categoryDiv.innerHTML = user.videos_by_category.map(cat => `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>${cat.category__name || 'Uncategorized'}</span>
+                <span class="badge bg-primary">${cat.count} video${cat.count !== 1 ? 's' : ''}</span>
+            </div>
+        `).join('');
+    } else {
+        categoryDiv.innerHTML = '<p class="text-muted text-center">No videos found in the selected date range.</p>';
+    }
+
+    // Refresh feather icons
+    feather.replace();
+}
+</script>
+{% endblock %}
