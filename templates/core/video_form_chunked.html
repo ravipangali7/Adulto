@@ -188,6 +188,9 @@
                             </div>
                         </div>
                         
+                        <!-- Hidden field for is_active (will be updated by JavaScript) -->
+                        <input type="hidden" name="is_active" id="is_active_field" value="true">
+                        
                         <!-- Publishing Options -->
                         <div class="mb-4">
                             <label class="form-label"><strong>Publishing Options</strong></label>
@@ -229,7 +232,7 @@
                         </div>
 
                         <!-- Schedule Date/Time (shown when schedule is selected) -->
-                        <div class="mb-3" id="schedule-section" style="{% if form.publish_option.value == 'schedule' %}display: block;{% else %}display: none;{% endif %}">
+                        <div class="mb-3" id="schedule-section" style="display: none;">
                             <label class="form-label">Schedule Publish Date & Time</label>
                             {{ form.scheduled_publish_at }}
                             <div class="form-text">
@@ -500,6 +503,34 @@
     
     setupSelectAllButtons('select-all-categories', 'deselect-all-categories', 'category');
     setupSelectAllButtons('select-all-tags', 'deselect-all-tags', 'tags');
+
+    // Handle publishing options
+    function updatePublishingOptions() {
+        const publishOption = document.querySelector('input[name="publish_option"]:checked');
+        const isActiveField = document.getElementById('is_active_field');
+        const scheduleSection = document.getElementById('schedule-section');
+        
+        if (publishOption && isActiveField) {
+            if (publishOption.value === 'publish_now') {
+                isActiveField.value = 'true';
+                if (scheduleSection) scheduleSection.style.display = 'none';
+            } else if (publishOption.value === 'draft') {
+                isActiveField.value = 'false';
+                if (scheduleSection) scheduleSection.style.display = 'none';
+            } else if (publishOption.value === 'schedule') {
+                isActiveField.value = 'false';
+                if (scheduleSection) scheduleSection.style.display = 'block';
+            }
+        }
+    }
+    
+    // Add event listeners to publishing option radio buttons
+    document.querySelectorAll('input[name="publish_option"]').forEach(radio => {
+        radio.addEventListener('change', updatePublishingOptions);
+    });
+    
+    // Initialize on page load
+    updatePublishingOptions();
 
     // Search functionality for categories and tags
     function setupSearch(searchInputId, containerId, itemClass) {
@@ -1011,7 +1042,20 @@
         formData.append('title', document.getElementById('id_title').value);
         formData.append('slug', document.getElementById('id_slug').value);
         formData.append('description', document.getElementById('id_description').value);
+        formData.append('seo_title', document.getElementById('id_seo_title').value);
+        formData.append('seo_description', document.getElementById('id_seo_description').value);
         formData.append('selected_filename', filename);
+        
+        // Add publishing options
+        const publishOption = document.querySelector('input[name="publish_option"]:checked');
+        if (publishOption) {
+            formData.append('publish_option', publishOption.value);
+        }
+        
+        const scheduledPublishAt = document.getElementById('id_scheduled_publish_at');
+        if (scheduledPublishAt && scheduledPublishAt.value) {
+            formData.append('scheduled_publish_at', scheduledPublishAt.value);
+        }
         
         // Add categories
         const categoryCheckboxes = document.querySelectorAll('input[name="category"]:checked');

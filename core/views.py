@@ -270,13 +270,40 @@ def video_create(request):
 					slug = f"{base_slug}-{counter}"
 					counter += 1
 				
+				# Get publishing options
+				publish_option = request.POST.get('publish_option', 'publish_now')
+				scheduled_publish_at = request.POST.get('scheduled_publish_at')
+				
+				# Handle publishing options
+				is_active = True
+				scheduled_time = None
+				
+				if publish_option == 'publish_now':
+					is_active = True
+					scheduled_time = None
+				elif publish_option == 'draft':
+					is_active = False
+					scheduled_time = None
+				elif publish_option == 'schedule' and scheduled_publish_at:
+					is_active = False
+					# Convert Nepal time to UTC for storage
+					import pytz
+					from datetime import datetime
+					nepal_tz = pytz.timezone('Asia/Kathmandu')
+					scheduled_datetime = datetime.strptime(scheduled_publish_at, '%Y-%m-%dT%H:%M')
+					nepal_time = nepal_tz.localize(scheduled_datetime)
+					scheduled_time = nepal_time.astimezone(pytz.UTC)
+				
 				# Create Video object
 				video = Video(
 					title=title,
 					slug=slug,
 					description=request.POST.get('description', ''),
 					uploader=request.user,
-					is_active=True
+					seo_title=request.POST.get('seo_title', ''),
+					seo_description=request.POST.get('seo_description', ''),
+					is_active=is_active,
+					scheduled_publish_at=scheduled_time
 				)
 				
 				# Copy file from media library to videos directory
@@ -321,6 +348,32 @@ def video_create(request):
 					video = form.save(commit=False)
 					if request.user.is_authenticated:
 						video.uploader = request.user
+					
+					# Handle publishing options from custom radio buttons
+					publish_option = request.POST.get('publish_option', 'publish_now')
+					scheduled_publish_at = request.POST.get('scheduled_publish_at')
+					
+					# Handle publishing options
+					if publish_option == 'publish_now':
+						video.is_active = True
+						video.scheduled_publish_at = None
+					elif publish_option == 'draft':
+						video.is_active = False
+						video.scheduled_publish_at = None
+					elif publish_option == 'schedule' and scheduled_publish_at:
+						video.is_active = False
+						# Convert Nepal time to UTC for storage
+						import pytz
+						from datetime import datetime
+						nepal_tz = pytz.timezone('Asia/Kathmandu')
+						scheduled_datetime = datetime.strptime(scheduled_publish_at, '%Y-%m-%dT%H:%M')
+						nepal_time = nepal_tz.localize(scheduled_datetime)
+						video.scheduled_publish_at = nepal_time.astimezone(pytz.UTC)
+					else:
+						# Default to publish now
+						video.is_active = True
+						video.scheduled_publish_at = None
+					
 					video.save()
 					form.save_m2m()
 					
