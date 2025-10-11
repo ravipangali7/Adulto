@@ -748,7 +748,7 @@
         console.log('Opening video selection modal');
         
         // Load videos first, then open modal
-        fetch('{% url "media_library_api" %}')
+        fetch('{% url "media_library_api" %}?for_video_form=true')
             .then(response => response.json())
             .then(data => {
                 console.log('API Response:', data);

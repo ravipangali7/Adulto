@@ -37,12 +37,14 @@
                 </a>
             </li>
 
+            {% if user.is_superuser %}
             <li class="sidebar-item">
                 <a class="sidebar-link" href="{% url 'media_library' %}">
                     <i class="align-middle" data-feather="folder"></i> <span
                         class="align-middle">Media Library</span>
                 </a>
             </li>
+            {% endif %}
 
             <li class="sidebar-header">
                 Content Management
@@ -56,16 +58,24 @@
             </li>
 
             <li class="sidebar-item">
-                <a class="sidebar-link" href="{% url 'settings_list' %}">
-                    <i class="align-middle" data-feather="settings"></i> <span
-                        class="align-middle">Settings</span>
+                <a class="sidebar-link" href="{% url 'age_verification_list' %}">
+                    <i class="align-middle" data-feather="shield"></i> <span
+                        class="align-middle">Age Verification</span>
                 </a>
             </li>
 
             <li class="sidebar-item">
-                <a class="sidebar-link" href="{% url 'age_verification_list' %}">
-                    <i class="align-middle" data-feather="shield"></i> <span
-                        class="align-middle">Age Verification</span>
+                <a class="sidebar-link" href="{% url 'profile' %}">
+                    <i class="align-middle" data-feather="user"></i> <span
+                        class="align-middle">Profile</span>
+                </a>
+            </li>
+
+            {% if user.is_superuser %}
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'settings_list' %}">
+                    <i class="align-middle" data-feather="settings"></i> <span
+                        class="align-middle">Settings</span>
                 </a>
             </li>
 
@@ -75,6 +85,7 @@
                         class="align-middle">User Management</span>
                 </a>
             </li>
+            {% endif %}
 
             <li class="sidebar-header">
                 Reports
@@ -87,12 +98,14 @@
                 </a>
             </li>
 
+            {% if user.is_superuser %}
             <li class="sidebar-item">
                 <a class="sidebar-link" href="{% url 'user_reports' %}">
                     <i class="align-middle" data-feather="user-check"></i> <span
                         class="align-middle">User Reports</span>
                 </a>
             </li>
+            {% endif %}
         </ul>
 
     </div>

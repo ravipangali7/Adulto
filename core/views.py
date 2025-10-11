@@ -242,7 +242,14 @@ def tag_delete(request, pk: int):
 # Video CRUD
 @login_required(login_url='login')
 def video_list(request):
-	videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags').all()
+	# Filter videos based on user permissions
+	if request.user.is_superuser:
+		# Superusers can see all videos
+		videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags').all()
+	else:
+		# Regular users can only see their own videos
+		videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags').filter(uploader=request.user)
+	
 	return render(request, 'core/video_list.html', {"videos": videos})
 
 
@@ -408,6 +415,12 @@ def video_create(request):
 @login_required(login_url='login')
 def video_update(request, pk: int):
 	video = get_object_or_404(Video, pk=pk)
+	
+	# Check if user can edit this video (own video or superuser)
+	if not request.user.is_superuser and video.uploader != request.user:
+		messages.error(request, "You don't have permission to edit this video.")
+		return redirect('video_list')
+	
 	if request.method == "POST":
 		form = VideoForm(request.POST, request.FILES, instance=video)
 		if form.is_valid():
@@ -432,6 +445,12 @@ def video_update(request, pk: int):
 @login_required(login_url='login')
 def video_delete(request, pk: int):
 	video = get_object_or_404(Video, pk=pk)
+	
+	# Check if user can delete this video (own video or superuser)
+	if not request.user.is_superuser and video.uploader != request.user:
+		messages.error(request, "You don't have permission to delete this video.")
+		return redirect('video_list')
+	
 	if request.method == "POST":
 		video.delete()
 		messages.success(request, "Video deleted successfully")
@@ -445,6 +464,13 @@ def video_toggle_status(request, pk: int):
 	"""Toggle video active status via AJAX"""
 	try:
 		video = get_object_or_404(Video, pk=pk)
+		
+		# Check if user can modify this video (own video or superuser)
+		if not request.user.is_superuser and video.uploader != request.user:
+			return JsonResponse({
+				'success': False,
+				'error': 'You don\'t have permission to modify this video.'
+			}, status=403)
 		
 		# Parse JSON data
 		data = json.loads(request.body)
@@ -591,6 +617,11 @@ def check_upload_progress(request):
 @login_required(login_url='login')
 def media_library(request):
 	"""List all videos in media/videos folder"""
+	# Only superusers can access media library
+	if not request.user.is_superuser:
+		messages.error(request, "You don't have permission to access the media library.")
+		return redirect('dashboard')
+	
 	from django.conf import settings
 	
 	media_videos_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
@@ -640,12 +671,22 @@ def media_library(request):
 @login_required(login_url='login')
 def media_library_upload_page(request):
 	"""Upload page for media library"""
+	# Only superusers can access media library
+	if not request.user.is_superuser:
+		messages.error(request, "You don't have permission to access the media library.")
+		return redirect('dashboard')
+	
 	return render(request, 'core/media_upload.html')
 
 
 @login_required(login_url='login')
 def media_library_api(request):
 	"""API endpoint to return video data for selection modal"""
+	# Allow access for video creation/editing (check if it's a video form request)
+	# or if user is superuser (for direct media library access)
+	referer = request.META.get('HTTP_REFERER', '')
+	is_video_form = 'video' in referer and ('create' in referer or 'edit' in referer)
+	
 	from django.conf import settings
 	
 	media_videos_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
@@ -693,6 +734,10 @@ def media_library_api(request):
 @require_http_methods(["POST"])
 def media_library_upload(request):
 	"""Upload video directly to media/videos folder"""
+	# Only superusers can access media library
+	if not request.user.is_superuser:
+		return JsonResponse({'error': 'Permission denied'}, status=403)
+	
 	from django.conf import settings
 	
 	try:
@@ -757,6 +802,10 @@ def media_library_upload(request):
 @require_http_methods(["POST"])
 def media_library_delete(request):
 	"""Delete video from media/videos folder"""
+	# Only superusers can access media library
+	if not request.user.is_superuser:
+		return JsonResponse({'error': 'Permission denied'}, status=403)
+	
 	from django.conf import settings
 	
 	try:
@@ -788,6 +837,10 @@ def media_library_delete(request):
 @require_http_methods(["GET"])
 def media_library_thumbnail(request, filename):
 	"""Generate thumbnail for video in media library"""
+	# Only superusers can access media library
+	if not request.user.is_superuser:
+		return HttpResponse('Permission denied', status=403)
+	
 	from django.conf import settings
 	
 	try:
@@ -1193,8 +1246,13 @@ def google_analytics(request):
 @login_required(login_url='login')
 def video_reports(request):
 	"""Video reports page with video selection"""
-	# Get all videos for selection
-	videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').all().order_by('-created_at')
+	# Filter videos based on user permissions
+	if request.user.is_superuser:
+		# Superusers can see all videos
+		videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').all().order_by('-created_at')
+	else:
+		# Regular users can only see their own videos
+		videos = Video.objects.select_related('uploader').prefetch_related('category', 'tags', 'comments').filter(uploader=request.user).order_by('-created_at')
 	
 	context = {
 		'videos': videos,
@@ -1339,6 +1397,11 @@ def video_analytics_api(request, video_id):
 @login_required(login_url='login')
 def user_reports(request):
 	"""User reports page with user selection and date range filtering"""
+	# Only superusers can access user reports
+	if not request.user.is_superuser:
+		messages.error(request, "You don't have permission to access user reports.")
+		return redirect('dashboard')
+	
 	# Get all users for selection
 	users = User.objects.all().order_by('-date_joined')
 	
