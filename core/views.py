@@ -13,7 +13,9 @@ import shutil
 import cv2
 from PIL import Image
 import io
+from io import BytesIO
 from django.core.files.base import ContentFile
+from contextlib import contextmanager
 from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment
 from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm
 from django.contrib.auth.decorators import login_required
@@ -22,6 +24,18 @@ from .analytics_service import ga_service
 from django.db.models import Sum, Count, Avg
 from django.utils import timezone
 from datetime import timedelta
+
+
+@contextmanager
+def without_thumbnail_signal():
+    """Context manager to temporarily disable thumbnail generation signal"""
+    from django.db.models.signals import post_save
+    from .signals import generate_video_thumbnail
+    post_save.disconnect(generate_video_thumbnail, sender=Video)
+    try:
+        yield
+    finally:
+        post_save.connect(generate_video_thumbnail, sender=Video)
 
 
 def login(request):
@@ -313,9 +327,13 @@ def video_create(request):
 					scheduled_publish_at=scheduled_time
 				)
 				
-				# Handle thumbnail if provided
+				# Handle thumbnail from form if provided
+				print(f"DEBUG: FILES in request (media library): {list(request.FILES.keys())}")
 				if 'thumbnail' in request.FILES:
 					video.thumbnail = request.FILES['thumbnail']
+					print(f"DEBUG: Thumbnail set from form: {video.thumbnail}")
+				else:
+					print("DEBUG: No thumbnail file provided in media library path")
 				
 				# Copy file from media library to videos directory
 				source_path = os.path.join(settings.MEDIA_ROOT, 'videos', selected_filename)
@@ -327,7 +345,25 @@ def video_create(request):
 				
 				# Set the video file
 				video.video_file.name = f'videos/{selected_filename}'
-				video.save()
+				
+				# Check if thumbnail provided and use context manager if so
+				has_thumbnail = bool(video.thumbnail)
+				print(f"DEBUG: About to save video with thumbnail (media library): {has_thumbnail}")
+				
+				if has_thumbnail:
+					print("DEBUG: Using context manager to disable signal (media library)...")
+					with without_thumbnail_signal():
+						video.save()
+				else:
+					video.save()
+				
+				print(f"DEBUG: Video saved (media library). Thumbnail after save: {bool(video.thumbnail)}")
+				
+				# Debug: Check thumbnail after save (media library)
+				print(f"DEBUG: Thumbnail after save (media library): {video.thumbnail}")
+				if video.thumbnail:
+					print(f"DEBUG: Thumbnail file path (media library): {video.thumbnail.path}")
+					print(f"DEBUG: Thumbnail file exists (media library): {os.path.exists(video.thumbnail.path)}")
 				
 				# Handle categories and tags
 				category_ids = request.POST.getlist('categories')
@@ -338,12 +374,6 @@ def video_create(request):
 				if tag_ids:
 					video.tags.set(tag_ids)
 				
-				# Generate thumbnail only if no thumbnail was provided by user
-				try:
-					if not video.thumbnail and video.generate_thumbnail():
-						video.save(update_fields=['thumbnail'])
-				except Exception as e:
-					print(f"Thumbnail generation failed for video {video.id}: {e}")
 				
 				messages.success(request, "Video created successfully from media library")
 				return redirect('video_list')
@@ -359,6 +389,14 @@ def video_create(request):
 					video = form.save(commit=False)
 					if request.user.is_authenticated:
 						video.uploader = request.user
+					
+					# Debug: Check thumbnail from form
+					print(f"DEBUG: FILES in request (regular form): {list(request.FILES.keys())}")
+					print(f"DEBUG: Thumbnail from form before processing: {video.thumbnail}")
+					if 'thumbnail' in request.FILES:
+						print(f"DEBUG: Thumbnail file provided: {request.FILES['thumbnail']}")
+					else:
+						print("DEBUG: No thumbnail file in request.FILES")
 					
 					# Handle publishing options from custom radio buttons
 					publish_option = request.POST.get('publish_option', 'publish_now')
@@ -385,17 +423,26 @@ def video_create(request):
 						video.is_active = True
 						video.scheduled_publish_at = None
 					
-					video.save()
+					# Check if thumbnail provided and use context manager if so
+					has_thumbnail = bool(video.thumbnail)
+					print(f"DEBUG: About to save video with thumbnail: {has_thumbnail}")
+					
+					if has_thumbnail:
+						print("DEBUG: Using context manager to disable signal...")
+						with without_thumbnail_signal():
+							video.save()
+					else:
+						video.save()
+					
+					print(f"DEBUG: Video saved. Thumbnail after save: {bool(video.thumbnail)}")
+					
 					form.save_m2m()
 					
-					# Generate thumbnail only if no thumbnail was provided by user and video file exists
-					if not video.thumbnail and video.video_file:
-						try:
-							if video.generate_thumbnail():
-								video.save(update_fields=['thumbnail'])
-						except Exception as e:
-							print(f"Thumbnail generation failed for video {video.id}: {e}")
-							# Don't fail the upload if thumbnail generation fails
+					# Debug: Check thumbnail after save
+					print(f"DEBUG: Thumbnail after save: {video.thumbnail}")
+					if video.thumbnail:
+						print(f"DEBUG: Thumbnail file path: {video.thumbnail.path}")
+						print(f"DEBUG: Thumbnail file exists: {os.path.exists(video.thumbnail.path)}")
 					
 					messages.success(request, "Video created successfully")
 					return redirect('video_list')
@@ -429,15 +476,6 @@ def video_update(request, pk: int):
 		form = VideoForm(request.POST, request.FILES, instance=video)
 		if form.is_valid():
 			form.save()
-			
-			# Generate thumbnail only if no thumbnail was provided by user and video file exists
-			if not video.thumbnail and video.video_file:
-				try:
-					if video.generate_thumbnail():
-						video.save(update_fields=['thumbnail'])
-				except Exception as e:
-					print(f"Thumbnail generation failed for video {video.id}: {e}")
-					# Don't fail the upload if thumbnail generation fails
 			
 			messages.success(request, "Video updated successfully")
 			return redirect('video_list')
@@ -511,6 +549,10 @@ def upload_chunk(request):
 		file_name = request.POST.get('file_name')
 		file_size = int(request.POST.get('file_size', 0))
 		
+		# Debug: Check what files are being received
+		print(f"DEBUG: Chunked upload - FILES received: {list(request.FILES.keys())}")
+		print(f"DEBUG: Chunked upload - POST data: {list(request.POST.keys())}")
+		
 		if not file_id or 'chunk' not in request.FILES:
 			return JsonResponse({'error': 'Missing file data'}, status=400)
 		
@@ -549,7 +591,23 @@ def upload_chunk(request):
 			with open(final_file_path, 'rb') as f:
 				video.video_file.save(file_name, ContentFile(f.read()), save=False)
 			
-			video.save()
+			# Handle thumbnail if provided
+			if 'thumbnail' in request.FILES:
+				video.thumbnail = request.FILES['thumbnail']
+				print(f"DEBUG: Thumbnail file provided in chunked upload: {request.FILES['thumbnail']}")
+			
+			# Check if thumbnail provided and use context manager if so
+			has_thumbnail = bool(video.thumbnail)
+			print(f"DEBUG: About to save video with thumbnail (chunked upload): {has_thumbnail}")
+			
+			if has_thumbnail:
+				print("DEBUG: Using context manager to disable signal (chunked upload)...")
+				with without_thumbnail_signal():
+					video.save()
+			else:
+				video.save()
+			
+			print(f"DEBUG: Video saved (chunked upload). Thumbnail after save: {bool(video.thumbnail)}")
 			
 			# Handle categories and tags
 			category_ids = request.POST.getlist('categories')
@@ -560,13 +618,6 @@ def upload_chunk(request):
 			if tag_ids:
 				video.tags.set(tag_ids)
 			
-			# Generate thumbnail only if no thumbnail was provided by user
-			try:
-				if not video.thumbnail and video.generate_thumbnail():
-					video.save(update_fields=['thumbnail'])
-			except Exception as e:
-				print(f"Thumbnail generation failed for video {video.id}: {e}")
-				# Don't fail the upload if thumbnail generation fails
 			
 			# Clean up temporary directory
 			import shutil

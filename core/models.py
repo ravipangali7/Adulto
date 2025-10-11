@@ -227,12 +227,8 @@ class Video(models.Model):
 			return False
 
 	def get_thumbnail_url(self):
-		"""Get thumbnail URL, generate if needed"""
+		"""Get thumbnail URL if it exists"""
 		if self.thumbnail:
-			return self.thumbnail.url
-		
-		# Try to generate thumbnail
-		if self.generate_thumbnail():
 			return self.thumbnail.url
 		
 		return None

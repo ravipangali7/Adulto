@@ -649,6 +649,13 @@
             formData.append('slug', document.getElementById('id_slug').value);
             formData.append('description', document.getElementById('id_description').value);
             
+            // Add thumbnail if provided
+            const thumbnailInput = document.getElementById('id_thumbnail');
+            if (thumbnailInput && thumbnailInput.files && thumbnailInput.files[0]) {
+                formData.append('thumbnail', thumbnailInput.files[0]);
+                console.log('DEBUG: Adding thumbnail to chunked upload:', thumbnailInput.files[0].name);
+            }
+            
             // Add categories
             const categoryCheckboxes = document.querySelectorAll('input[name="category"]:checked');
             categoryCheckboxes.forEach(checkbox => {
@@ -683,13 +690,13 @@
                         // Upload completed successfully
                         progressBar.classList.remove('progress-bar-animated');
                         progressBar.classList.add('bg-success');
-                        uploadStatus.textContent = 'Upload completed! Generating thumbnail...';
+                        uploadStatus.textContent = 'Upload completed! Processing video...';
                         uploadStatus.className = 'text-success text-center mt-2';
                         
-                        // Show thumbnail generation progress
+                        // Show processing progress
                         setTimeout(function() {
                             uploadStatus.textContent = 'Video uploaded successfully! Redirecting...';
-                        }, 2000);
+                        }, 1000);
                         
                         // Redirect after a short delay
                         setTimeout(function() {
@@ -1005,16 +1012,12 @@
             console.log('Handling media library selection');
             handleMediaLibrarySelection(selectedFilename);
         } else if (hasFileUpload) {
-            // For new videos with file upload, use direct form submission instead of chunked upload
-            console.log('Handling regular file upload with direct submission');
-            submitFormDirectly();
+            // Handle regular file upload
+            console.log('Handling regular file upload');
+            startChunkedUpload();
         } else if (isEditForm && hasExistingVideo) {
             // For edit forms, if there's an existing video, proceed without requiring new upload
             console.log('Edit form with existing video - proceeding with form submission');
-            submitFormDirectly();
-        } else if (isEditForm) {
-            // For edit forms without existing video, allow direct submission
-            console.log('Edit form - proceeding with form submission');
             submitFormDirectly();
         } else {
             // No video selected
