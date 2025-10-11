@@ -289,7 +289,7 @@ class AgeVerificationForm(forms.ModelForm):
         model = AgeVerification
         fields = ["site_name", "title", "content", "confirm_text", "deny_text", "deny_redirect_url", "is_active"]
         widgets = {
-            "site_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Site name (e.g., Desi X Zone, xHamster)"}),
+            "site_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Site name (e.g., Desi Sexy Videos, xHamster)"}),
             "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Modal title"}),
             "content": forms.Textarea(attrs={"class": "form-control", "rows": 10, "placeholder": "Modal content (HTML allowed)"}),
             "confirm_text": forms.TextInput(attrs={"class": "form-control", "placeholder": "Confirm button text"}),

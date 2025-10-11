@@ -84,7 +84,7 @@ class Command(BaseCommand):
             if not dry_run:
                 # Generate SEO title if missing
                 if not video.seo_title:
-                    video.seo_title = f"{video.title} - Watch Online | Desi X Zone"
+                    video.seo_title = f"{video.title} - Watch Online | Desi Sexy Videos"
                 
                 # Generate SEO description if missing
                 if not video.seo_description:
@@ -95,7 +95,7 @@ class Command(BaseCommand):
                             desc += "..."
                         video.seo_description = desc
                     else:
-                        video.seo_description = f"Watch {video.title} online. High-quality video content on Desi X Zone."
+                        video.seo_description = f"Watch {video.title} online. High-quality video content on Desi Sexy Videos."
                 
                 video.save()
             count += 1

@@ -10,7 +10,7 @@ class Command(BaseCommand):
         default_settings = [
             {
                 'key': 'site_title',
-                'value': 'Desi X Zone',
+                'value': 'Desi Sexy Videos',
                 'description': 'The main title of the website'
             },
             {

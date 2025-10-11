@@ -17,7 +17,7 @@ def send_verification_email(user, request):
         print(f"Activation URL: {activation_url}")
         
         # Get site title from settings or context
-        site_title = getattr(settings, 'SITE_TITLE', 'Desi X Zone')
+        site_title = getattr(settings, 'SITE_TITLE', 'Desi Sexy Videos')
         
         # Render email templates
         html_content = render_to_string('emails/email_verification.html', {

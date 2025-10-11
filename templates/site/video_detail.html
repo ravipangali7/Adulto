@@ -1,7 +1,7 @@
 {% extends 'site/base.html' %}
 {% load static %}
 
-{% block title %}{{ video.seo_title|default:video.title }} - Desi X Zone{% endblock %}
+{% block title %}{{ video.seo_title|default:video.title }} Desi Sexy Videos{% endblock %}
 
 {% block description %}{{ video.seo_description|default:video.description|truncatewords:25 }}{% endblock %}
 
@@ -9,7 +9,7 @@
 
 {% block og_type %}video.other{% endblock %}
 
-{% block og_title %}{{ video.title }} - Desi X Zone{% endblock %}
+{% block og_title %}{{ video.title }} Desi Sexy Videos{% endblock %}
 
 {% block og_description %}{{ video.description|truncatewords:25 }}{% endblock %}
 
@@ -17,7 +17,7 @@
 
 {% block twitter_card %}player{% endblock %}
 
-{% block twitter_title %}{{ video.title }} - Desi X Zone{% endblock %}
+{% block twitter_title %}{{ video.title }} Desi Sexy Videos{% endblock %}
 
 {% block twitter_description %}{{ video.description|truncatewords:25 }}{% endblock %}
 
@@ -42,7 +42,7 @@
   },
   "publisher": {
     "@type": "Organization",
-    "name": "Desi X Zone",
+    "name": "Desi Sexy Videos",
     "logo": {
       "@type": "ImageObject",
       "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'core/logo.png' %}"

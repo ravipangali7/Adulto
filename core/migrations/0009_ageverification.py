@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='AgeVerification',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('site_name', models.CharField(help_text='Name of the site (e.g., Desi X Zone, xHamster)', max_length=100)),
+                ('site_name', models.CharField(help_text='Name of the site (e.g., Desi Sexy Videos, xHamster)', max_length=100)),
                 ('title', models.CharField(help_text='Modal title', max_length=200)),
                 ('content', models.TextField(help_text='Modal content (HTML allowed)')),
                 ('confirm_text', models.CharField(default='I am 18 or older', help_text='Text for confirm button', max_length=100)),

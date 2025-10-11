@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
         # Create or update age verification
         age_verification, created = AgeVerification.objects.get_or_create(
-            site_name='Desi X Zone',
+            site_name='Desi Sexy Videos',
             defaults={
                 'title': 'Age Verification Required',
                 'content': default_content,
