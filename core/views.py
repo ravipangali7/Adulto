@@ -313,6 +313,10 @@ def video_create(request):
 					scheduled_publish_at=scheduled_time
 				)
 				
+				# Handle thumbnail if provided
+				if 'thumbnail' in request.FILES:
+					video.thumbnail = request.FILES['thumbnail']
+				
 				# Copy file from media library to videos directory
 				source_path = os.path.join(settings.MEDIA_ROOT, 'videos', selected_filename)
 				destination_path = os.path.join(settings.MEDIA_ROOT, 'videos', selected_filename)

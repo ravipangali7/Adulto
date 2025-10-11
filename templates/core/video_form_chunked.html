@@ -1005,12 +1005,16 @@
             console.log('Handling media library selection');
             handleMediaLibrarySelection(selectedFilename);
         } else if (hasFileUpload) {
-            // Handle regular file upload
-            console.log('Handling regular file upload');
-            startChunkedUpload();
+            // For new videos with file upload, use direct form submission instead of chunked upload
+            console.log('Handling regular file upload with direct submission');
+            submitFormDirectly();
         } else if (isEditForm && hasExistingVideo) {
             // For edit forms, if there's an existing video, proceed without requiring new upload
             console.log('Edit form with existing video - proceeding with form submission');
+            submitFormDirectly();
+        } else if (isEditForm) {
+            // For edit forms without existing video, allow direct submission
+            console.log('Edit form - proceeding with form submission');
             submitFormDirectly();
         } else {
             // No video selected
