@@ -334,9 +334,9 @@ def video_create(request):
 				if tag_ids:
 					video.tags.set(tag_ids)
 				
-				# Generate thumbnail
+				# Generate thumbnail only if no thumbnail was provided by user
 				try:
-					if video.generate_thumbnail():
+					if not video.thumbnail and video.generate_thumbnail():
 						video.save(update_fields=['thumbnail'])
 				except Exception as e:
 					print(f"Thumbnail generation failed for video {video.id}: {e}")
@@ -384,7 +384,7 @@ def video_create(request):
 					video.save()
 					form.save_m2m()
 					
-					# Generate thumbnail if no thumbnail provided and video file exists
+					# Generate thumbnail only if no thumbnail was provided by user and video file exists
 					if not video.thumbnail and video.video_file:
 						try:
 							if video.generate_thumbnail():
@@ -426,7 +426,7 @@ def video_update(request, pk: int):
 		if form.is_valid():
 			form.save()
 			
-			# Generate thumbnail if no thumbnail provided and video file exists
+			# Generate thumbnail only if no thumbnail was provided by user and video file exists
 			if not video.thumbnail and video.video_file:
 				try:
 					if video.generate_thumbnail():
@@ -556,9 +556,9 @@ def upload_chunk(request):
 			if tag_ids:
 				video.tags.set(tag_ids)
 			
-			# Generate thumbnail asynchronously (non-blocking)
+			# Generate thumbnail only if no thumbnail was provided by user
 			try:
-				if video.generate_thumbnail():
+				if not video.thumbnail and video.generate_thumbnail():
 					video.save(update_fields=['thumbnail'])
 			except Exception as e:
 				print(f"Thumbnail generation failed for video {video.id}: {e}")
