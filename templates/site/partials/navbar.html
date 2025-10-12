@@ -81,18 +81,35 @@
                         All Tags
                     </a>
                     
-                    <!-- Popular Tags -->
-                    {% for tag in popular_tags %}
-                    <a href="{% url 'videos' %}?tag={{ tag.slug }}" class="flex-shrink-0 bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-gold hover:text-black transition-colors duration-200 whitespace-nowrap">
-                        #{{ tag.name }}
-                    </a>
-                    {% endfor %}
-                    
-                    <!-- Show more tags if there are many -->
-                    {% if tags_count > 10 %}
-                    <a href="{% url 'tags' %}" class="flex-shrink-0 bg-gray-600 text-gray-300 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-500 transition-colors duration-200 whitespace-nowrap">
-                        +{{ tags_count|add:"-10" }} more
-                    </a>
+                    <!-- Show related tags and categories if on video detail page, otherwise show popular tags -->
+                    {% if video and video.tags.all or video.category.all %}
+                        <!-- Related Categories for Current Video -->
+                        {% for category in video.category.all %}
+                        <a href="{% url 'videos' %}?category={{ category.slug }}" class="flex-shrink-0 bg-primary-gold text-black px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-gold-light transition-colors duration-200 whitespace-nowrap">
+                            {{ category.name }}
+                        </a>
+                        {% endfor %}
+                        
+                        <!-- Related Tags for Current Video -->
+                        {% for tag in video.tags.all %}
+                        <a href="{% url 'videos' %}?tag={{ tag.slug }}" class="flex-shrink-0 bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-gold hover:text-black transition-colors duration-200 whitespace-nowrap">
+                            #{{ tag.name }}
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Popular Tags -->
+                        {% for tag in popular_tags %}
+                        <a href="{% url 'videos' %}?tag={{ tag.slug }}" class="flex-shrink-0 bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-primary-gold hover:text-black transition-colors duration-200 whitespace-nowrap">
+                            #{{ tag.name }}
+                        </a>
+                        {% endfor %}
+                        
+                        <!-- Show more tags if there are many -->
+                        {% if tags_count > 10 %}
+                        <a href="{% url 'tags' %}" class="flex-shrink-0 bg-gray-600 text-gray-300 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-500 transition-colors duration-200 whitespace-nowrap">
+                            +{{ tags_count|add:"-10" }} more
+                        </a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>

@@ -72,9 +72,8 @@
             </div>
         </div>
         
-        <!-- Uploader Info -->
-        <div class="flex items-center justify-between text-xs text-gray-500">
-            <span class="truncate">{{ video.uploader.name|default:"Anonymous" }}</span>
+        <!-- Date Info -->
+        <div class="flex items-center justify-end text-xs text-gray-500">
             <span class="text-gray-600">{{ video.created_at|date:"M d" }}</span>
         </div>
     </div>
