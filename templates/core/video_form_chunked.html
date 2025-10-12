@@ -649,6 +649,21 @@
             formData.append('slug', document.getElementById('id_slug').value);
             formData.append('description', document.getElementById('id_description').value);
             
+            // Add SEO fields
+            formData.append('seo_title', document.getElementById('id_seo_title').value);
+            formData.append('seo_description', document.getElementById('id_seo_description').value);
+            
+            // Add publishing options
+            const publishOption = document.querySelector('input[name="publish_option"]:checked');
+            if (publishOption) {
+                formData.append('publish_option', publishOption.value);
+            }
+            
+            const scheduledPublishAt = document.getElementById('id_scheduled_publish_at');
+            if (scheduledPublishAt && scheduledPublishAt.value) {
+                formData.append('scheduled_publish_at', scheduledPublishAt.value);
+            }
+            
             // Add thumbnail if provided
             const thumbnailInput = document.getElementById('id_thumbnail');
             if (thumbnailInput && thumbnailInput.files && thumbnailInput.files[0]) {
@@ -1075,6 +1090,13 @@
         tagCheckboxes.forEach(checkbox => {
             formData.append('tags', checkbox.value);
         });
+        
+        // Add thumbnail if provided
+        const thumbnailInput = document.getElementById('id_thumbnail');
+        if (thumbnailInput && thumbnailInput.files && thumbnailInput.files[0]) {
+            formData.append('thumbnail', thumbnailInput.files[0]);
+            console.log('DEBUG: Adding thumbnail to media library selection:', thumbnailInput.files[0].name);
+        }
         
         // Get CSRF token
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');

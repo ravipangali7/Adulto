@@ -398,30 +398,7 @@ def video_create(request):
 					else:
 						print("DEBUG: No thumbnail file in request.FILES")
 					
-					# Handle publishing options from custom radio buttons
-					publish_option = request.POST.get('publish_option', 'publish_now')
-					scheduled_publish_at = request.POST.get('scheduled_publish_at')
-					
-					# Handle publishing options
-					if publish_option == 'publish_now':
-						video.is_active = True
-						video.scheduled_publish_at = None
-					elif publish_option == 'draft':
-						video.is_active = False
-						video.scheduled_publish_at = None
-					elif publish_option == 'schedule' and scheduled_publish_at:
-						video.is_active = False
-						# Convert Nepal time to UTC for storage
-						import pytz
-						from datetime import datetime
-						nepal_tz = pytz.timezone('Asia/Kathmandu')
-						scheduled_datetime = datetime.strptime(scheduled_publish_at, '%Y-%m-%dT%H:%M')
-						nepal_time = nepal_tz.localize(scheduled_datetime)
-						video.scheduled_publish_at = nepal_time.astimezone(pytz.UTC)
-					else:
-						# Default to publish now
-						video.is_active = True
-						video.scheduled_publish_at = None
+					# Publishing options are handled by the form's save() method
 					
 					# Check if thumbnail provided and use context manager if so
 					has_thumbnail = bool(video.thumbnail)
@@ -578,13 +555,40 @@ def upload_chunk(request):
 							final_file.write(chunk_file.read())
 						os.remove(chunk_path)  # Clean up chunk
 			
+			# Get publishing options
+			publish_option = request.POST.get('publish_option', 'publish_now')
+			scheduled_publish_at = request.POST.get('scheduled_publish_at')
+			
+			# Handle publishing options
+			is_active = True
+			scheduled_time = None
+			
+			if publish_option == 'publish_now':
+				is_active = True
+				scheduled_time = None
+			elif publish_option == 'draft':
+				is_active = False
+				scheduled_time = None
+			elif publish_option == 'schedule' and scheduled_publish_at:
+				is_active = False
+				# Convert Nepal time to UTC for storage
+				import pytz
+				from datetime import datetime
+				nepal_tz = pytz.timezone('Asia/Kathmandu')
+				scheduled_datetime = datetime.strptime(scheduled_publish_at, '%Y-%m-%dT%H:%M')
+				nepal_time = nepal_tz.localize(scheduled_datetime)
+				scheduled_time = nepal_time.astimezone(pytz.UTC)
+			
 			# Create Video object with the reassembled file
 			video = Video(
 				title=request.POST.get('title', 'Untitled Video'),
 				slug=request.POST.get('slug', 'untitled-video'),
 				description=request.POST.get('description', ''),
 				uploader=request.user,
-				is_active=True
+				seo_title=request.POST.get('seo_title', ''),
+				seo_description=request.POST.get('seo_description', ''),
+				is_active=is_active,
+				scheduled_publish_at=scheduled_time
 			)
 			
 			# Save the reassembled file
