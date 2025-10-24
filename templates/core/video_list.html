@@ -29,28 +29,29 @@
                                 </div>
                                 
                                 <!-- Title -->
-                                <h6 class="card-title mb-3 fw-bold" style="word-wrap: break-word; line-height: 1.3; white-space: normal;">{{ item.title }}</h6>
+                                <h6 class="card-title mb-4 fw-bold text-dark" style="word-wrap: break-word; line-height: 1.4; white-space: normal; font-size: 1rem;">{{ item.title }}</h6>
                                 
                                 <!-- Video Info Grid -->
-                                <div class="mb-3">
+                                <div class="mb-4">
                                     <!-- Top Row: Views and Date -->
-                                    <div class="row mb-2">
+                                    <div class="row mb-3">
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center">
-                                                <i class="fas fa-eye me-1"></i>
-                                                <span>{{ item.views }} views</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded">
+                                                <i class="fas fa-eye text-primary me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.views }}</span>
+                                                <small class="text-muted ms-1">views</small>
+                                            </div>
                                         </div>
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center">
-                                                <i class="fas fa-calendar me-1"></i>
-                                                <span>{{ item.created_at|date:'M d, Y H:i' }}</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded">
+                                                <i class="fas fa-calendar text-info me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.created_at|date:'M d, H:i' }}</span>
+                                            </div>
                                             {% if item.is_scheduled %}
-                                                <small class="text-muted d-flex align-items-center mt-1">
-                                                    <i class="fas fa-clock me-1"></i>
-                                                    <span>{{ item.scheduled_publish_at|date:'M d, Y H:i' }}</span>
-                                                </small>
+                                                <div class="d-flex align-items-center p-2 bg-warning bg-opacity-10 rounded mt-2">
+                                                    <i class="fas fa-clock text-warning me-2"></i>
+                                                    <span class="fw-medium text-dark">{{ item.scheduled_publish_at|date:'M d, H:i' }}</span>
+                                                </div>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -58,14 +59,14 @@
                                     <!-- Bottom Row: Uploader and Status -->
                                     <div class="row">
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center">
-                                                <i class="fas fa-user me-1"></i>
-                                                <span>{{ item.uploader.name }}</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded">
+                                                <i class="fas fa-user text-success me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.uploader.name }}</span>
+                                            </div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="form-check form-switch me-2">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="form-check form-switch">
                                                     <input class="form-check-input status-toggle" 
                                                            type="checkbox" 
                                                            data-video-id="{{ item.id }}"
@@ -74,16 +75,16 @@
                                                 </div>
                                                 <span class="status-badge">
                                                     {% if item.is_active %}
-                                                        <span class="badge bg-success">
-                                                            <i class="fas fa-check-circle"></i> Published
+                                                        <span class="badge bg-success px-3 py-2">
+                                                            <i class="fas fa-check-circle me-1"></i>Published
                                                         </span>
                                                     {% elif item.is_scheduled %}
-                                                        <span class="badge bg-warning text-dark">
-                                                            <i class="fas fa-clock"></i> Scheduled
+                                                        <span class="badge bg-warning text-dark px-3 py-2">
+                                                            <i class="fas fa-clock me-1"></i>Scheduled
                                                         </span>
                                                     {% else %}
-                                                        <span class="badge bg-secondary">
-                                                            <i class="fas fa-edit"></i> Draft
+                                                        <span class="badge bg-secondary px-3 py-2">
+                                                            <i class="fas fa-edit me-1"></i>Draft
                                                         </span>
                                                     {% endif %}
                                                 </span>
@@ -144,28 +145,29 @@
                                 </div>
                                 
                                 <!-- Title -->
-                                <h6 class="card-title mb-3 fw-bold" style="word-wrap: break-word; line-height: 1.3; white-space: normal;">{{ item.title }}</h6>
+                                <h6 class="card-title mb-4 fw-bold text-dark" style="word-wrap: break-word; line-height: 1.4; white-space: normal; font-size: 1rem;">{{ item.title }}</h6>
                                 
                                 <!-- Video Info Grid -->
-                                <div class="mb-3">
+                                <div class="mb-4">
                                     <!-- Top Row: Views and Date -->
-                                    <div class="row mb-2">
+                                    <div class="row mb-3">
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center">
-                                                <i class="fas fa-eye me-1"></i>
-                                                <span>{{ item.views }} views</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded">
+                                                <i class="fas fa-eye text-primary me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.views }}</span>
+                                                <small class="text-muted ms-1">views</small>
+                                            </div>
                                         </div>
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center">
-                                                <i class="fas fa-calendar me-1"></i>
-                                                <span>{{ item.created_at|date:'M d, Y H:i' }}</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded">
+                                                <i class="fas fa-calendar text-info me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.created_at|date:'M d, H:i' }}</span>
+                                            </div>
                                             {% if item.is_scheduled %}
-                                                <small class="text-muted d-flex align-items-center mt-1">
-                                                    <i class="fas fa-clock me-1"></i>
-                                                    <span>{{ item.scheduled_publish_at|date:'M d, Y H:i' }}</span>
-                                                </small>
+                                                <div class="d-flex align-items-center p-2 bg-warning bg-opacity-10 rounded mt-2">
+                                                    <i class="fas fa-clock text-warning me-2"></i>
+                                                    <span class="fw-medium text-dark">{{ item.scheduled_publish_at|date:'M d, H:i' }}</span>
+                                                </div>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -173,14 +175,14 @@
                                     <!-- Bottom Row: Uploader and Status -->
                                     <div class="row">
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center">
-                                                <i class="fas fa-user me-1"></i>
-                                                <span>{{ item.uploader.name }}</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded">
+                                                <i class="fas fa-user text-success me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.uploader.name }}</span>
+                                            </div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="form-check form-switch me-2">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="form-check form-switch">
                                                     <input class="form-check-input status-toggle" 
                                                            type="checkbox" 
                                                            data-video-id="{{ item.id }}"
@@ -189,16 +191,16 @@
                                                 </div>
                                                 <span class="status-badge">
                                                     {% if item.is_active %}
-                                                        <span class="badge bg-success">
-                                                            <i class="fas fa-check-circle"></i> Published
+                                                        <span class="badge bg-success px-3 py-2">
+                                                            <i class="fas fa-check-circle me-1"></i>Published
                                                         </span>
                                                     {% elif item.is_scheduled %}
-                                                        <span class="badge bg-warning text-dark">
-                                                            <i class="fas fa-clock"></i> Scheduled
+                                                        <span class="badge bg-warning text-dark px-3 py-2">
+                                                            <i class="fas fa-clock me-1"></i>Scheduled
                                                         </span>
                                                     {% else %}
-                                                        <span class="badge bg-secondary">
-                                                            <i class="fas fa-edit"></i> Draft
+                                                        <span class="badge bg-secondary px-3 py-2">
+                                                            <i class="fas fa-edit me-1"></i>Draft
                                                         </span>
                                                     {% endif %}
                                                 </span>
@@ -259,28 +261,29 @@
                             </div>
                                 
                                 <!-- Title -->
-                                <h6 class="card-title mb-3 fw-bold" style="word-wrap: break-word; line-height: 1.3; white-space: normal; font-size: 0.9rem;">{{ item.title }}</h6>
+                                <h6 class="card-title mb-4 fw-bold text-dark" style="word-wrap: break-word; line-height: 1.4; white-space: normal; font-size: 0.9rem;">{{ item.title }}</h6>
                                 
                                 <!-- Video Info Grid -->
-                                <div class="mb-3">
+                                <div class="mb-4">
                                     <!-- Top Row: Views and Date -->
-                                    <div class="row mb-2">
+                                    <div class="row mb-3">
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center" style="font-size: 0.7rem;">
-                                                <i class="fas fa-eye me-1"></i>
-                                                <span>{{ item.views }} views</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded" style="font-size: 0.7rem;">
+                                                <i class="fas fa-eye text-primary me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.views }}</span>
+                                                <small class="text-muted ms-1">views</small>
+                                            </div>
                                         </div>
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center" style="font-size: 0.7rem;">
-                                                <i class="fas fa-calendar me-1"></i>
-                                                <span>{{ item.created_at|date:'M d, Y H:i' }}</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded" style="font-size: 0.7rem;">
+                                                <i class="fas fa-calendar text-info me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.created_at|date:'M d, H:i' }}</span>
+                                            </div>
                                             {% if item.is_scheduled %}
-                                                <small class="text-muted d-flex align-items-center mt-1" style="font-size: 0.7rem;">
-                                                    <i class="fas fa-clock me-1"></i>
-                                                    <span>{{ item.scheduled_publish_at|date:'M d, Y H:i' }}</span>
-                                                </small>
+                                                <div class="d-flex align-items-center p-2 bg-warning bg-opacity-10 rounded mt-2" style="font-size: 0.7rem;">
+                                                    <i class="fas fa-clock text-warning me-2"></i>
+                                                    <span class="fw-medium text-dark">{{ item.scheduled_publish_at|date:'M d, H:i' }}</span>
+                                                </div>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -288,14 +291,14 @@
                                     <!-- Bottom Row: Uploader and Status -->
                                     <div class="row">
                                         <div class="col-6">
-                                            <small class="text-muted d-flex align-items-center" style="font-size: 0.7rem;">
-                                                <i class="fas fa-user me-1"></i>
-                                                <span>{{ item.uploader.name }}</span>
-                                            </small>
+                                            <div class="d-flex align-items-center p-2 bg-light rounded" style="font-size: 0.7rem;">
+                                                <i class="fas fa-user text-success me-2"></i>
+                                                <span class="fw-medium text-dark">{{ item.uploader.name }}</span>
+                                            </div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="d-flex align-items-center">
-                                                <div class="form-check form-switch me-2">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="form-check form-switch">
                                                     <input class="form-check-input status-toggle" 
                                                            type="checkbox" 
                                                            data-video-id="{{ item.id }}"
@@ -305,16 +308,16 @@
                                                 </div>
                                                 <span class="status-badge">
                                                     {% if item.is_active %}
-                                                        <span class="badge bg-success" style="font-size: 0.65rem;">
-                                                            <i class="fas fa-check-circle"></i> Published
+                                                        <span class="badge bg-success px-2 py-1" style="font-size: 0.65rem;">
+                                                            <i class="fas fa-check-circle me-1"></i>Published
                                                         </span>
                                                     {% elif item.is_scheduled %}
-                                                        <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">
-                                                            <i class="fas fa-clock"></i> Scheduled
+                                                        <span class="badge bg-warning text-dark px-2 py-1" style="font-size: 0.65rem;">
+                                                            <i class="fas fa-clock me-1"></i>Scheduled
                                                         </span>
                                                     {% else %}
-                                                        <span class="badge bg-secondary" style="font-size: 0.65rem;">
-                                                            <i class="fas fa-edit"></i> Draft
+                                                        <span class="badge bg-secondary px-2 py-1" style="font-size: 0.65rem;">
+                                                            <i class="fas fa-edit me-1"></i>Draft
                                                         </span>
                                                     {% endif %}
                                                 </span>
@@ -719,6 +722,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .badge.bg-info {
     background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%) !important;
+}
+
+/* Enhanced Card Design */
+.video-card .bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.video-card .bg-light:hover {
+    background-color: #e9ecef !important;
+    border-color: #dee2e6;
+}
+
+.video-card .bg-warning.bg-opacity-10 {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+/* Enhanced Status Badge */
+.status-badge .badge {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.status-badge .badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Improved Card Spacing */
+.video-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Enhanced Typography */
+.video-card .card-title {
+    color: #212529 !important;
+    font-weight: 600;
+}
+
+.video-card .fw-medium {
+    color: #495057 !important;
+}
+
+/* Icon Enhancements */
+.video-card .text-primary {
+    color: #0d6efd !important;
+}
+
+.video-card .text-info {
+    color: #0dcaf0 !important;
+}
+
+.video-card .text-success {
+    color: #198754 !important;
+}
+
+.video-card .text-warning {
+    color: #ffc107 !important;
 }
 </style>
 {% endblock %}
