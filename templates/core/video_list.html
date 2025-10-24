@@ -44,7 +44,7 @@
                                         <div class="col-6">
                                             <small class="text-muted d-flex align-items-center">
                                                 <i class="fas fa-calendar me-1"></i>
-                                                <span>{{ item.created_at|date:'M d, Y' }}</span>
+                                                <span>{{ item.created_at|date:'M d, Y H:i' }}</span>
                                             </small>
                                             {% if item.is_scheduled %}
                                                 <small class="text-muted d-flex align-items-center mt-1">
@@ -159,7 +159,7 @@
                                         <div class="col-6">
                                             <small class="text-muted d-flex align-items-center">
                                                 <i class="fas fa-calendar me-1"></i>
-                                                <span>{{ item.created_at|date:'M d, Y' }}</span>
+                                                <span>{{ item.created_at|date:'M d, Y H:i' }}</span>
                                             </small>
                                             {% if item.is_scheduled %}
                                                 <small class="text-muted d-flex align-items-center mt-1">
@@ -274,7 +274,7 @@
                                         <div class="col-6">
                                             <small class="text-muted d-flex align-items-center" style="font-size: 0.7rem;">
                                                 <i class="fas fa-calendar me-1"></i>
-                                                <span>{{ item.created_at|date:'M d, Y' }}</span>
+                                                <span>{{ item.created_at|date:'M d, Y H:i' }}</span>
                                             </small>
                                             {% if item.is_scheduled %}
                                                 <small class="text-muted d-flex align-items-center mt-1" style="font-size: 0.7rem;">
