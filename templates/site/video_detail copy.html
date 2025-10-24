@@ -279,9 +279,9 @@
                         <div class="flex-shrink-0">
                             <a href="{{ related_video.get_absolute_url }}" class="block hover:opacity-80 transition-opacity duration-200">
                                 {% if related_video.thumbnail %}
-                                <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }}" class="w-20 h-12 object-fill rounded">
+                                <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }}" class="w-20 h-11 object-fill rounded">
                                 {% else %}
-                                <div class="w-20 h-12 bg-gray-600 rounded flex items-center justify-center">
+                                <div class="w-20 h-11 bg-gray-600 rounded flex items-center justify-center">
                                     <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                     </svg>

@@ -471,7 +471,7 @@
                                 <!-- Video Thumbnail -->
                                 <div class="relative flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden popular-video-thumbnail">
                                     {% if popular_video.thumbnail %}
-                                    <img src="{{ popular_video.thumbnail.url }}" alt="{{ popular_video.title }}" class="w-full h-full object-fill">
+                                    <img src="{{ popular_video.thumbnail.url }}" alt="{{ popular_video.title }}" class="w-full object-fill" style="height: 95%;">
                                     {% else %}
                                     <div class="w-full h-full bg-gray-600 flex items-center justify-center">
                                         <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -556,9 +556,9 @@
                     <a href="{{ related_video.get_absolute_url }}" class="block">
                         <div class="relative overflow-hidden rounded-lg mb-3 group-hover:opacity-90 transition-opacity duration-200">
                             {% if related_video.thumbnail %}
-                            <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }} - Video thumbnail" class="w-full h-40 object-fill">
+                            <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }} - Video thumbnail" class="w-full h-38 object-fill">
                             {% else %}
-                            <div class="w-full h-40 bg-gray-600 flex items-center justify-center">
+                            <div class="w-full h-38 bg-gray-600 flex items-center justify-center">
                                 <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                 </svg>
