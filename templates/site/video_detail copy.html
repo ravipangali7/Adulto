@@ -279,7 +279,7 @@
                         <div class="flex-shrink-0">
                             <a href="{{ related_video.get_absolute_url }}" class="block hover:opacity-80 transition-opacity duration-200">
                                 {% if related_video.thumbnail %}
-                                <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }}" class="w-20 h-12 object-cover rounded">
+                                <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }}" class="w-20 h-12 object-contain rounded">
                                 {% else %}
                                 <div class="w-20 h-12 bg-gray-600 rounded flex items-center justify-center">
                                     <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

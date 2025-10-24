@@ -71,6 +71,7 @@ class Category(models.Model):
 class Tag(models.Model):
 	name = models.CharField(max_length=120, unique=True)
 	slug = models.SlugField(max_length=140, unique=True)
+	description = models.TextField(blank=True, null=True, help_text="Tag description for SEO")
 
 	class Meta:
 		ordering = ["name"]

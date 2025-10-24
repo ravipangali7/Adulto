@@ -18,10 +18,11 @@ class CategoryForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-        fields = ["name", "slug"]
+        fields = ["name", "slug", "description"]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Tag name"}),
             "slug": forms.TextInput(attrs={"class": "form-control", "placeholder": "tag-slug"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4, "placeholder": "Tag description for SEO"}),
         }
 
 

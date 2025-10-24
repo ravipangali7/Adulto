@@ -25,6 +25,14 @@
                                 <div class="text-danger small">{{ form.slug.errors|join:', ' }}</div>
                             {% endif %}
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                            <div class="form-text">Tag description for SEO (optional).</div>
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors|join:', ' }}</div>
+                            {% endif %}
+                        </div>
                         <button class="btn btn-primary" type="submit">Save</button>
                         <a class="btn btn-secondary" href="{% url 'tag_list' %}">Cancel</a>
                     </form>

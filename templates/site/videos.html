@@ -19,7 +19,11 @@
             Browse {{ current_category.name }} videos on Desi Sexy Videos. Discover amazing content in the {{ current_category.name }} category.
         {% endif %}
     {% elif current_tag %}
-        Browse videos tagged with #{{ current_tag.name }} on Desi Sexy Videos. Discover amazing content with the {{ current_tag.name }} tag.
+        {% if current_tag.description %}
+            {{ current_tag.description }}
+        {% else %}
+            Browse videos tagged with #{{ current_tag.name }} on Desi Sexy Videos. Discover amazing content with the {{ current_tag.name }} tag.
+        {% endif %}
     {% else %}
         Browse through our complete collection of videos on Desi Sexy Videos. Discover amazing content across various categories.
     {% endif %}
@@ -53,7 +57,11 @@
             Browse {{ current_category.name }} videos on Desi Sexy Videos. Discover amazing content in the {{ current_category.name }} category.
         {% endif %}
     {% elif current_tag %}
-        Browse videos tagged with #{{ current_tag.name }} on Desi Sexy Videos. Discover amazing content with the {{ current_tag.name }} tag.
+        {% if current_tag.description %}
+            {{ current_tag.description }}
+        {% else %}
+            Browse videos tagged with #{{ current_tag.name }} on Desi Sexy Videos. Discover amazing content with the {{ current_tag.name }} tag.
+        {% endif %}
     {% else %}
         Browse through our complete collection of videos on Desi Sexy Videos. Discover amazing content across various categories.
     {% endif %}
@@ -77,7 +85,11 @@
             Browse {{ current_category.name }} videos on Desi Sexy Videos. Discover amazing content in the {{ current_category.name }} category.
         {% endif %}
     {% elif current_tag %}
-        Browse videos tagged with #{{ current_tag.name }} on Desi Sexy Videos. Discover amazing content with the {{ current_tag.name }} tag.
+        {% if current_tag.description %}
+            {{ current_tag.description }}
+        {% else %}
+            Browse videos tagged with #{{ current_tag.name }} on Desi Sexy Videos. Discover amazing content with the {{ current_tag.name }} tag.
+        {% endif %}
     {% else %}
         Browse through our complete collection of videos on Desi Sexy Videos. Discover amazing content across various categories.
     {% endif %}

@@ -21,7 +21,7 @@
             <!-- Category Image/Icon -->
             <div class="h-32 relative overflow-hidden">
                 {% if category.image %}
-                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
                     <div class="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-30 transition-all duration-300"></div>
                 {% else %}
                     <div class="h-full bg-gradient-to-br from-primary-gold to-primary-gold-dark flex items-center justify-center">
@@ -40,11 +40,11 @@
                     </a>
                 </h3>
                 
-                {% if category.description %}
+                {% comment %} {% if category.description %}
                     <p class="text-gray-300 text-sm mb-3 line-clamp-2">
                         {{ category.description|truncatechars:100 }}
                     </p>
-                {% endif %}
+                {% endif %} {% endcomment %}
                 
                 <p class="text-gray-400 text-sm mb-4">
                     {{ category.videos.count }} video{{ category.videos.count|pluralize }}
