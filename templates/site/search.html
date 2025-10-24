@@ -143,7 +143,7 @@
                     <a href="{{ video.get_absolute_url }}" class="block">
                         <div class="relative">
                             {% if video.thumbnail %}
-                                <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" class="w-full h-48 object-contain">
+                                <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" class="w-full h-48 object-fill">
                             {% else %}
                                 <div class="w-full h-48 bg-gray-600 flex items-center justify-center">
                                     <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

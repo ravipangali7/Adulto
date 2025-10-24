@@ -4,7 +4,7 @@
     <!-- Video Thumbnail - Clickable -->
     <a href="{{ video.get_absolute_url }}" class="block relative" onclick="trackVideoClick('{{ video.title|escapejs }}', '{{ video.id }}')">
         {% if video.thumbnail %}
-        <img src="{{ video.thumbnail.url }}" alt="{{ video.title }} - Video thumbnail" class="w-full h-48 object-contain group-hover:scale-105 transition-transform duration-300">
+        <img src="{{ video.thumbnail.url }}" alt="{{ video.title }} - Video thumbnail" class="w-full h-48 object-fill group-hover:scale-105 transition-transform duration-300">
         {% else %}
         <div class="w-full h-48 bg-gray-600 flex items-center justify-center">
             <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

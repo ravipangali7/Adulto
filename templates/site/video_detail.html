@@ -471,7 +471,7 @@
                                 <!-- Video Thumbnail -->
                                 <div class="relative flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden popular-video-thumbnail">
                                     {% if popular_video.thumbnail %}
-                                    <img src="{{ popular_video.thumbnail.url }}" alt="{{ popular_video.title }}" class="w-full h-full object-contain">
+                                    <img src="{{ popular_video.thumbnail.url }}" alt="{{ popular_video.title }}" class="w-full h-full object-fill">
                                     {% else %}
                                     <div class="w-full h-full bg-gray-600 flex items-center justify-center">
                                         <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -556,7 +556,7 @@
                     <a href="{{ related_video.get_absolute_url }}" class="block">
                         <div class="relative overflow-hidden rounded-lg mb-3 group-hover:opacity-90 transition-opacity duration-200">
                             {% if related_video.thumbnail %}
-                            <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }} - Video thumbnail" class="w-full h-40 object-contain">
+                            <img src="{{ related_video.thumbnail.url }}" alt="{{ related_video.title }} - Video thumbnail" class="w-full h-40 object-fill">
                             {% else %}
                             <div class="w-full h-40 bg-gray-600 flex items-center justify-center">
                                 <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
