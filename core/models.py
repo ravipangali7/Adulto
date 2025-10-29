@@ -90,7 +90,7 @@ class Video(models.Model):
 	video_file = models.FileField(upload_to='videos/', blank=True, null=True)
 	thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
 	seo_title = models.CharField(max_length=255, blank=True)
-	seo_description = models.CharField(max_length=300, blank=True)
+	seo_description = models.TextField(blank=True)
 	views = models.PositiveIntegerField(default=0)
 	likes = models.PositiveIntegerField(default=0)
 	duration = models.PositiveIntegerField(default=0, help_text="Duration in seconds")

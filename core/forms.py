@@ -39,7 +39,7 @@ class VideoForm(forms.ModelForm):
             "video_file": forms.ClearableFileInput(attrs={"class": "form-control", "required": True, "accept": "video/mp4"}),
             "thumbnail": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/jpeg,image/jpg"}),
             "seo_title": forms.TextInput(attrs={"class": "form-control", "placeholder": "SEO title"}),
-            "seo_description": forms.TextInput(attrs={"class": "form-control", "placeholder": "SEO description"}),
+            "seo_description": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "SEO description"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "scheduled_publish_at": forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
         }
