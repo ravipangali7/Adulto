@@ -150,9 +150,7 @@
     {% endblock %}
 </head>
 <body class="bg-dark-custom text-white min-h-screen flex flex-col">
-    <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script> 
- <ins class="eas6a97888e2" data-zoneid="5760754"></ins> 
- <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+   
     <!-- Header -->
     {% include 'site/partials/header.html' %}
     
@@ -183,5 +181,8 @@
     
     
     {% block extra_js %}{% endblock %}
+    <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script> 
+    <ins class="eas6a97888e2" data-zoneid="5760754"></ins> 
+    <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
 </body>
 </html>
