@@ -134,6 +134,47 @@
             max-width: 100vw !important;
             box-sizing: border-box !important;
         }
+        
+        /* ============================================
+           STRICT AD CONTAINER - Maximum Containment
+           ============================================ */
+        .ad-strict-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            contain: layout style paint size !important;
+            isolation: isolate !important;
+            clip-path: inset(0) !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Ensure strict container children respect bounds */
+        .ad-strict-container * {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+        
+        /* Mobile: Even more aggressive containment */
+        @media (max-width: 768px) {
+            .ad-strict-container {
+                width: 100% !important;
+                max-width: 100vw !important;
+                overflow: hidden !important;
+                contain: layout style paint size !important;
+                clip-path: inset(0) !important;
+            }
+            
+            .ad-strict-container * {
+                max-width: 100% !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+        }
 
         /* Enhanced Video Card Styles */
         .video-card {
@@ -1080,9 +1121,9 @@
     <!-- Navigation -->
     {% include 'site/partials/navbar.html' %}
     
-    <!-- Header Top Banner Ad - Seamlessly Integrated -->
-    <div class="w-full max-w-full mx-auto py-2" style="background: transparent; overflow: hidden !important; box-sizing: border-box !important; width: 100% !important; max-width: 100vw !important; padding-left: 1rem !important; padding-right: 1rem !important;">
-        <div style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important;">
+    <!-- Header Top Banner Ad - Seamlessly Integrated with Double-Wrap -->
+    <div class="w-full max-w-full mx-auto py-2" style="background: transparent; overflow: hidden !important; box-sizing: border-box !important; width: 100% !important; max-width: 100vw !important; padding-left: 1rem !important; padding-right: 1rem !important; position: relative !important;">
+        <div style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important; contain: layout style paint !important;">
             {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top-banner' ad_size='728x90' %}
         </div>
     </div>
@@ -1129,6 +1170,109 @@
     <!-- JavaScript -->
     <script src="{% static 'site/js/site.js' %}"></script>
     
+    <!-- JavaScript Fallback: Enforce Ad Containment -->
+    <script>
+        (function() {
+            'use strict';
+            
+            // Function to enforce containment on ad elements
+            function enforceAdContainment(element) {
+                if (!element) return;
+                
+                // Force containment CSS
+                element.style.setProperty('width', '100%', 'important');
+                element.style.setProperty('maxWidth', '100%', 'important');
+                element.style.setProperty('overflow', 'hidden', 'important');
+                element.style.setProperty('boxSizing', 'border-box', 'important');
+                
+                // Find all children and enforce containment
+                const children = element.querySelectorAll('*');
+                children.forEach(function(child) {
+                    // Override inline width/height styles
+                    if (child.style.width && !child.style.width.includes('%')) {
+                        child.style.setProperty('width', '100%', 'important');
+                        child.style.setProperty('maxWidth', '100%', 'important');
+                    }
+                    if (child.style.height && child.style.height.includes('px') && parseInt(child.style.height) > 300) {
+                        child.style.setProperty('height', 'auto', 'important');
+                        child.style.setProperty('maxHeight', '300px', 'important');
+                    }
+                    child.style.setProperty('overflow', 'hidden', 'important');
+                    child.style.setProperty('boxSizing', 'border-box', 'important');
+                });
+            }
+            
+            // Watch for dynamically injected ad elements
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            // Check if it's an ad-related element
+                            if (node.classList && (
+                                node.classList.contains('ad-wrapper') ||
+                                node.classList.contains('ad-container') ||
+                                node.classList.contains('ad-strict-container') ||
+                                (node.id && node.id.includes('ad')) ||
+                                (node.className && typeof node.className === 'string' && node.className.includes('ad'))
+                            )) {
+                                enforceAdContainment(node);
+                            }
+                            
+                            // Also check children
+                            const adElements = node.querySelectorAll('.ad-wrapper, .ad-container, .ad-strict-container, [id*="ad"], [class*="ad"]');
+                            adElements.forEach(function(adEl) {
+                                enforceAdContainment(adEl);
+                            });
+                        }
+                    });
+                });
+            });
+            
+            // Start observing when DOM is ready
+            function initAdContainment() {
+                // Observe all ad containers
+                const adContainers = document.querySelectorAll('.ad-strict-container, .ad-wrapper, .ad-container');
+                adContainers.forEach(function(container) {
+                    enforceAdContainment(container);
+                    observer.observe(container, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['style', 'width', 'height']
+                    });
+                });
+                
+                // Also observe body for dynamically added ads
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAdContainment);
+            } else {
+                // DOM already loaded
+                initAdContainment();
+            }
+            
+            // Re-enforce containment after a delay (for late-loading ads)
+            setTimeout(function() {
+                const adContainers = document.querySelectorAll('.ad-strict-container, .ad-wrapper, .ad-container');
+                adContainers.forEach(function(container) {
+                    enforceAdContainment(container);
+                });
+            }, 2000);
+            
+            // Also re-enforce on window resize
+            window.addEventListener('resize', function() {
+                const adContainers = document.querySelectorAll('.ad-strict-container, .ad-wrapper, .ad-container');
+                adContainers.forEach(function(container) {
+                    enforceAdContainment(container);
+                });
+            });
+        })();
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>
