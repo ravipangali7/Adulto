@@ -66,6 +66,13 @@ urlpatterns = [
 	path('age-verification/<int:pk>/delete/', views.age_verification_delete, name='age_verification_delete'),
 	path('age-verification/<int:pk>/', views.age_verification_detail, name='age_verification_detail'),
 
+	# Ad Management CRUD
+	path('ads/', views.ad_list, name='ad_list'),
+	path('ads/create/', views.ad_create, name='ad_create'),
+	path('ads/<int:pk>/', views.ad_detail, name='ad_detail'),
+	path('ads/<int:pk>/edit/', views.ad_update, name='ad_update'),
+	path('ads/<int:pk>/delete/', views.ad_delete, name='ad_delete'),
+
 	# User Management CRUD
 	path('users/', views.user_list, name='user_list'),
 	path('users/<int:pk>/', views.user_detail, name='user_detail'),

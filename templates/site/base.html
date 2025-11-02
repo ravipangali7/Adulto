@@ -5,7 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="6a97888e-site-verification" content="e315e42e6244457d73c998678c5a69b6">
+    
+    <!-- Dynamic Meta Verification Script -->
+    {% if meta_verification_script %}
+        {{ meta_verification_script|safe }}
+    {% endif %}
     
     <!-- SEO Meta Tags -->
     <title>{% block title %}Desi Sexy Videos - Your Video Destination{% endblock %}</title>
@@ -146,6 +150,656 @@
         .video-card * {
             transition: all 0.2s ease;
         }
+
+        /* ============================================
+           RESPONSIVE AD PLACEMENT CSS (Mobile-First)
+           ============================================ */
+        
+        /* Base Ad Container Styles - Professional & Clean */
+        .ad-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            min-height: 0;
+            width: 100%;
+            position: relative;
+            box-sizing: border-box;
+            line-height: 1;
+        }
+        
+        /* Header and Footer banner ads - minimal spacing, clean integration */
+        .ad-wrapper.ad-header-top-banner,
+        .ad-wrapper.ad-footer-top-banner {
+            margin: 0;
+            padding: 0.5rem 0;
+            min-height: 0;
+        }
+        
+        /* Banner ads in content - proper spacing */
+        .ad-wrapper.ad-banner:not(.ad-header-top-banner):not(.ad-footer-top-banner) {
+            margin: 1.5rem auto;
+            max-width: 100%;
+        }
+        
+        /* In-content ads - clean spacing */
+        .ad-wrapper.ad-incontent {
+            margin: 1.5rem auto;
+            max-width: 100%;
+        }
+        
+        /* Sidebar ads - contained styling */
+        .ad-wrapper.ad-sidebar {
+            margin: 0 auto 1.5rem;
+        }
+        
+        /* Fixed position ads should NOT be full width - they have specific sizes */
+        .ad-wrapper.ad-instant-message,
+        .ad-wrapper.ad-slider {
+            width: auto !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Ensure hidden ads take no space - NO GAPS */
+        .ad-wrapper[style*="display: none"] {
+            display: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            visibility: hidden !important;
+            line-height: 0 !important;
+        }
+        
+        /* Professional Ad Container - Clean & Contained */
+        .ad-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            box-sizing: border-box;
+            display: block;
+            overflow: hidden;
+            border-radius: 4px;
+            background: transparent;
+            line-height: 1;
+        }
+        
+        /* Professional styling for ad containers */
+        .ad-container {
+            isolation: isolate;
+            contain: layout style paint;
+        }
+        
+        .ad-placeholder {
+            background: rgba(45, 45, 45, 0.5);
+            border: 2px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .ad-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .ad-instructions {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        
+        /* Banner Ad Styles - Perfect Size Matching & Professional */
+        .ad-banner .ad-container {
+            max-width: 728px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        .ad-size-728x90 {
+            width: 100%;
+            max-width: 728px;
+            height: 90px;
+            min-height: 90px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        /* Header Top Banner - Seamless Integration */
+        .ad-header-top-banner .ad-container {
+            max-width: 728px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 0;
+        }
+        
+        .ad-header-top-banner .ad-size-728x90 {
+            border-radius: 0;
+        }
+        
+        .ad-size-970x250 {
+            width: 100%;
+            max-width: 970px;
+            height: 250px;
+            min-height: 250px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        .ad-size-900x250 {
+            width: 100%;
+            max-width: 900px;
+            height: 250px;
+            min-height: 250px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        /* Sidebar Ad Styles - Perfect Size Matching & Professional */
+        .ad-sidebar .ad-container {
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        .ad-size-300x250 {
+            width: 100%;
+            max-width: 300px;
+            height: 250px;
+            min-height: 250px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        .ad-size-300x600 {
+            width: 100%;
+            max-width: 300px;
+            height: 600px;
+            min-height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        .ad-size-160x600 {
+            width: 100%;
+            max-width: 160px;
+            height: 600px;
+            min-height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        /* Mobile Banner Sizes - Perfect Size Matching */
+        .ad-size-320x50 {
+            width: 100%;
+            max-width: 320px;
+            height: 50px;
+            min-height: 50px;
+            margin: 0 auto;
+        }
+        
+        .ad-size-300x100 {
+            width: 100%;
+            max-width: 300px;
+            height: 100px;
+            min-height: 100px;
+            margin: 0 auto;
+        }
+        
+        .ad-size-300x50 {
+            width: 100%;
+            max-width: 300px;
+            height: 50px;
+            min-height: 50px;
+            margin: 0 auto;
+        }
+        
+        /* Auto size for video/stream ads */
+        .ad-size-auto {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        /* In-Content Ad Styles - Perfect Size Matching & Professional */
+        .ad-incontent .ad-container {
+            max-width: 728px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        /* Sticky Ad Styles - Professional */
+        .ad-sticky.sticky-ad {
+            position: sticky;
+            bottom: 0;
+            z-index: 1000;
+            background: rgba(26, 26, 26, 0.95);
+            padding: 0.5rem;
+            border-top: 1px solid rgba(255, 215, 0, 0.3);
+            margin: 0 !important;
+            overflow: hidden;
+        }
+        
+        .ad-sticky .ad-container {
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        /* Instant Message / Chat Box Ad - Fixed Position, Professional Styling */
+        .ad-instant-message.instant-message-ad {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px !important;
+            max-width: calc(100vw - 40px) !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .ad-instant-message .ad-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            border-radius: 8px;
+        }
+        
+        /* Popunder Ad (hidden, triggered by script) */
+        .ad-popunder.popunder-ad {
+            display: none;
+        }
+        
+        /* Interstitial Ad (hidden, triggered by script) */
+        .ad-interstitial.interstitial-ad,
+        .ad-fullpage.interstitial-ad {
+            display: none;
+        }
+        
+        /* In-Stream Video Ad */
+        .ad-instream.instream-ad {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        /* In-Video VAST Ad */
+        .ad-invideo.invideo-ad {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        /* Video Slider Ad - Fixed Position, Professional Styling */
+        .ad-slider.slider-ad {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px !important;
+            max-width: calc(100vw - 40px) !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            z-index: 9998;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .ad-slider .ad-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            border-radius: 8px;
+        }
+        
+        /* Outstream Video Ad */
+        .ad-outstream.outstream-ad {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        /* Recommendation Widget / Native Ads - Professional */
+        .ad-recommendation.recommendation-ad {
+            width: 100%;
+            max-width: 100%;
+            margin: 1.5rem auto;
+        }
+        
+        .ad-recommendation .ad-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        .ad-recommendation .ad-container > * {
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        /* Mobile-Only Ads */
+        .ad-mobile-only {
+            display: block;
+        }
+        
+        @media (min-width: 769px) {
+            .ad-mobile-only {
+                display: none !important;
+            }
+        }
+        
+        /* Desktop-Only Ads */
+        .ad-desktop-only {
+            display: none;
+        }
+        
+        @media (min-width: 769px) {
+            .ad-desktop-only {
+                display: block !important;
+            }
+        }
+        
+        /* ============================================
+           MOBILE RESPONSIVE BREAKPOINTS
+           ============================================ */
+        
+        /* Mobile (default - mobile first) */
+        @media (max-width: 768px) {
+            .ad-wrapper {
+                margin: 0;
+                padding: 0;
+            }
+            
+            /* Header/Footer banners - no margin on mobile */
+            .ad-wrapper.ad-header-top-banner,
+            .ad-wrapper.ad-footer-top-banner {
+                margin: 0;
+                padding: 0.25rem 0;
+            }
+            
+            /* Content ads - minimal spacing on mobile */
+            .ad-wrapper.ad-banner:not(.ad-header-top-banner):not(.ad-footer-top-banner),
+            .ad-wrapper.ad-incontent {
+                margin: 1rem auto;
+            }
+            
+            /* Banner ads - full width on mobile */
+            .ad-banner .ad-container {
+                max-width: 100%;
+            }
+            
+            .ad-size-728x90,
+            .ad-size-970x250,
+            .ad-size-900x250 {
+                max-width: 100%;
+                height: 50px;
+                min-height: 50px;
+            }
+            
+            /* Sidebar ads - full width on mobile */
+            .ad-sidebar .ad-container {
+                max-width: 100%;
+            }
+            
+            .ad-size-300x250,
+            .ad-size-300x600,
+            .ad-size-160x600 {
+                max-width: 100%;
+                height: 250px;
+                min-height: 250px;
+            }
+            
+            /* In-content ads - full width on mobile */
+            .ad-incontent .ad-container {
+                max-width: 100%;
+            }
+            
+            /* Instant Message - smaller on mobile, no gaps */
+            .ad-instant-message.instant-message-ad {
+                width: 280px !important;
+                max-width: calc(100vw - 20px) !important;
+                bottom: 10px;
+                right: 10px;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            /* Video Slider - smaller on mobile, no gaps */
+            .ad-slider.slider-ad {
+                width: 280px !important;
+                max-width: calc(100vw - 20px) !important;
+                bottom: 10px;
+                right: 10px;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .ad-placeholder {
+                padding: 0.75rem;
+                min-height: 80px;
+            }
+            
+            .ad-label {
+                font-size: 0.7rem;
+            }
+            
+            .ad-instructions {
+                font-size: 0.6rem;
+            }
+        }
+        
+        /* Tablet */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .ad-banner .ad-container {
+                max-width: 728px;
+            }
+            
+            .ad-size-728x90 {
+                max-width: 728px;
+                min-height: 90px;
+            }
+            
+            .ad-size-970x250,
+            .ad-size-900x250 {
+                max-width: 728px;
+                min-height: 90px;
+            }
+            
+            .ad-sidebar .ad-container {
+                max-width: 300px;
+            }
+            
+            .ad-incontent .ad-container {
+                max-width: 728px;
+            }
+            
+            .ad-instant-message.instant-message-ad {
+                width: 300px;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 1025px) {
+            .ad-banner .ad-container {
+                max-width: 728px;
+            }
+            
+            .ad-size-728x90 {
+                max-width: 728px;
+                min-height: 90px;
+            }
+            
+            .ad-size-970x250 {
+                max-width: 970px;
+                min-height: 250px;
+            }
+            
+            .ad-size-900x250 {
+                max-width: 900px;
+                min-height: 250px;
+            }
+            
+            .ad-sidebar .ad-container {
+                max-width: 300px;
+            }
+            
+            .ad-incontent .ad-container {
+                max-width: 728px;
+            }
+            
+            .ad-instant-message.instant-message-ad {
+                width: 320px;
+            }
+        }
+        
+        /* Professional Ad Content Containment - Clean & Contained */
+        .ad-container ins,
+        .ad-container iframe,
+        .ad-container div[id*="ad"],
+        .ad-container div[class*="ad"] {
+            border: none !important;
+            background: transparent !important;
+            overflow: hidden !important;
+            border-radius: 4px;
+            max-width: 100% !important;
+            display: block;
+        }
+        
+        /* Ensure ads don't overflow containers - FULLY RESPONSIVE */
+        .ad-container {
+            overflow: hidden !important;
+        }
+        
+        /* Professional containment for all ad content */
+        .ad-container * {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+        
+        /* Contain images and media in ads */
+        .ad-container img,
+        .ad-container video {
+            max-width: 100% !important;
+            height: auto !important;
+            object-fit: contain !important;
+            display: block;
+            border-radius: 4px;
+        }
+        
+        /* Hide explicit/degraded content with better containment */
+        .ad-container {
+            position: relative;
+        }
+        
+        /* Ensure ad scripts don't break layout */
+        .ad-container script {
+            display: none !important;
+        }
+        
+        /* Make iframes fully responsive and contained */
+        .ad-container iframe {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            min-height: 50px;
+            border: none !important;
+            border-radius: 4px;
+            overflow: hidden !important;
+            display: block;
+        }
+        
+        /* Responsive ad script containers - Professional Containment */
+        .ad-container ins,
+        .ad-container div[id*="ad"],
+        .ad-container div[class*="ad"],
+        .ad-container script + ins,
+        .ad-container script + div {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+            overflow: hidden !important;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        /* Professional containment for all ad elements */
+        .ad-container > * {
+            max-width: 100% !important;
+            overflow: hidden !important;
+            border-radius: 4px;
+        }
+        
+        /* Mobile: Force all ads to be fully responsive */
+        @media (max-width: 768px) {
+            .ad-container iframe {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                min-height: 50px;
+            }
+            
+            .ad-container ins,
+            .ad-container div[id*="ad"],
+            .ad-container div[class*="ad"] {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto;
+                overflow: hidden !important;
+                border-radius: 4px;
+            }
+            
+            /* Ensure ad scripts scale on mobile - Professional */
+            .ad-container {
+                transform: scale(1);
+                transform-origin: top center;
+                overflow: hidden !important;
+            }
+            
+            /* Mobile ad containment */
+            .ad-container * {
+                overflow: hidden !important;
+                max-width: 100% !important;
+            }
+        }
+        
+        /* Tablet: Responsive scaling */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .ad-container iframe {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+        }
     </style>
     {% endblock %}
 </head>
@@ -157,10 +811,35 @@
     <!-- Navigation -->
     {% include 'site/partials/navbar.html' %}
     
+    <!-- Header Top Banner Ad - Seamlessly Integrated -->
+    <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-2" style="background: transparent;">
+        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top-banner' ad_size='728x90' %}
+    </div>
+    
     <!-- Main Content -->
     <main class="flex-1">
         {% block content %}{% endblock %}
     </main>
+    
+    
+    <!-- Global Popunder Ad (Desktop) - Place in <head> or before </body> -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-popunder-desktop-inpage-push-notifications' ad_size='auto' desktop_only=True %}
+    
+    <!-- Global Popunder Ad (Mobile) - Place in <head> or before </body> -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-popunder-mobile-inpage-push-notifications' ad_size='auto' mobile_only=True %}
+    
+    <!-- Global Fullpage Interstitial -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='fullpage-interstitial' ad_id='global-interstitial-fullpage-interstitial' ad_size='auto' %}
+    
+    <!-- Global Instant Message Ad (Chat Box) - Mobile First -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-instant-message-inpage-push-notifications' ad_size='300x250' %}
+    
+    <!-- Global In-Page Push Notification -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-inpage-push-inpage-push-notifications' ad_size='auto' %}
+    
+    <!-- Global Sticky Banner (Bottom) -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='sticky-banner' ad_id='global-sticky-bottom-sticky-banner' ad_size='728x90' %}
+    
     
     <!-- Footer -->
     {% include 'site/partials/footer.html' %}
@@ -181,8 +860,5 @@
     
     
     {% block extra_js %}{% endblock %}
-    <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script> 
-    <ins class="eas6a97888e2" data-zoneid="5760754"></ins> 
-    <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
 </body>
 </html>

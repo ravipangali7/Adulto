@@ -115,7 +115,7 @@
             </div>
         </form>
     </div>
-
+    
     {% if query %}
         <!-- Search Stats -->
         {% if has_results %}
@@ -139,6 +139,13 @@
         {% if has_results %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
                 {% for video in results %}
+                {% if forloop.counter == 5 %}
+                    <!-- In-Content Ad after 4th result -->
+                    <div class="col-span-full my-4">
+                        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='incontent-banner' ad_size='728x90' %}
+                    </div>
+                {% endif %}
+                
                 <div class="search-result-card bg-grey-custom rounded-lg overflow-hidden">
                     <a href="{{ video.get_absolute_url }}" class="block">
                         <div class="relative">

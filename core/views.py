@@ -16,8 +16,8 @@ import io
 from io import BytesIO
 from django.core.files.base import ContentFile
 from contextlib import contextmanager
-from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment
-from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm
+from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment, Ad
+from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm, AdForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
 from .analytics_service import ga_service
@@ -1606,3 +1606,64 @@ def user_analytics_api(request, user_id):
 			'success': False,
 			'error': str(e)
 		}, status=500)
+
+
+# Ad Management Views
+@login_required(login_url='login')
+def ad_list(request):
+	"""List all ads"""
+	ads = Ad.objects.all()
+	context = {
+		'ads': ads,
+	}
+	return render(request, 'core/ad_list.html', context)
+
+
+@login_required(login_url='login')
+def ad_create(request):
+	"""Create a new ad - RESTRICTED in core admin (use Django admin instead)"""
+	messages.error(request, 'Adding new ads is disabled in frontend admin. Please use Django admin to add new ads.')
+	return redirect('ad_list')
+
+
+@login_required(login_url='login')
+def ad_update(request, pk):
+	"""Update an ad"""
+	ad = get_object_or_404(Ad, pk=pk)
+	
+	if request.method == 'POST':
+		form = AdForm(request.POST, instance=ad)
+		if form.is_valid():
+			form.save()
+			messages.success(request, 'Ad updated successfully.')
+			return redirect('ad_list')
+	else:
+		form = AdForm(instance=ad)
+	
+	# Import AD_GUIDELINES from admin
+	from core.admin import AdAdmin
+	import json
+	
+	context = {
+		'form': form,
+		'ad': ad,
+		'ad_guidelines': json.dumps(AdAdmin.AD_GUIDELINES),
+	}
+	return render(request, 'core/ad_form.html', context)
+
+
+@login_required(login_url='login')
+def ad_delete(request, pk):
+	"""Delete an ad - RESTRICTED in core admin (use Django admin instead)"""
+	messages.error(request, 'Deleting ads is disabled in frontend admin. Please use Django admin to delete ads.')
+	return redirect('ad_list')
+
+
+@login_required(login_url='login')
+def ad_detail(request, pk):
+	"""View ad details"""
+	ad = get_object_or_404(Ad, pk=pk)
+	context = {
+		'ad': ad,
+	}
+	return render(request, 'core/ad_detail.html', context)

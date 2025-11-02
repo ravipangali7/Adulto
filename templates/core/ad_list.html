@@ -1,0 +1,91 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Ad Management</h1>
+        <div class="text-muted small">
+            <strong>Note:</strong> You can only edit existing ads. Only 13 strategic placements are available. Each placement can have multiple ad formats.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover my-0">
+                <thead>
+                    <tr>
+                        <th>Placement</th>
+                        <th>Ad Format (ID)</th>
+                        <th>Display Name</th>
+                        <th>Status</th>
+                        <th>Updated</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ad in ads %}
+                    <tr>
+                        <td>
+                            <small class="text-muted">{{ ad.get_placement_display }}</small>
+                        </td>
+                        <td>
+                            <code>{{ ad.ad_type }}</code>
+                        </td>
+                        <td>
+                            <strong>{{ ad.get_ad_type_display }}</strong>
+                        </td>
+                        <td>
+                            {% if ad.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ ad.updated_at|date:"M d, Y" }}</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-info" href="{% url 'ad_detail' ad.id %}">View</a>
+                            <a class="btn btn-sm btn-secondary" href="{% url 'ad_update' ad.id %}">Edit</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No ads found. Run the management command: <code>python manage.py create_default_ads</code><br>
+                            This will create strategic ad placements (13 placements total).
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Available Ad Formats</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Only <strong>13 strategic placements</strong> are available. Each placement can have multiple ad formats. Same format (e.g., banner) can be used in multiple placements.</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Strategic Placements (13)</h6>
+                    <ul class="list-unstyled small">
+                        <li><strong>Global:</strong> header-top, global-sticky-bottom, global-popunder, global-interstitial, global-instant-message, global-inpage-push</li>
+                        <li><strong>Reusable:</strong> incontent (Home/Videos/Search), sidebar (All pages)</li>
+                        <li><strong>Page-Specific:</strong> home-bottom, video-below-player, video-sidebar, video-instream, video-slider</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>How It Works</h6>
+                    <ul class="list-unstyled small text-muted">
+                        <li>✓ Each placement can have multiple ad formats</li>
+                        <li>✓ Same format (e.g., banner) can be used in different placements</li>
+                        <li>✓ Templates use composite key: {placement}-{ad_type}</li>
+                        <li>✓ For instream-video & video-slider: enter VAST URL, not script</li>
+                        <li>✓ Edit script/URL and activate/deactivate each ad</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

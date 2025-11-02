@@ -211,6 +211,11 @@
                 {% endif %}
             </div>
             
+            <!-- Banner Ad Below Video Player -->
+            <div class="mb-6">
+                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-below-player-banner' ad_size='728x90' %}
+            </div>
+            
             <!-- Video Info -->
             <div class="bg-grey-custom rounded-lg p-6">
                 <h1 class="text-2xl font-bold text-white mb-4">{{ video.title }}</h1>
@@ -453,6 +458,11 @@
         
         <!-- Sidebar - Popular Videos -->
         <div class="lg:col-span-1">
+            <!-- Sidebar Ad Above Popular Videos -->
+            <div class="mb-6">
+                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-sidebar-banner' ad_size='300x250' %}
+            </div>
+            
             <!-- Popular Videos Section -->
             <div class="bg-grey-custom rounded-lg p-6 mb-6">
                 <div class="flex items-center mb-4">

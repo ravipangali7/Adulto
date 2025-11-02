@@ -18,7 +18,7 @@
                         <div class="mb-3">
                             <label for="{{ form.key.id_for_label }}" class="form-label">Key *</label>
                             {{ form.key }}
-                            <div class="form-text">Unique identifier for this setting (e.g., 'site_title', 'contact_email')</div>
+                            <div class="form-text">Unique identifier for this setting (e.g., 'site_title', 'contact_email', 'meta_verification_script')</div>
                             {% if form.key.errors %}
                                 <div class="text-danger">{{ form.key.errors }}</div>
                             {% endif %}
@@ -27,7 +27,12 @@
                         <div class="mb-3">
                             <label for="{{ form.value.id_for_label }}" class="form-label">Value *</label>
                             {{ form.value }}
-                            <div class="form-text">The actual value for this setting</div>
+                            <div class="form-text">
+                                The actual value for this setting.
+                                {% if form.instance.key == 'meta_verification_script' %}
+                                    <br><strong>For meta_verification_script:</strong> Paste your meta tag(s) here (e.g., &lt;meta name="6a97888e-site-verification" content="..."&gt;)
+                                {% endif %}
+                            </div>
                             {% if form.value.errors %}
                                 <div class="text-danger">{{ form.value.errors }}</div>
                             {% endif %}
@@ -81,6 +86,7 @@
                         <li><code>social_twitter</code> - Twitter URL</li>
                         <li><code>social_instagram</code> - Instagram URL</li>
                         <li><code>footer_text</code> - Footer text</li>
+                        <li><code>meta_verification_script</code> - Meta verification tags for &lt;head&gt; section (e.g., site verification)</li>
                     </ul>
                 </div>
             </div>

@@ -1,0 +1,122 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Ad Details</h1>
+        <div>
+            <a class="btn btn-secondary" href="{% url 'ad_list' %}">Back to List</a>
+            <a class="btn btn-primary" href="{% url 'ad_update' ad.id %}">Edit</a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Ad Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <td width="30%"><strong>Placement:</strong></td>
+                            <td>{{ ad.get_placement_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ad Type (ID):</strong></td>
+                            <td><code>{{ ad.ad_type }}</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Display Name:</strong></td>
+                            <td>{{ ad.get_ad_type_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status:</strong></td>
+                            <td>
+                                {% if ad.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Created:</strong></td>
+                            <td>{{ ad.created_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Last Updated:</strong></td>
+                            <td>{{ ad.updated_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Ad Script</h5>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"><code>{{ ad.script }}</code></pre>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-secondary" onclick="copyScript()">Copy Script</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a class="btn btn-primary w-100 mb-2" href="{% url 'ad_update' ad.id %}">Edit Ad</a>
+                    <div class="alert alert-info w-100 mb-2">
+                        <small><strong>Note:</strong> Delete functionality is only available in Django admin.</small>
+                    </div>
+                    <a class="btn btn-secondary w-100" href="{% url 'ad_list' %}">Back to List</a>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Format Info</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        <strong>Ad Format:</strong><br>
+                        <code>{{ ad.ad_type }}</code><br>
+                        <small>{{ ad.get_ad_type_display }}</small>
+                    </p>
+                    <p class="small text-muted mb-0">
+                        This ad format can be used multiple times across different template locations. The same format script will be rendered wherever this format is specified in templates.
+                        {% if not ad.is_active %}
+                            <br><br><strong class="text-danger">Currently Inactive</strong> - This ad will not be displayed until activated.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyScript() {
+    const script = `{{ ad.script|escapejs }}`;
+    navigator.clipboard.writeText(script).then(function() {
+        alert('Script copied to clipboard!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = script;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Script copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}
+

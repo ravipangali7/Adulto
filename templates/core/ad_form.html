@@ -1,0 +1,247 @@
+{% extends 'core/layout/base.html' %}
+{% load ad_tags %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">
+            {% if form.instance.pk %}Edit{% else %}Add{% endif %} Ad
+        </h1>
+        <a class="btn btn-secondary" href="{% url 'ad_list' %}">Back to List</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.instance.pk %}
+                            <!-- Hidden fields to preserve placement and ad_type when editing (disabled fields aren't submitted) -->
+                            <input type="hidden" name="placement" value="{{ form.instance.placement }}">
+                            <input type="hidden" name="ad_type" value="{{ form.instance.ad_type }}">
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.placement.id_for_label }}" class="form-label">Placement *</label>
+                            {{ form.placement }}
+                            <div class="form-text">
+                                {% if form.instance.pk %}
+                                    Placement cannot be changed after creation. Delete and create new one to change.
+                                {% else %}
+                                    Select the ad placement location. Each placement can have multiple ad formats.
+                                {% endif %}
+                            </div>
+                            {% if form.placement.errors %}
+                                <div class="text-danger">{{ form.placement.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.ad_type.id_for_label }}" class="form-label">Ad Type *</label>
+                            {{ form.ad_type }}
+                            <div class="form-text">
+                                {% if form.instance.pk %}
+                                    Ad format cannot be changed after creation. Delete and create new one to change.
+                                {% else %}
+                                    Select the ad format type. Only 8 formats available - one ad per format.
+                                {% endif %}
+                            </div>
+                            {% if form.ad_type.errors %}
+                                <div class="text-danger">{{ form.ad_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.script.id_for_label }}" class="form-label">Ad Script *</label>
+                            {{ form.script }}
+                            <div class="form-text">Paste your HTML/JavaScript ad script here (e.g., ExoClick, PopAds, TrafficJunky)</div>
+                            {% if form.script.errors %}
+                                <div class="text-danger">{{ form.script.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Active
+                                </label>
+                            </div>
+                            <div class="form-text">Enable or disable this ad</div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger">{{ form.is_active.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.instance.pk %}
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Ad Info</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Placement:</strong> {{ form.instance.get_placement_display }}</p>
+                                <p class="mb-1"><strong>Ad Format (ID):</strong> <code>{{ form.instance.ad_type }}</code></p>
+                                <p class="mb-1"><strong>Display Name:</strong> {{ form.instance.get_ad_type_display }}</p>
+                                <p class="mb-1"><strong>Created:</strong> {{ form.instance.created_at|date:"M d, Y H:i" }}</p>
+                                <p class="mb-0"><strong>Updated:</strong> {{ form.instance.updated_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a class="btn btn-secondary" href="{% url 'ad_list' %}">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}Update{% else %}Create{% endif %} Ad
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Dynamic Ad Placement Guidelines -->
+            <div class="card mb-3" id="ad-guidelines-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0 text-white">📋 Help & Guidelines</h5>
+                </div>
+                <div class="card-body" id="ad-guidelines-content">
+                    <p class="text-muted"><strong>Select an ad type above to see placement guidelines.</strong></p>
+                    
+                    <h6 class="mt-3">Ad Script Format</h6>
+                    <p class="text-muted small">Paste your complete ad script including:</p>
+                    <ul class="small">
+                        <li>Script tags (&lt;script&gt;...&lt;/script&gt;)</li>
+                        <li>HTML elements (&lt;ins&gt;, &lt;div&gt;, etc.)</li>
+                        <li>Complete JavaScript code</li>
+                    </ul>
+                    
+                    <h6 class="mt-3">Example (ExoClick)</h6>
+                    <pre class="bg-dark text-light p-2 rounded small"><code>&lt;script async src="https://a.magsrv.com/ad-provider.js"&gt;&lt;/script&gt;
+&lt;ins class="eas6a97888e2" data-zoneid="YOUR_ZONE_ID"&gt;&lt;/ins&gt;
+&lt;script&gt;
+(AdProvider = window.AdProvider || []).push({"serve": {}});
+&lt;/script&gt;</code></pre>
+                    
+                    <h6 class="mt-3">Important Notes</h6>
+                    <ul class="small">
+                        <li>Only one ad per format type (8 formats total)</li>
+                        <li>Ad format cannot be changed after creation</li>
+                        <li>Delete and recreate to change format</li>
+                        <li>Same format can be used multiple times in templates</li>
+                        <li>Ads are automatically rendered on the site</li>
+                        <li>Use "Active" checkbox to enable/disable</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Ad Guidelines Data (passed from Django as JSON)
+const adGuidelines = {{ ad_guidelines|safe|default:"{}" }};
+
+// Function to update guidelines display
+function updateAdGuidelines() {
+    const adTypeSelect = document.getElementById('id_ad_type');
+    const guidelinesContent = document.getElementById('ad-guidelines-content');
+    
+    if (!adTypeSelect || !guidelinesContent) return;
+    
+    const selectedAdType = adTypeSelect.value;
+    
+    // Preserve the static content (Ad Script Format section and below)
+    const staticContentHTML = `
+                    <h6 class="mt-3">Ad Script Format</h6>
+                    <p class="text-muted small">Paste your complete ad script including:</p>
+                    <ul class="small">
+                        <li>Script tags (&lt;script&gt;...&lt;/script&gt;)</li>
+                        <li>HTML elements (&lt;ins&gt;, &lt;div&gt;, etc.)</li>
+                        <li>Complete JavaScript code</li>
+                    </ul>
+                    
+                    <h6 class="mt-3">Example (ExoClick)</h6>
+                    <pre class="bg-dark text-light p-2 rounded small"><code>&lt;script async src="https://a.magsrv.com/ad-provider.js"&gt;&lt;/script&gt;
+&lt;ins class="eas6a97888e2" data-zoneid="YOUR_ZONE_ID"&gt;&lt;/ins&gt;
+&lt;script&gt;
+(AdProvider = window.AdProvider || []).push({"serve": {}});
+&lt;/script&gt;</code></pre>
+                    
+                    <h6 class="mt-3">Important Notes</h6>
+                    <ul class="small">
+                        <li>Only one ad per format type (8 formats total)</li>
+                        <li>Ad format cannot be changed after creation</li>
+                        <li>Delete and recreate to change format</li>
+                        <li>Same format can be used multiple times in templates</li>
+                        <li>Ads are automatically rendered on the site</li>
+                        <li>Use "Active" checkbox to enable/disable</li>
+                    </ul>
+    `;
+    
+    if (selectedAdType && adGuidelines[selectedAdType]) {
+        const guide = adGuidelines[selectedAdType];
+        let html = `
+            <div class="mb-3">
+                <h6 class="text-primary">📋 Ad Placement Guidelines</h6>
+                <table class="table table-sm table-bordered">
+                    <tr>
+                        <td class="fw-bold" style="width: 40%;">Ad Type:</td>
+                        <td><strong>${guide.type || 'N/A'}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Recommended Size:</td>
+                        <td><strong class="text-danger">${guide.size || 'N/A'}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Description:</td>
+                        <td>${guide.description || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Recommended Networks:</td>
+                        <td>${guide.recommended || 'N/A'}</td>
+                    </tr>
+        `;
+        
+        if (guide.note) {
+            html += `
+                    <tr>
+                        <td class="fw-bold">Important Note:</td>
+                        <td class="bg-warning bg-opacity-10">
+                            <small>⚠️ ${guide.note}</small>
+                        </td>
+                    </tr>
+            `;
+        }
+        
+        html += `
+                </table>
+            </div>
+            <hr>
+        `;
+        
+        guidelinesContent.innerHTML = html + staticContentHTML;
+    } else {
+        // Show placeholder message
+        guidelinesContent.innerHTML = '<p class="text-muted"><strong>Select an ad type above to see placement guidelines.</strong></p>' + staticContentHTML;
+    }
+}
+
+// Add event listener when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const adTypeSelect = document.getElementById('id_ad_type');
+    if (adTypeSelect) {
+        adTypeSelect.addEventListener('change', updateAdGuidelines);
+        // Update on initial load if editing existing ad
+        {% if form.instance.pk and form.instance.ad_type %}
+            // Set the value and trigger update
+            updateAdGuidelines();
+        {% endif %}
+    }
+});
+</script>
+{% endblock %}
+

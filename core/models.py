@@ -259,7 +259,7 @@ class Comment(models.Model):
 
 class Settings(models.Model):
 	"""Site settings that can be edited"""
-	key = models.CharField(max_length=100, unique=True, help_text="Setting key (e.g., 'site_title', 'contact_email')")
+	key = models.CharField(max_length=100, unique=True, help_text="Setting key (e.g., 'site_title', 'contact_email', 'meta_verification_script')")
 	value = models.TextField(help_text="Setting value")
 	description = models.TextField(blank=True, help_text="Description of what this setting does")
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -344,4 +344,80 @@ class AgeVerification(models.Model):
 		try:
 			return cls.objects.filter(is_active=True).first()
 		except:
+			return None
+
+
+# Ad Type Choices - Format Only (8 total formats)
+AD_TYPE_CHOICES = [
+	('banner', 'Banner'),
+	('sticky-banner', 'Sticky Banner'),
+	('fullpage-interstitial', 'Fullpage Interstitial'),
+	('instream-video', 'In-Stream Video'),
+	('video-slider', 'Video Slider'),
+	('recommendation-widget', 'Recommendation Widget'),
+	('multi-format', 'Multi-Format'),
+	('inpage-push-notifications', 'In-Page Push Notifications'),
+]
+
+# Placement Choices - Strategic locations only (13 total)
+PLACEMENT_CHOICES = [
+	# Global (All Pages)
+	('header-top', 'Header Top Banner (728x90 Desktop, 320x50 Mobile)'),
+	('global-sticky-bottom', 'Global Sticky Banner Bottom (728x90 Desktop, 320x50 Mobile)'),
+	('global-popunder-desktop', 'Global Popunder Desktop (Full Page)'),
+	('global-popunder-mobile', 'Global Popunder Mobile (Full Page)'),
+	('global-interstitial', 'Global Interstitial (Full Screen Desktop/Mobile)'),
+	('global-instant-message', 'Global Instant Message Chat (300x250 Desktop, 280x250 Mobile)'),
+	('global-inpage-push', 'Global In-Page Push Notification (Responsive, Configurable Position)'),
+	
+	# Reusable Placements (Multiple Pages)
+	('incontent', 'In-Content Banner (728x90 Desktop, Full Width Mobile) - Home/Videos/Search'),
+	('sidebar', 'Sidebar Rectangle (300x250 Desktop, Full Width Mobile) - All Pages with Sidebar'),
+	
+	# Page-Specific (Unique)
+	('home-bottom', 'Home Bottom Leaderboard (970x250 Desktop, 728x90 Mobile)'),
+	('video-below-player', 'Video Below Player Banner (728x90 Desktop, 320x50 Mobile)'),
+	('video-instream', 'Video In-Stream VAST (VAST URL for instream-video ad_type)'),
+	('video-slider', 'Video Slider (VAST URL, slides from right bottom)'),
+]
+
+
+class Ad(models.Model):
+	"""Dynamic ad management - format-based ad types with strategic placements"""
+	placement = models.CharField(
+		max_length=50,
+		choices=PLACEMENT_CHOICES,
+		help_text="Select the ad placement location"
+	)
+	ad_type = models.CharField(
+		max_length=50,
+		choices=AD_TYPE_CHOICES,
+		help_text="Select the ad format type (banner, sticky-banner, etc.)"
+	)
+	script = models.TextField(help_text="HTML/JavaScript ad script content (or VAST URL for instream-video/video-slider)")
+	is_active = models.BooleanField(default=True, help_text="Enable/disable this ad")
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['placement', 'ad_type']
+		verbose_name = "Ad"
+		verbose_name_plural = "Ads"
+		unique_together = [['placement', 'ad_type']]  # One ad per placement+format combo
+
+	def __str__(self):
+		return f"{self.get_placement_display()} - {self.get_ad_type_display()} ({'Active' if self.is_active else 'Inactive'})"
+
+	def get_ad_script(self):
+		"""Return ad script if active, else None"""
+		if self.is_active and self.script:
+			return self.script
+		return None
+
+	@classmethod
+	def get_ad_by_placement_and_type(cls, placement, ad_type):
+		"""Get active ad by placement and ad_type"""
+		try:
+			return cls.objects.get(placement=placement, ad_type=ad_type, is_active=True)
+		except cls.DoesNotExist:
 			return None

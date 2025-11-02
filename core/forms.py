@@ -1,6 +1,6 @@
 from django import forms
 import os
-from .models import Category, Tag, Video, Comment, CMS, Settings, AgeVerification
+from .models import Category, Tag, Video, Comment, CMS, Settings, AgeVerification, Ad
 
 
 class CategoryForm(forms.ModelForm):
@@ -298,5 +298,85 @@ class AgeVerificationForm(forms.ModelForm):
             "deny_redirect_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://www.google.com"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+
+class AdForm(forms.ModelForm):
+    class Meta:
+        model = Ad
+        fields = ["placement", "ad_type", "script", "is_active"]
+        widgets = {
+            "placement": forms.Select(attrs={"class": "form-control"}),
+            "ad_type": forms.Select(attrs={"class": "form-control"}),
+            "script": forms.Textarea(attrs={"class": "form-control", "rows": 15, "placeholder": "Paste your ad script here (HTML/JavaScript) or VAST URL"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # If editing existing ad, make placement and ad_type readonly/disabled
+        if self.instance and self.instance.pk:
+            self.fields['placement'].widget.attrs['disabled'] = True
+            self.fields['ad_type'].widget.attrs['disabled'] = True
+            self.fields['placement'].help_text = "Placement cannot be changed after creation. Delete and create new one to change."
+            self.fields['ad_type'].help_text = "Ad type cannot be changed after creation. Delete and create new one to change."
+            # Store original values for when fields are disabled
+            self.fields['placement'].widget.attrs['data-original-value'] = self.instance.placement
+            self.fields['ad_type'].widget.attrs['data-original-value'] = self.instance.ad_type
+        
+        # Update help text based on ad_type for script field
+        if self.instance and self.instance.pk and self.instance.ad_type in ['instream-video', 'video-slider']:
+            self.fields['script'].help_text = "Enter VAST tag URL (e.g., https://s.magsrv.com/v1/vast.php?idzone=XXXXXXX). This URL will be used by video player."
+            self.fields['script'].widget.attrs['placeholder'] = "Enter VAST tag URL here..."
+        elif 'ad_type' in self.initial and self.initial['ad_type'] in ['instream-video', 'video-slider']:
+            self.fields['script'].help_text = "Enter VAST tag URL (e.g., https://s.magsrv.com/v1/vast.php?idzone=XXXXXXX). This URL will be used by video player."
+            self.fields['script'].widget.attrs['placeholder'] = "Enter VAST tag URL here..."
+    
+    def clean_placement(self):
+        """Handle disabled placement field when editing"""
+        if self.instance and self.instance.pk:
+            if 'placement' not in self.cleaned_data:
+                return self.instance.placement
+            return self.cleaned_data.get('placement')
+        return self.cleaned_data.get('placement')
+    
+    def clean_ad_type(self):
+        """Handle disabled ad_type field when editing"""
+        if self.instance and self.instance.pk:
+            if 'ad_type' not in self.cleaned_data:
+                return self.instance.ad_type
+            return self.cleaned_data.get('ad_type')
+        return self.cleaned_data.get('ad_type')
+    
+    def clean_script(self):
+        """Validate script field - if instream-video or video-slider, must be valid URL"""
+        script = self.cleaned_data.get('script', '').strip()
+        ad_type = self.cleaned_data.get('ad_type') or (self.instance.ad_type if self.instance and self.instance.pk else None)
+        
+        if ad_type in ['instream-video', 'video-slider']:
+            # For VAST URL ad types, validate that script is a valid URL
+            from django.core.validators import URLValidator
+            from django.core.exceptions import ValidationError
+            
+            if not script:
+                raise forms.ValidationError("VAST tag URL is required for this ad type.")
+            
+            try:
+                validator = URLValidator()
+                validator(script)
+            except ValidationError:
+                raise forms.ValidationError("Please enter a valid VAST tag URL (e.g., https://s.magsrv.com/v1/vast.php?idzone=XXXXXXX).")
+        
+        return script
+    
+    def clean(self):
+        """Override clean to ensure placement and ad_type are set when editing"""
+        cleaned_data = super().clean()
+        # If editing and fields are missing (disabled fields), restore them
+        if self.instance and self.instance.pk:
+            if 'placement' not in cleaned_data:
+                cleaned_data['placement'] = self.instance.placement
+            if 'ad_type' not in cleaned_data:
+                cleaned_data['ad_type'] = self.instance.ad_type
+        return cleaned_data
 
 

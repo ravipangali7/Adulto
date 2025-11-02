@@ -1,0 +1,68 @@
+{% comment %}
+Reusable Ad Placeholder Component
+Usage: {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='home-top-banner' ad_size='728x90' %}
+
+Parameters:
+- ad_type: banner, sidebar, incontent, sticky, popunder, interstitial, instream, invideo, slider, outstream, instant-message, recommendation, fullpage
+- ad_id: unique identifier for this ad placement (must match Ad model ad_type)
+- ad_size: display size (e.g., '728x90', '300x250', '320x50')
+- mobile_only: true/false - show only on mobile
+- desktop_only: true/false - show only on desktop
+
+Dynamic Ads: If an Ad with matching ad_id exists and is active, it will be rendered automatically.
+If ad doesn't exist or is inactive, the entire wrapper is hidden (display: none) to prevent gaps.
+{% endcomment %}
+
+{% load static %}
+{% load ad_tags %}
+
+{% comment %} Check if dynamic ad exists for this placement {% endcomment %}
+{% get_ad_script ads ad_id as ad_script %}
+
+{% comment %} Determine if wrapper should be hidden - hide if ad doesn't exist or is inactive {% endcomment %}
+{% if ads_exist %}
+    {% with ad_exists=ads_exist|get_item:ad_id %}
+        {% if ad_exists and ad_script %}
+            {% comment %} Ad exists and is active - show wrapper and render script {% endcomment %}
+            <div class="ad-wrapper ad-{{ ad_type }} ad-{{ ad_id }} {% if mobile_only %}ad-mobile-only{% endif %} {% if desktop_only %}ad-desktop-only{% endif %}" 
+                 data-ad-id="{{ ad_id }}" 
+                 data-ad-type="{{ ad_type }}" 
+                 data-ad-size="{{ ad_size }}">
+                <div class="ad-container ad-size-{{ ad_size|slugify }}">
+                    {{ ad_script|safe }}
+                </div>
+            </div>
+        {% else %}
+            {% comment %} Ad doesn't exist OR ad exists but is inactive - hide wrapper completely with no gaps {% endcomment %}
+            <div class="ad-wrapper ad-{{ ad_type }} ad-{{ ad_id }} {% if mobile_only %}ad-mobile-only{% endif %} {% if desktop_only %}ad-desktop-only{% endif %}" 
+                 data-ad-id="{{ ad_id }}" 
+                 data-ad-type="{{ ad_type }}" 
+                 data-ad-size="{{ ad_size }}"
+                 style="display: none !important; margin: 0 !important; padding: 0 !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important;">
+                {% comment %} Empty wrapper - completely hidden with no spacing {% endcomment %}
+            </div>
+        {% endif %}
+    {% endwith %}
+{% else %}
+    {% comment %} ads_exist context variable not available - fallback: show only if we have active script {% endcomment %}
+    {% if ad_script %}
+        {% comment %} Have active script - show wrapper {% endcomment %}
+        <div class="ad-wrapper ad-{{ ad_type }} ad-{{ ad_id }} {% if mobile_only %}ad-mobile-only{% endif %} {% if desktop_only %}ad-desktop-only{% endif %}" 
+             data-ad-id="{{ ad_id }}" 
+             data-ad-type="{{ ad_type }}" 
+             data-ad-size="{{ ad_size }}">
+            <div class="ad-container ad-size-{{ ad_size|slugify }}">
+                {{ ad_script|safe }}
+            </div>
+        </div>
+    {% else %}
+        {% comment %} No active script - hide wrapper completely to prevent gaps {% endcomment %}
+        <div class="ad-wrapper ad-{{ ad_type }} ad-{{ ad_id }} {% if mobile_only %}ad-mobile-only{% endif %} {% if desktop_only %}ad-desktop-only{% endif %}" 
+             data-ad-id="{{ ad_id }}" 
+             data-ad-type="{{ ad_type }}" 
+             data-ad-size="{{ ad_size }}"
+             style="display: none !important; margin: 0 !important; padding: 0 !important; height: 0 !important; min-height: 0 !important; overflow: hidden !important;">
+            {% comment %} Empty wrapper - completely hidden with no spacing {% endcomment %}
+        </div>
+    {% endif %}
+{% endif %}

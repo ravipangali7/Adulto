@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from core.models import CMS, Settings, AgeVerification, Tag
+from core.models import CMS, Settings, AgeVerification, Tag, Ad
 
 
 def site_branding(request):
@@ -72,6 +72,34 @@ def cms_and_settings(request):
 		print(f"Error getting tags: {e}")
 		context['popular_tags'] = []
 		context['tags_count'] = 0
+	
+	try:
+		# Get all ads (both active and inactive) to check existence
+		all_ads = Ad.objects.all()
+		active_ads_dict = {}
+		ads_exist_dict = {}
+
+		for ad in all_ads:
+			# Create composite key: {placement}-{ad_type} (e.g., "header-top-banner")
+			composite_key = f"{ad.placement}-{ad.ad_type}"
+			ads_exist_dict[composite_key] = True  # Track that ad exists
+			if ad.is_active:
+				active_ads_dict[composite_key] = ad.get_ad_script()
+
+		context['ads'] = active_ads_dict  # Only active ads with scripts (keyed by composite)
+		context['ads_exist'] = ads_exist_dict  # Track which ads exist (active or inactive)
+	except Exception as e:
+		print(f"Error getting ads: {e}")
+		context['ads'] = {}
+		context['ads_exist'] = {}
+	
+	try:
+		# Get meta verification script from Settings
+		meta_verification = Settings.get_setting('meta_verification_script', '')
+		context['meta_verification_script'] = meta_verification
+	except Exception as e:
+		print(f"Error getting meta verification script: {e}")
+		context['meta_verification_script'] = ''
 	
 	return context
 

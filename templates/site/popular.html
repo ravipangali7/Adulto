@@ -90,11 +90,17 @@
         </div>
     </div>
     
+    <!-- Banner Ad Between Top Trending and All Popular -->
+    <div class="my-8">
+        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='banner' ad_size='970x250' %}
+    </div>
+    
     <!-- All Popular Videos -->
     <div>
         <h2 class="text-2xl font-bold text-white mb-6">All Popular Videos</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {% for video in videos %}
+            
                 {% include 'site/partials/video_card.html' with video=video %}
             {% endfor %}
         </div>

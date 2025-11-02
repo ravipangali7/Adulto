@@ -64,6 +64,15 @@
                 </a>
             </li>
 
+            {% if user.is_superuser %}
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'ad_list' %}">
+                    <i class="align-middle" data-feather="dollar-sign"></i> <span
+                        class="align-middle">Ad Management</span>
+                </a>
+            </li>
+            {% endif %}
+
             <li class="sidebar-item">
                 <a class="sidebar-link" href="{% url 'profile' %}">
                     <i class="align-middle" data-feather="user"></i> <span

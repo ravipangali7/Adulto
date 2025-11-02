@@ -1,0 +1,77 @@
+{% extends 'core/layout/base.html' %}
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 d-inline align-middle">Delete Ad</h1>
+        <a class="btn btn-secondary" href="{% url 'ad_list' %}">Back to List</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">Are you sure?</h4>
+                        <p>You are about to delete the ad for format <strong>"{{ ad.get_ad_type_display }}"</strong> ({{ ad.ad_type }}). This action cannot be undone.</p>
+                        <hr>
+                        <p class="mb-0">After deletion, you can create a new ad for this format type.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Ad Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td width="30%"><strong>Ad Type:</strong></td>
+                                    <td><code>{{ ad.ad_type }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Display Name:</strong></td>
+                                    <td>{{ ad.get_ad_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        {% if ad.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Script Preview:</strong></td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 400px;" title="{{ ad.script }}">
+                                            {{ ad.script|truncatewords:20 }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created:</strong></td>
+                                    <td>{{ ad.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Updated:</strong></td>
+                                    <td>{{ ad.updated_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <a class="btn btn-secondary" href="{% url 'ad_list' %}">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Yes, Delete Ad</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
