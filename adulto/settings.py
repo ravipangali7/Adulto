@@ -187,8 +187,12 @@ GOOGLE_ANALYTICS_TRACKING_ID = os.getenv('GOOGLE_ANALYTICS_TRACKING_ID', '')
 GOOGLE_ANALYTICS_ENABLED = os.getenv('GOOGLE_ANALYTICS_ENABLED', 'False').lower() == 'true'
 
 # Google Analytics 4 API Configuration
-GOOGLE_ANALYTICS_PROPERTY_ID = os.getenv('GOOGLE_ANALYTICS_PROPERTY_ID', '')
-GOOGLE_ANALYTICS_CREDENTIALS_PATH = os.getenv('GOOGLE_ANALYTICS_CREDENTIALS_PATH', '')
+# Convert empty strings to None for proper validation
+_ga_property_id = os.getenv('GOOGLE_ANALYTICS_PROPERTY_ID', '')
+GOOGLE_ANALYTICS_PROPERTY_ID = _ga_property_id if _ga_property_id.strip() else None
+
+_ga_credentials_path = os.getenv('GOOGLE_ANALYTICS_CREDENTIALS_PATH', '')
+GOOGLE_ANALYTICS_CREDENTIALS_PATH = _ga_credentials_path if _ga_credentials_path.strip() else None
 
 # SEO and Performance Settings
 SECURE_BROWSER_XSS_FILTER = True

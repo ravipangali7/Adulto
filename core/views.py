@@ -1260,7 +1260,7 @@ def google_analytics(request):
 	
 	days = date_ranges.get(date_range, 7)
 	
-	# Get Google Analytics data
+	# Get Google Analytics data - Core metrics
 	ga_overview = ga_service.get_overview_stats(days=days)
 	ga_traffic_sources = ga_service.get_traffic_sources(days=days, limit=10)
 	ga_detailed_traffic = ga_service.get_detailed_traffic_sources(days=days, limit=20)
@@ -1271,6 +1271,25 @@ def google_analytics(request):
 	ga_device_data = ga_service.get_device_data(days=days)
 	ga_daily_traffic = ga_service.get_daily_traffic(days=days)
 	ga_events = ga_service.get_events_data(days=days, limit=20)
+	
+	# Get new comprehensive analytics data
+	ga_browser_data = ga_service.get_browser_data(days=days, limit=15)
+	ga_os_data = ga_service.get_os_data(days=days, limit=15)
+	ga_technology_data = ga_service.get_technology_data(days=days, limit=25)
+	ga_screen_resolution = ga_service.get_screen_resolution_data(days=days, limit=15)
+	ga_mobile_devices = ga_service.get_mobile_device_info(days=days, limit=15)
+	ga_hourly_traffic = ga_service.get_hourly_traffic(days=min(days, 7))  # Limit to 7 days for hourly
+	ga_weekly_patterns = ga_service.get_weekly_patterns(days=days)
+	ga_new_vs_returning = ga_service.get_new_vs_returning_users(days=days)
+	ga_acquisition_channels = ga_service.get_user_acquisition_channels(days=days, limit=15)
+	ga_landing_pages = ga_service.get_landing_pages(days=days, limit=20)
+	ga_exit_pages = ga_service.get_exit_pages(days=days, limit=20)
+	ga_referral_sources = ga_service.get_referral_sources(days=days, limit=20)
+	
+	# Calculate additional metrics
+	pages_per_session = 0.0
+	if ga_overview and ga_overview.get('sessions', 0) > 0:
+		pages_per_session = ga_overview.get('page_views', 0) / ga_overview.get('sessions', 1)
 	
 	# Date range labels
 	date_labels = {
@@ -1288,7 +1307,9 @@ def google_analytics(request):
 		'current_range_label': date_labels.get(date_range, 'Last 7 Days'),
 		'date_ranges': date_ranges,
 		'date_labels': date_labels,
+		# Core metrics
 		'ga_overview': ga_overview,
+		'pages_per_session': pages_per_session,
 		'ga_traffic_sources': ga_traffic_sources,
 		'ga_detailed_traffic': ga_detailed_traffic,
 		'ga_top_pages': ga_top_pages,
@@ -1298,6 +1319,19 @@ def google_analytics(request):
 		'ga_device_data': ga_device_data,
 		'ga_daily_traffic': ga_daily_traffic,
 		'ga_events': ga_events,
+		# New comprehensive analytics
+		'ga_browser_data': ga_browser_data,
+		'ga_os_data': ga_os_data,
+		'ga_technology_data': ga_technology_data,
+		'ga_screen_resolution': ga_screen_resolution,
+		'ga_mobile_devices': ga_mobile_devices,
+		'ga_hourly_traffic': ga_hourly_traffic,
+		'ga_weekly_patterns': ga_weekly_patterns,
+		'ga_new_vs_returning': ga_new_vs_returning,
+		'ga_acquisition_channels': ga_acquisition_channels,
+		'ga_landing_pages': ga_landing_pages,
+		'ga_exit_pages': ga_exit_pages,
+		'ga_referral_sources': ga_referral_sources,
 	}
 	return render(request, 'core/google_analytics.html', context)
 

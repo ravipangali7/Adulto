@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "glossy-radio-477117-j9",
+  "private_key_id": "71f405d7fde6ffd0c4e2be39a2c5b02f0f1e427b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCn0d05rFz+LifM\nLvIXU0dZCX7yzBo1fkA3gUSGH6SD1NMIdSm2+SJkVd15QXDGpXf6kRzfT6FZ7Mi+\nHlqU2KblTSFpnqGbo+F3pLlz07jFdAIYZldppSvyXhjgG8nsTcXH1qEsy4vJzrxC\n7BUGwQbTvVy3hRSMIwmS1d1I3cTyiYxg+8ToW/z9hLEnx4P/479ZCjsiBQk3BBOj\nZmDCW0QrUSBDk6q3Smq8TDkc66ku4XoByOpQFoOGE9+0cDcfHfOQZFtd/XrHdAkz\nOwR6EUJ1BLjwbsLgdpeaA4lTauwUJydv2CTTjNtLnbCpFC8u/21rv6eTY2goT9p8\n0C8tvxA1AgMBAAECggEACCnLUP8gqI+ZCX5eHILaoAriyo+MQH5jRB/tCU4tkT5v\nboROfWifLZIcsMWIEBhOnq5ji7xNTQ5u0bVbHXhFdAwoBtcmetJCXoYcLErH/I4w\n/Oaw3qzKwg0ljh85Ql33yTRYSObKJmIAoou71m/aHmoiF14+mot+GiRTkYlncg8T\nrlkUzRtX2dk8LrPtFIi0Z8D6WBdDv694ywNDd6ULGEXGUh5uiCN6BdHIRUHYPPTZ\nCHWVU/sCZ0GwzU1cCF+ywPmmpRenMen4lzbZvN18tH83vWN3H4+agktmEvkB5Duj\nBfpkIKyxvffYe065ZrgkBl5zDXjS/ap2lEOFW6nckQKBgQDnjARHmHvVqZlQHI1X\nyo/LKVPvR85mG5r3yfFvnaeiEag/EdcMmMnt6JaNGjz6LHwDPz0MLE3kiJUpNkB/\nmxyyzjV1Ce0hsnktAqhfOeP4qvpEg2ccpbO7UG8Kw5P8h4d9MzUc5En6yw3jdUeg\nPIr8i0yKfWsL6GGT+zO7K+ZUJQKBgQC5ivP1Itc1u8jmVQYdDC7g80zL+H4Nj0in\nlcGzN4TAFpQX/V2REieUN+It8BwTu3YsrPZTpSG7xxNGnGvFKW5az0fAKHm1ofqj\nj6LxuOGhWQib334Kx8urDLX/gXcohL64xOsUzfuwKqueBnivWp4+9EKF6G2US6U0\n4a+YfzWG0QKBgGND45HODUjMLK3rj6zTalHupc0vO40KyKTyLk9rhzIz360qOMdt\nuSQFUoWrefjGmWPK+KD/XWVcKJZCa+RI20TMop5KYx7PJKPnP8eTSeiRZDl7G/ls\nEGF9Wh2DOy5H7A4ApgR82jpqUsnwvYQ0cGFUVrwIiJvSRALs7oCPkW8BAoGAQiKF\nUptYmo6UzYUA6Nmu2//dH9czFyI7g4CdyoO/jbh+kQ5+i3ctJGfG9xje6SmotcPx\nCV+S5pvPAxw+Tci2zSeVK6lBuLxD2okYS5Da2+ggaW8APld5AT9GoAxFrOukD7gh\nEwlY7TJIectUuSxTu5zVGWX/qRxNhsvrCzBMpAECgYEAjPMmjWpE7LsqdGKcxPgA\nRMXKBDjZSkTvrYd7+r32wxjEr5M8srfQfcyZQEp8VGRS1t1nkRaFeFXbi1RzBeOY\nzffbDpVAsC+Q82aQQLLjH6/tIEoe+EHai45oD9qcZZKf6EZ3Rrlv9RGETQVOvRgI\ny17cyEZ50F5wrGzi0i2mIRs=\n-----END PRIVATE KEY-----\n",
+  "client_email": "desi-video-analytics@glossy-radio-477117-j9.iam.gserviceaccount.com",
+  "client_id": "102683650207872451031",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/desi-video-analytics%40glossy-radio-477117-j9.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

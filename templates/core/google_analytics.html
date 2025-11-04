@@ -68,12 +68,9 @@
                             </div>
                         </div>
                     </div>
-                    <h1 class="mt-1 mb-3">{{ ga_overview.sessions.value|floatformat:0 }}</h1>
-                    <div class="mb-0">
-                        <span class="{% if ga_overview.sessions.change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                            <i class="mdi mdi-arrow-{% if ga_overview.sessions.change >= 0 %}top{% else %}bottom{% endif %}-right"></i> 
-                            {{ ga_overview.sessions.change|floatformat:1 }}% vs previous period
-                        </span>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.sessions|floatformat:0 }}</h1>
+                    <div class="mb-0 text-muted">
+                        <small>Total sessions</small>
                     </div>
                 </div>
             </div>
@@ -91,12 +88,9 @@
                             </div>
                         </div>
                     </div>
-                    <h1 class="mt-1 mb-3">{{ ga_overview.users.value|floatformat:0 }}</h1>
-                    <div class="mb-0">
-                        <span class="{% if ga_overview.users.change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                            <i class="mdi mdi-arrow-{% if ga_overview.users.change >= 0 %}top{% else %}bottom{% endif %}-right"></i> 
-                            {{ ga_overview.users.change|floatformat:1 }}% vs previous period
-                        </span>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.total_users|floatformat:0 }}</h1>
+                    <div class="mb-0 text-muted">
+                        <small>{{ ga_overview.new_users|floatformat:0 }} new users</small>
                     </div>
                 </div>
             </div>
@@ -114,12 +108,9 @@
                             </div>
                         </div>
                     </div>
-                    <h1 class="mt-1 mb-3">{{ ga_overview.page_views.value|floatformat:0 }}</h1>
-                    <div class="mb-0">
-                        <span class="{% if ga_overview.page_views.change >= 0 %}text-success{% else %}text-danger{% endif %}">
-                            <i class="mdi mdi-arrow-{% if ga_overview.page_views.change >= 0 %}top{% else %}bottom{% endif %}-right"></i> 
-                            {{ ga_overview.page_views.change|floatformat:1 }}% vs previous period
-                        </span>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.page_views|floatformat:0 }}</h1>
+                    <div class="mb-0 text-muted">
+                        <small>Total page views</small>
                     </div>
                 </div>
             </div>
@@ -137,12 +128,107 @@
                             </div>
                         </div>
                     </div>
-                    <h1 class="mt-1 mb-3">{{ ga_overview.bounce_rate.value|floatformat:1 }}%</h1>
-                    <div class="mb-0">
-                        <span class="{% if ga_overview.bounce_rate.change <= 0 %}text-success{% else %}text-danger{% endif %}">
-                            <i class="mdi mdi-arrow-{% if ga_overview.bounce_rate.change <= 0 %}top{% else %}bottom{% endif %}-right"></i> 
-                            {{ ga_overview.bounce_rate.change|floatformat:1 }}% vs previous period
-                        </span>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.bounce_rate|floatformat:1 }}%</h1>
+                    <div class="mb-0 text-muted">
+                        <small>Lower is better</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Avg Session Duration</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-primary">
+                                <i class="align-middle" data-feather="clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.avg_session_duration|floatformat:0 }}s</h1>
+                    <div class="mb-0 text-muted">
+                        <small>Average time per session</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">New Users</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-success">
+                                <i class="align-middle" data-feather="user-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ ga_overview.new_users|floatformat:0 }}</h1>
+                    <div class="mb-0 text-muted">
+                        {% if ga_new_vs_returning.new_users_percent %}
+                        <small>{{ ga_new_vs_returning.new_users_percent|floatformat:1 }}% of total</small>
+                        {% else %}
+                        <small>First-time visitors</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Pages/Session</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-info">
+                                <i class="align-middle" data-feather="layers"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">{{ pages_per_session|floatformat:1 }}</h1>
+                    <div class="mb-0 text-muted">
+                        <small>Average pages per session</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col mt-0">
+                            <h5 class="card-title">Returning Users</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="stat text-warning">
+                                <i class="align-middle" data-feather="rotate-cw"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h1 class="mt-1 mb-3">
+                        {% if ga_new_vs_returning.returning_users %}
+                            {{ ga_new_vs_returning.returning_users|floatformat:0 }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </h1>
+                    <div class="mb-0 text-muted">
+                        {% if ga_new_vs_returning.returning_users_percent %}
+                        <small>{{ ga_new_vs_returning.returning_users_percent|floatformat:1 }}% of total</small>
+                        {% else %}
+                        <small>Repeat visitors</small>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -210,6 +296,182 @@
                         <div class="text-center text-muted py-5">
                             <i class="align-middle mb-3" data-feather="trending-up" style="width: 48px; height: 48px;"></i>
                             <p>No daily traffic data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New vs Returning Users Chart -->
+    <div class="row mb-4">
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">New vs Returning Users ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_new_vs_returning %}
+                        <div class="chart chart-sm">
+                            <canvas id="newVsReturningChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="users" style="width: 48px; height: 48px;"></i>
+                            <p>No user data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Hourly Traffic Pattern -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Hourly Traffic Pattern (Last 7 Days)</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_hourly_traffic %}
+                        <div class="chart chart-sm">
+                            <canvas id="hourlyTrafficChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="clock" style="width: 48px; height: 48px;"></i>
+                            <p>No hourly data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Patterns & Acquisition Channels -->
+    <div class="row mb-4">
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Weekly Traffic Pattern ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_weekly_patterns %}
+                        <div class="chart chart-sm">
+                            <canvas id="weeklyPatternChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="calendar" style="width: 48px; height: 48px;"></i>
+                            <p>No weekly pattern data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Acquisition Channels -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Acquisition Channels ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_acquisition_channels %}
+                        <div class="chart chart-sm">
+                            <canvas id="acquisitionChannelsChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="share-2" style="width: 48px; height: 48px;"></i>
+                            <p>No acquisition data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Browser & OS Breakdown -->
+    <div class="row mb-4">
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Browser Breakdown ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_browser_data %}
+                        <div class="chart chart-sm">
+                            <canvas id="browserChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="globe" style="width: 48px; height: 48px;"></i>
+                            <p>No browser data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Operating System Chart -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Operating System ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_os_data %}
+                        <div class="chart chart-sm">
+                            <canvas id="osChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="monitor" style="width: 48px; height: 48px;"></i>
+                            <p>No OS data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen Resolution & Landing Pages Performance -->
+    <div class="row mb-4">
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Screen Resolution ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_screen_resolution %}
+                        <div class="chart chart-sm">
+                            <canvas id="screenResolutionChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="maximize" style="width: 48px; height: 48px;"></i>
+                            <p>No screen resolution data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Landing Pages Chart -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill w-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Landing Pages ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body py-3">
+                    {% if ga_landing_pages %}
+                        <div class="chart chart-sm">
+                            <canvas id="landingPagesChart"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="align-middle mb-3" data-feather="log-in" style="width: 48px; height: 48px;"></i>
+                            <p>No landing page data available</p>
                         </div>
                     {% endif %}
                 </div>
@@ -412,7 +674,345 @@
         </div>
     </div>
 
-    <!-- Top Pages (Legacy) -->
+    <!-- Technology & Device Tables -->
+    <div class="row mb-4">
+        <!-- Technology Stack Table -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Technology Stack ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_technology_data %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Browser</th>
+                                        <th>OS</th>
+                                        <th>Device</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tech in ga_technology_data|slice:":15" %}
+                                    <tr>
+                                        <td><small>{{ tech.browser|truncatechars:15 }}</small></td>
+                                        <td><small>{{ tech.os|truncatechars:15 }}</small></td>
+                                        <td><span class="badge bg-secondary">{{ tech.device }}</span></td>
+                                        <td><span class="badge bg-info">{{ tech.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ tech.users }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="cpu" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No technology data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Devices -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Mobile Devices ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_mobile_devices %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Brand</th>
+                                        <th>Model</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for device in ga_mobile_devices %}
+                                    <tr>
+                                        <td><strong>{{ device.brand }}</strong></td>
+                                        <td><small>{{ device.model|truncatechars:20 }}</small></td>
+                                        <td><span class="badge bg-info">{{ device.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ device.users }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="smartphone" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No mobile device data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Landing Pages & Exit Pages -->
+    <div class="row mb-4">
+        <!-- Landing Pages Table -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Landing Pages ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_landing_pages %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Page</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                        <th>Bounce Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for page in ga_landing_pages|slice:":10" %}
+                                    <tr>
+                                        <td>
+                                            <small class="text-truncate d-block" style="max-width: 250px;">{{ page.page|truncatechars:40 }}</small>
+                                        </td>
+                                        <td><span class="badge bg-info">{{ page.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ page.users }}</span></td>
+                                        <td><span class="badge bg-warning">{{ page.bounce_rate|floatformat:1 }}%</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="log-in" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No landing page data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Exit Pages Table -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Top Exit Pages ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_exit_pages %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Page</th>
+                                        <th>Exits</th>
+                                        <th>Views</th>
+                                        <th>Exit Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for page in ga_exit_pages|slice:":10" %}
+                                    <tr>
+                                        <td>
+                                            <small class="text-truncate d-block" style="max-width: 250px;">{{ page.page|truncatechars:40 }}</small>
+                                        </td>
+                                        <td><span class="badge bg-danger">{{ page.exits }}</span></td>
+                                        <td><span class="badge bg-info">{{ page.page_views }}</span></td>
+                                        <td><span class="badge bg-warning">{{ page.exit_rate|floatformat:1 }}%</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="log-out" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No exit page data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acquisition Channels & Referral Sources -->
+    <div class="row mb-4">
+        <!-- Acquisition Channels Table -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Acquisition Channels ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_acquisition_channels %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Channel</th>
+                                        <th>Sessions</th>
+                                        <th>New Users</th>
+                                        <th>Bounce Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for channel in ga_acquisition_channels %}
+                                    <tr>
+                                        <td><strong>{{ channel.channel }}</strong></td>
+                                        <td><span class="badge bg-info">{{ channel.sessions }}</span></td>
+                                        <td><span class="badge bg-success">{{ channel.new_users }}</span></td>
+                                        <td><span class="badge bg-warning">{{ channel.bounce_rate|floatformat:1 }}%</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="share-2" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No acquisition data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Referral Sources -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Referral Sources ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_referral_sources %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                        <th>Page Views</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for source in ga_referral_sources|slice:":15" %}
+                                    <tr>
+                                        <td><small>{{ source.source|truncatechars:30 }}</small></td>
+                                        <td><span class="badge bg-info">{{ source.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ source.users }}</span></td>
+                                        <td><span class="badge bg-success">{{ source.page_views }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="external-link" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No referral data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Browser & OS Tables -->
+    <div class="row mb-4">
+        <!-- Browser Data Table -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Browser Breakdown ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_browser_data %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Browser</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                        <th>Page Views</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for browser in ga_browser_data %}
+                                    <tr>
+                                        <td><strong>{{ browser.browser }}</strong></td>
+                                        <td><span class="badge bg-info">{{ browser.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ browser.users }}</span></td>
+                                        <td><span class="badge bg-success">{{ browser.page_views }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="globe" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No browser data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- OS Data Table -->
+        <div class="col-xl-6 col-xxl-6">
+            <div class="card flex-fill">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Operating Systems ({{ current_range_label }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if ga_os_data %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Operating System</th>
+                                        <th>Sessions</th>
+                                        <th>Users</th>
+                                        <th>Page Views</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for os in ga_os_data %}
+                                    <tr>
+                                        <td><strong>{{ os.os }}</strong></td>
+                                        <td><span class="badge bg-info">{{ os.sessions }}</span></td>
+                                        <td><span class="badge bg-primary">{{ os.users }}</span></td>
+                                        <td><span class="badge bg-success">{{ os.page_views }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="align-middle mb-2" data-feather="monitor" style="width: 32px; height: 32px;"></i>
+                            <p class="mb-0">No OS data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Pages & Geographic Data -->
     <div class="row">
         <div class="col-xl-6 col-xxl-6">
             <div class="card flex-fill">
@@ -434,13 +1034,7 @@
                                     {% for page in ga_top_pages %}
                                     <tr>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <strong class="text-truncate" style="max-width: 200px;">{{ page.title|truncatechars:40 }}</strong>
-                                                    <br>
-                                                    <small class="text-muted">{{ page.path|truncatechars:50 }}</small>
-                                                </div>
-                                            </div>
+                                            <small class="text-truncate d-block" style="max-width: 250px;">{{ page.page_path|truncatechars:40 }}</small>
                                         </td>
                                         <td><span class="badge bg-info">{{ page.page_views }}</span></td>
                                         <td><span class="badge bg-primary">{{ page.sessions }}</span></td>
@@ -459,7 +1053,7 @@
             </div>
         </div>
 
-        <!-- Geographic Data (Legacy) -->
+        <!-- Geographic Data -->
         <div class="col-xl-6 col-xxl-6">
             <div class="card flex-fill">
                 <div class="card-header">
@@ -480,11 +1074,7 @@
                                     {% for geo in ga_geographic_data %}
                                     <tr>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <strong>{{ geo.country }}</strong>
-                                                </div>
-                                            </div>
+                                            <strong>{{ geo.country }}</strong>
                                         </td>
                                         <td><span class="badge bg-info">{{ geo.sessions }}</span></td>
                                         <td><span class="badge bg-primary">{{ geo.users }}</span></td>
@@ -665,6 +1255,376 @@
             }
         }
     });
+    {% endif %}
+
+    // New vs Returning Users Chart
+    {% if ga_new_vs_returning %}
+    const newVsReturningData = {
+        labels: ['New Users', 'Returning Users'],
+        datasets: [{
+            label: 'Users',
+            data: [
+                {{ ga_new_vs_returning.new_users }},
+                {{ ga_new_vs_returning.returning_users }}
+            ],
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(255, 159, 64, 0.8)'
+            ],
+            borderColor: [
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const newVsReturningCtx = document.getElementById('newVsReturningChart');
+    if (newVsReturningCtx) {
+        new Chart(newVsReturningCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: newVsReturningData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // Hourly Traffic Chart
+    {% if ga_hourly_traffic %}
+    const hourlyTrafficData = {
+        labels: [
+            {% for hour in ga_hourly_traffic %}
+                '{{ hour.hour_label }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for hour in ga_hourly_traffic %}
+                    {{ hour.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            tension: 0.4,
+            fill: true
+        }]
+    };
+
+    const hourlyTrafficCtx = document.getElementById('hourlyTrafficChart');
+    if (hourlyTrafficCtx) {
+        new Chart(hourlyTrafficCtx.getContext('2d'), {
+            type: 'line',
+            data: hourlyTrafficData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // Weekly Pattern Chart
+    {% if ga_weekly_patterns %}
+    const weeklyPatternData = {
+        labels: [
+            {% for day in ga_weekly_patterns %}
+                '{{ day.day_name }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for day in ga_weekly_patterns %}
+                    {{ day.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const weeklyPatternCtx = document.getElementById('weeklyPatternChart');
+    if (weeklyPatternCtx) {
+        new Chart(weeklyPatternCtx.getContext('2d'), {
+            type: 'bar',
+            data: weeklyPatternData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // Acquisition Channels Chart
+    {% if ga_acquisition_channels %}
+    const acquisitionChannelsData = {
+        labels: [
+            {% for channel in ga_acquisition_channels|slice:":10" %}
+                '{{ channel.channel }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for channel in ga_acquisition_channels|slice:":10" %}
+                    {{ channel.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)',
+                'rgba(201, 203, 207, 0.8)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(201, 203, 207, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const acquisitionChannelsCtx = document.getElementById('acquisitionChannelsChart');
+    if (acquisitionChannelsCtx) {
+        new Chart(acquisitionChannelsCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: acquisitionChannelsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // Browser Chart
+    {% if ga_browser_data %}
+    const browserData = {
+        labels: [
+            {% for browser in ga_browser_data|slice:":10" %}
+                '{{ browser.browser }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for browser in ga_browser_data|slice:":10" %}
+                    {{ browser.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const browserCtx = document.getElementById('browserChart');
+    if (browserCtx) {
+        new Chart(browserCtx.getContext('2d'), {
+            type: 'bar',
+            data: browserData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // OS Chart
+    {% if ga_os_data %}
+    const osData = {
+        labels: [
+            {% for os in ga_os_data|slice:":10" %}
+                '{{ os.os }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for os in ga_os_data|slice:":10" %}
+                    {{ os.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    const osCtx = document.getElementById('osChart');
+    if (osCtx) {
+        new Chart(osCtx.getContext('2d'), {
+            type: 'pie',
+            data: osData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // Screen Resolution Chart
+    {% if ga_screen_resolution %}
+    const screenResolutionData = {
+        labels: [
+            {% for res in ga_screen_resolution|slice:":10" %}
+                '{{ res.resolution }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for res in ga_screen_resolution|slice:":10" %}
+                    {{ res.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: 'rgba(255, 159, 64, 0.8)',
+            borderColor: 'rgba(255, 159, 64, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const screenResolutionCtx = document.getElementById('screenResolutionChart');
+    if (screenResolutionCtx) {
+        new Chart(screenResolutionCtx.getContext('2d'), {
+            type: 'bar',
+            data: screenResolutionData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+
+    // Landing Pages Chart
+    {% if ga_landing_pages %}
+    const landingPagesData = {
+        labels: [
+            {% for page in ga_landing_pages|slice:":10" %}
+                '{{ page.page|truncatechars:30 }}'{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Sessions',
+            data: [
+                {% for page in ga_landing_pages|slice:":10" %}
+                    {{ page.sessions }}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    const landingPagesCtx = document.getElementById('landingPagesChart');
+    if (landingPagesCtx) {
+        new Chart(landingPagesCtx.getContext('2d'), {
+            type: 'bar',
+            data: landingPagesData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
     {% endif %}
     {% endif %}
 </script>
