@@ -243,7 +243,7 @@
                             </svg>
                             <span class="whitespace-nowrap">{{ comments.count }} comments</span>
                         </span>
-                        <span class="text-xs sm:text-sm whitespace-nowrap">{{ video.created_at|date:"M d, Y" }}</span>
+                        <span class="text-xs sm:text-sm whitespace-nowrap">{{ video.scheduled_publish_at|default:video.created_at|date:"M d, Y" }}</span>
                     </div>
                     
                     <!-- Action Buttons -->

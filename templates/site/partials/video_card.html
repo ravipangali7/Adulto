@@ -74,7 +74,7 @@
         
         <!-- Date Info -->
         <div class="flex items-center justify-end text-xs text-gray-500">
-            <span class="text-gray-600">{{ video.created_at|date:"M d" }}</span>
+            <span class="text-gray-600">{{ video.scheduled_publish_at|default:video.created_at|date:"M d" }}</span>
         </div>
     </div>
 </div>
