@@ -26,7 +26,7 @@ def publish_scheduled_videos():
     for video in scheduled_videos:
         try:
             video.is_active = True
-            video.scheduled_publish_at = None  # Clear the scheduled time
+            # Keep scheduled_publish_at to preserve the scheduled date for display
             video.save()
             
             published_count += 1
