@@ -1163,14 +1163,20 @@
     <!-- Global Sticky Banner (Bottom) -->
     {% include 'site/partials/ad_placeholder.html' with ad_type='sticky-banner' ad_id='global-sticky-bottom-sticky-banner' ad_size='728x90' %}
     
-    <!-- Video Slider Ad - Fixed Position Bottom Right -->
-    <div class="ad-strict-container ad-slider slider-ad" style="position: fixed !important; bottom: 20px !important; right: 20px !important; width: 320px !important; max-width: calc(100vw - 40px) !important; z-index: 9998 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; box-sizing: border-box !important; border-radius: 8px !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;">
-        <div class="ad-wrapper ad-slider" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
-            <div class="ad-container" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important; border-radius: 8px !important;">
-                <ins class="eas6a97888e31" data-zoneid="5794224"></ins>
+    <!-- Video Slider Ad - Fixed Position Bottom Right (Managed via Django Admin) -->
+    {% load ad_tags %}
+    {% get_ad_script ads 'video-slider-video-slider' as video_slider_script %}
+    {% with video_slider_exists=ads_exist|get_item:'video-slider-video-slider' %}
+        {% if video_slider_exists and video_slider_script %}
+            <div class="ad-strict-container ad-slider slider-ad" style="position: fixed !important; bottom: 20px !important; right: 20px !important; width: 320px !important; max-width: calc(100vw - 40px) !important; z-index: 9998 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; box-sizing: border-box !important; border-radius: 8px !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;">
+                <div class="ad-wrapper ad-slider ad-video-slider-video-slider" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
+                    <div class="ad-container" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important; border-radius: 8px !important;">
+                        {{ video_slider_script|safe }}
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        {% endif %}
+    {% endwith %}
     
     
     <!-- Footer -->
