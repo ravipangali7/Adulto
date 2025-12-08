@@ -656,8 +656,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Function to play the main video content
-    function playMainContent() {
-        console.log('playMainContent called, adModeStarted:', adModeStarted);
+    function playMainContent(shouldAutoplay = false) {
+        console.log('playMainContent called, adModeStarted:', adModeStarted, 'shouldAutoplay:', shouldAutoplay);
         
         // Only end ad mode if it was actually started
         if (adModeStarted) {
@@ -683,23 +683,17 @@ document.addEventListener('DOMContentLoaded', function() {
             type: 'video/mp4'
         });
         
-        // Listen for when the source is loaded
-        player.one('loadedmetadata', function() {
-            console.log('Video metadata loaded, attempting to play');
-            player.play().catch(function(error) {
-                console.error('Error playing video:', error);
-            });
-        });
-        
-        // Fallback: try playing after a delay if loadedmetadata doesn't fire
-        setTimeout(function() {
-            if (player.paused() && player.readyState() >= 2) {
-                console.log('Fallback: attempting to play video');
+        // Only try to autoplay if shouldAutoplay is true (e.g., after ad ends)
+        // When there are no ads, don't autoplay (browser blocks it anyway)
+        if (shouldAutoplay) {
+            player.one('loadedmetadata', function() {
                 player.play().catch(function(error) {
-                    console.error('Error playing video (fallback):', error);
+                    console.log('Autoplay blocked, user can click play:', error.message);
                 });
-            }
-        }, 1000);
+            });
+        } else {
+            console.log('Video source set. User can click play button to start.');
+        }
     }
     
     // Function to parse VAST XML and extract media URL
@@ -953,7 +947,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             fetch(url, { mode: 'no-cors' }).catch(function() {});
                         });
                     }
-                    playMainContent();
+                    // After ad ends, we can autoplay main content (user has interacted)
+                    playMainContent(true); // Pass true to enable autoplay after ad
                 });
                 
                 // Play the ad
