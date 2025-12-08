@@ -190,7 +190,6 @@
                         width="100%"
                         height="25rem"
                         poster="{% if video.thumbnail %}{{ video.thumbnail.url }}{% endif %}"
-                        data-setup='{"controls": true, "autoplay": false, "responsive": true, "fluid": false, "preload": "auto", "fullscreen": {"options": {"navigationUI": "hide"}}}'
                     >
                         <source src="{% url 'stream_video' video.id %}" type="video/mp4">
                         <p class="vjs-no-js">
@@ -611,19 +610,26 @@ document.addEventListener('DOMContentLoaded', function() {
     {% get_ad_script ads "video-instream-instream-video" as vast_url %}
     const vastAdUrl = {% if vast_url %}'{{ vast_url|escapejs }}'{% else %}null{% endif %};
     
-    // Initialize Video.js player
-    const player = videojs('video-player', {
-        controls: true,
-        autoplay: false, // Don't autoplay until ad is handled
-        responsive: true,
-        fluid: false,
-        preload: 'auto',
-        fullscreen: {
-            options: {
-                navigationUI: 'hide'
+    // Track ad mode state
+    let adModeStarted = false;
+    
+    // Check if player is already initialized, if not initialize it
+    let player = videojs.getPlayer('video-player');
+    if (!player || !player.ready_) {
+        // Initialize Video.js player
+        player = videojs('video-player', {
+            controls: true,
+            autoplay: false, // Don't autoplay until ad is handled
+            responsive: true,
+            fluid: false,
+            preload: 'auto',
+            fullscreen: {
+                options: {
+                    navigationUI: 'hide'
+                }
             }
-        }
-    });
+        });
+    }
     
     // Initialize the contrib-ads plugin
     player.ads();
@@ -634,7 +640,11 @@ document.addEventListener('DOMContentLoaded', function() {
             src: '{% url "stream_video" video.id %}',
             type: 'video/mp4'
         });
-        player.ads.endLinearAdMode();
+        // Only end ad mode if it was actually started
+        if (adModeStarted) {
+            player.ads.endLinearAdMode();
+            adModeStarted = false;
+        }
         player.play();
     }
     
@@ -651,10 +661,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return null;
             }
             
-            // Log the XML for debugging (first 500 chars)
-            console.log('VAST XML received:', xmlText.substring(0, 500));
+            // Log the full XML for debugging
+            console.log('VAST XML received (full):', xmlText);
             
-            // Handle namespaces - try with and without namespace
+            // Check if VAST is empty (no Ad elements) - this is common when ad network has no ads
             let ad = xmlDoc.getElementsByTagName('Ad')[0];
             if (!ad) {
                 // Try with namespace
@@ -670,8 +680,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (!ad) {
-                console.log('No Ad element found in VAST. XML root element:', xmlDoc.documentElement.tagName);
-                return null;
+                console.log('VAST response is empty (no ads available). XML root element:', xmlDoc.documentElement.tagName);
+                // Return special flag for empty VAST
+                return { isEmpty: true };
             }
             
             // Get InLine or Wrapper
@@ -841,6 +852,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Parse VAST XML
                 const vastData = parseVastXML(xmlText);
                 
+                // Handle empty VAST (no ads available)
+                if (vastData && vastData.isEmpty) {
+                    console.log('VAST response is empty - no ads available. Playing main content.');
+                    playMainContent();
+                    return;
+                }
+                
                 // Handle wrapper redirects
                 if (vastData && vastData.isWrapper) {
                     console.log('Following VAST wrapper to:', vastData.wrapperUrl);
@@ -856,8 +874,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 console.log('VAST ad media URL found:', vastData.mediaUrl);
                 
-                // Start ad mode
+                // Start ad mode and track state
                 player.ads.startLinearAdMode();
+                adModeStarted = true;
                 
                 // Load and play the ad
                 player.src({
