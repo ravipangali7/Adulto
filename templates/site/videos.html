@@ -147,15 +147,15 @@
                         </select>
                     </div>
                     <div class="text-gray-400 text-sm">
-                        Showing {{ videos|length }} videos
+                        Showing {{ page_obj|length }} videos
                     </div>
                 </div>
             </div>
             
             <!-- Videos Grid -->
-            {% if videos %}
+            {% if page_obj %}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {% for video in videos %}
+                {% for video in page_obj %}
                 {% if forloop.counter == 5 %}
                     <!-- In-Content Ad after 4th video -->
                     <div class="col-span-full my-4">
@@ -169,23 +169,27 @@
             </div>
             
             <!-- Pagination -->
-            <div class="flex justify-center mt-12">
-                <nav class="flex items-center space-x-2">
-                    <button class="px-3 py-2 text-gray-400 hover:text-white transition-colors duration-200">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </button>
-                    <button class="px-4 py-2 bg-primary-gold text-black rounded-lg font-medium">1</button>
-                    <button class="px-4 py-2 text-gray-400 hover:text-white transition-colors duration-200">2</button>
-                    <button class="px-4 py-2 text-gray-400 hover:text-white transition-colors duration-200">3</button>
-                    <button class="px-3 py-2 text-gray-400 hover:text-white transition-colors duration-200">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                </nav>
+            {% if page_obj.has_other_pages %}
+            <div class="flex justify-center items-center space-x-2 mt-12">
+                {% if page_obj.has_previous %}
+                    <a href="?{% if category_slug %}category={{ category_slug }}{% if tag_slug %}&tag={{ tag_slug }}{% endif %}&{% elif tag_slug %}tag={{ tag_slug }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                       class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                        Previous
+                    </a>
+                {% endif %}
+                
+                <span class="px-4 py-2 text-gray-300">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?{% if category_slug %}category={{ category_slug }}{% if tag_slug %}&tag={{ tag_slug }}{% endif %}&{% elif tag_slug %}tag={{ tag_slug }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                       class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                        Next
+                    </a>
+                {% endif %}
             </div>
+            {% endif %}
             
             {% else %}
             <!-- No Videos State -->

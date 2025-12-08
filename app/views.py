@@ -20,9 +20,15 @@ def home(request):
     categories = Category.objects.all()
     videos = Video.objects.filter(is_active=True) 
     tags = Tag.objects.all()
+    
+    # Pagination
+    paginator = Paginator(videos, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
         'categories': categories,
-        'videos': videos,
+        'page_obj': page_obj,
         'tags': tags,
     }
     return render(request, 'site/home.html', context)
@@ -56,10 +62,15 @@ def videos(request):
     # Sort videos by creation date (newest first)
     videos = videos.order_by('-created_at')
     
+    # Pagination
+    paginator = Paginator(videos, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
         'categories': categories,
         'tags': tags,
-        'videos': videos,
+        'page_obj': page_obj,
         'current_category': current_category,
         'current_tag': current_tag,
         'category_slug': category_slug,
@@ -119,16 +130,28 @@ def tags(request):
 def latest(request):
     """Latest videos page"""
     videos = Video.objects.filter(is_active=True).order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(videos, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'videos': videos,
+        'page_obj': page_obj,
     }
     return render(request, 'site/latest.html', context)
 
 def popular(request):
     """Popular videos page"""
     videos = Video.objects.filter(is_active=True).order_by('-views')
+    
+    # Pagination
+    paginator = Paginator(videos, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'videos': videos,
+        'page_obj': page_obj,
     }
     return render(request, 'site/popular.html', context)
 

@@ -29,28 +29,41 @@
                 </select>
             </div>
             <div class="text-gray-400 text-sm">
-                Showing {{ videos|length }} latest videos
+                Showing {{ page_obj|length }} latest videos
             </div>
         </div>
     </div>
     
-                <!-- Videos Grid -->
-            {% if videos %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {% for video in videos %}
-                    {% include 'site/partials/video_card.html' with video=video %}
-                {% endfor %}
+    <!-- Videos Grid -->
+    {% if page_obj %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        {% for video in page_obj %}
+            {% include 'site/partials/video_card.html' with video=video %}
+        {% endfor %}
     </div>
     
-    <!-- Load More Button -->
-    {% comment %} <div class="text-center mt-12">
-        <button class="btn-outline-gold px-8 py-3 rounded-lg font-medium inline-flex items-center">
-            Load More Videos
-            <svg class="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-        </button>
-    </div> {% endcomment %}
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center items-center space-x-2 mt-12">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" 
+               class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                Previous
+            </a>
+        {% endif %}
+        
+        <span class="px-4 py-2 text-gray-300">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" 
+               class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                Next
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
     
     {% else %}
     <!-- No Videos State -->

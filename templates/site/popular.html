@@ -29,17 +29,17 @@
                 </select>
             </div>
             <div class="text-gray-400 text-sm">
-                Showing {{ videos|length }} popular videos
+                Showing {{ page_obj|length }} popular videos
             </div>
         </div>
     </div>
     
-    <!-- Top 3 Popular Videos -->
-    {% if videos %}
+    <!-- Top 3 Popular Videos (only on first page) -->
+    {% if page_obj and page_obj.number == 1 %}
     <div class="mb-12">
         <h2 class="text-2xl font-bold text-white mb-6">Top Trending</h2>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {% for video in videos|slice:":3" %}
+            {% for video in page_obj|slice:":3" %}
             <div class="bg-grey-custom rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
                 <!-- Video Thumbnail - Clickable -->
                 <a href="{{ video.get_absolute_url }}" class="block relative group">
@@ -96,15 +96,42 @@
     </div>
     
     <!-- All Popular Videos -->
+    {% if page_obj %}
     <div>
-        <h2 class="text-2xl font-bold text-white mb-6">All Popular Videos</h2>
+        <h2 class="text-2xl font-bold text-white mb-6">{% if page_obj.number == 1 %}All Popular Videos{% else %}Popular Videos{% endif %}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {% for video in videos %}
-            
-                {% include 'site/partials/video_card.html' with video=video %}
+            {% for video in page_obj %}
+                {% if page_obj.number == 1 and forloop.counter <= 3 %}
+                    {# Skip first 3 videos on page 1 as they're shown in Top Trending section #}
+                {% else %}
+                    {% include 'site/partials/video_card.html' with video=video %}
+                {% endif %}
             {% endfor %}
         </div>
     </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center items-center space-x-2 mt-12">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" 
+               class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                Previous
+            </a>
+        {% endif %}
+        
+        <span class="px-4 py-2 text-gray-300">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" 
+               class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                Next
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
     
     {% else %}
     <!-- No Videos State -->
