@@ -64,6 +64,7 @@
 
 {% block extra_css %}
 <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+<link href="https://unpkg.com/videojs-contrib-ads@6.9.0/dist/videojs-contrib-ads.css" rel="stylesheet">
 <style>
     .video-js {
         width: 100%;
@@ -185,12 +186,11 @@
                         id="video-player"
                         class="video-js vjs-default-skin" 
                         controls
-                        autoplay
                         preload="auto"
                         width="100%"
                         height="25rem"
                         poster="{% if video.thumbnail %}{{ video.thumbnail.url }}{% endif %}"
-                        data-setup='{"controls": true, "autoplay": true, "responsive": true, "fluid": false, "preload": "auto", "fullscreen": {"options": {"navigationUI": "hide"}}}'
+                        data-setup='{"controls": true, "autoplay": false, "responsive": true, "fluid": false, "preload": "auto", "fullscreen": {"options": {"navigationUI": "hide"}}}'
                     >
                         <source src="{% url 'stream_video' video.id %}" type="video/mp4">
                         <p class="vjs-no-js">
@@ -602,13 +602,19 @@
 
 {% block extra_js %}
 {% load analytics %}
+{% load ad_tags %}
 <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+<script src="https://unpkg.com/videojs-contrib-ads@6.9.0/dist/videojs-contrib-ads.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Get VAST URL from ads context (placement: video-instream, ad_type: instream-video)
+    {% get_ad_script ads "video-instream-instream-video" as vast_url %}
+    const vastAdUrl = {% if vast_url %}'{{ vast_url|escapejs }}'{% else %}null{% endif %};
+    
     // Initialize Video.js player
     const player = videojs('video-player', {
         controls: true,
-        autoplay: true,
+        autoplay: false, // Don't autoplay until ad is handled
         responsive: true,
         fluid: false,
         preload: 'auto',
@@ -617,6 +623,192 @@ document.addEventListener('DOMContentLoaded', function() {
                 navigationUI: 'hide'
             }
         }
+    });
+    
+    // Initialize the contrib-ads plugin
+    player.ads();
+    
+    // Function to play the main video content
+    function playMainContent() {
+        player.src({
+            src: '{% url "stream_video" video.id %}',
+            type: 'video/mp4'
+        });
+        player.ads.endLinearAdMode();
+        player.play();
+    }
+    
+    // Function to parse VAST XML and extract media URL
+    function parseVastXML(xmlText) {
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+            
+            // Check for parsing errors
+            if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                console.error('VAST XML parsing error');
+                return null;
+            }
+            
+            // Get the first Ad element
+            const ad = xmlDoc.getElementsByTagName('Ad')[0];
+            if (!ad) {
+                console.log('No Ad element found in VAST');
+                return null;
+            }
+            
+            // Get InLine or Wrapper
+            const inline = ad.getElementsByTagName('InLine')[0];
+            const wrapper = ad.getElementsByTagName('Wrapper')[0];
+            
+            if (!inline && !wrapper) {
+                console.log('No InLine or Wrapper found in VAST');
+                return null;
+            }
+            
+            // Get Creative
+            const creative = (inline || wrapper).getElementsByTagName('Creative')[0];
+            if (!creative) {
+                console.log('No Creative found in VAST');
+                return null;
+            }
+            
+            // Get Linear
+            const linear = creative.getElementsByTagName('Linear')[0];
+            if (!linear) {
+                console.log('No Linear creative found in VAST');
+                return null;
+            }
+            
+            // Get MediaFiles
+            const mediaFiles = linear.getElementsByTagName('MediaFile');
+            if (!mediaFiles || mediaFiles.length === 0) {
+                console.log('No MediaFile found in VAST');
+                return null;
+            }
+            
+            // Find best media file (prefer mp4)
+            let selectedMediaFile = null;
+            for (let i = 0; i < mediaFiles.length; i++) {
+                const mimeType = mediaFiles[i].getAttribute('type') || '';
+                if (mimeType.includes('mp4')) {
+                    selectedMediaFile = mediaFiles[i];
+                    break;
+                }
+            }
+            
+            // If no mp4 found, use the first one
+            if (!selectedMediaFile) {
+                selectedMediaFile = mediaFiles[0];
+            }
+            
+            const mediaUrl = selectedMediaFile.textContent.trim();
+            const mediaType = selectedMediaFile.getAttribute('type') || 'video/mp4';
+            
+            // Get tracking events
+            const trackingEvents = {};
+            const trackingElements = linear.getElementsByTagName('Tracking');
+            for (let i = 0; i < trackingElements.length; i++) {
+                const event = trackingElements[i].getAttribute('event');
+                const url = trackingElements[i].textContent.trim();
+                if (event && url) {
+                    if (!trackingEvents[event]) {
+                        trackingEvents[event] = [];
+                    }
+                    trackingEvents[event].push(url);
+                }
+            }
+            
+            return {
+                mediaUrl: mediaUrl,
+                mediaType: mediaType,
+                trackingEvents: trackingEvents
+            };
+        } catch (error) {
+            console.error('Error parsing VAST XML:', error);
+            return null;
+        }
+    }
+    
+    // Function to handle VAST ad
+    function handleVastAd(vastUrl) {
+        // Fetch VAST XML
+        fetch(vastUrl)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch VAST: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(function(xmlText) {
+                // Parse VAST XML
+                const vastData = parseVastXML(xmlText);
+                
+                if (!vastData || !vastData.mediaUrl) {
+                    console.log('No valid media URL found in VAST');
+                    playMainContent();
+                    return;
+                }
+                
+                // Start ad mode
+                player.ads.startLinearAdMode();
+                
+                // Load and play the ad
+                player.src({
+                    src: vastData.mediaUrl,
+                    type: vastData.mediaType
+                });
+                
+                // Track ad start
+                if (vastData.trackingEvents && vastData.trackingEvents.start) {
+                    vastData.trackingEvents.start.forEach(function(url) {
+                        fetch(url, { mode: 'no-cors' }).catch(function() {});
+                    });
+                }
+                
+                // When ad ends, play main content
+                player.one('ended', function() {
+                    // Track ad complete
+                    if (vastData.trackingEvents && vastData.trackingEvents.complete) {
+                        vastData.trackingEvents.complete.forEach(function(url) {
+                            fetch(url, { mode: 'no-cors' }).catch(function() {});
+                        });
+                    }
+                    playMainContent();
+                });
+                
+                // Play the ad
+                player.play();
+            })
+            .catch(function(error) {
+                console.error('VAST error:', error);
+                // If VAST fails, just play the main content
+                playMainContent();
+            });
+    }
+    
+    // Set up ad events
+    player.on('readyforpreroll', function() {
+        if (vastAdUrl) {
+            handleVastAd(vastAdUrl);
+        } else {
+            // No ad configured, play main content
+            playMainContent();
+        }
+    });
+    
+    // Handle ad errors
+    player.on('aderror', function() {
+        console.log('Ad error occurred, playing main content');
+        playMainContent();
+    });
+    
+    // Trigger readyforpreroll when player is ready
+    player.ready(function() {
+        // Small delay to ensure everything is initialized
+        setTimeout(function() {
+            player.trigger('readyforpreroll');
+        }, 100);
     });
     
     // Google Analytics event tracking for video interactions
