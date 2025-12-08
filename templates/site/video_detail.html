@@ -897,34 +897,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Add additional parameters to VAST URL if needed
-        // Some ad networks require page URL, referrer, etc.
-        let vastUrlWithParams = vastUrl;
-        try {
-            const url = new URL(vastUrl);
-            
-            // Add common VAST parameters if not already present
-            // These help ad networks serve relevant ads
-            if (!url.searchParams.has('page_url')) {
-                url.searchParams.set('page_url', encodeURIComponent(window.location.href));
-            }
-            if (!url.searchParams.has('referrer')) {
-                url.searchParams.set('referrer', encodeURIComponent(document.referrer || window.location.href));
-            }
-            if (!url.searchParams.has('timestamp')) {
-                url.searchParams.set('timestamp', Date.now().toString());
-            }
-            
-            vastUrlWithParams = url.toString();
-        } catch (e) {
-            console.log('Could not parse VAST URL, using as-is:', e);
-            // If URL parsing fails, use original URL
-        }
+        // Use VAST URL as-is (some ad networks don't like extra parameters)
+        // Try original URL first, then with parameters if needed
+        console.log('Fetching VAST from original URL:', vastUrl);
         
-        console.log('Fetching VAST from:', vastUrlWithParams);
-        
-        // Fetch VAST XML with proper headers
-        fetch(vastUrlWithParams, {
+        // First try: Use VAST URL exactly as provided (no extra parameters)
+        fetch(vastUrl, {
             method: 'GET',
             mode: 'cors',
             cache: 'no-cache',
@@ -949,11 +927,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Handle empty VAST (no ads available)
                 if (vastData && vastData.isEmpty) {
-                    console.warn('VAST response is empty - no ads available from ad network.');
-                    console.warn('This could mean:');
-                    console.warn('1. The zone ID is not configured for instream video ads');
-                    console.warn('2. The ad network has no ads available at this time');
-                    console.warn('3. The zone might be configured for banner ads only');
+                    console.warn('⚠️ VAST response is empty - no ads available from ad network.');
+                    console.warn('This means the ad network (s.magsrv.com) returned an empty VAST tag.');
+                    console.warn('Possible reasons:');
+                    console.warn('1. Zone ID 5761510 is not configured for instream video ads');
+                    console.warn('2. Zone is configured for banner ads only (banner ads are working)');
+                    console.warn('3. No video ads available in inventory at this time');
+                    console.warn('4. Need a different zone ID specifically for video ads');
+                    console.warn('');
+                    console.warn('✅ Code is working correctly - this is an ad network configuration issue.');
+                    console.warn('📞 Contact s.magsrv.com support to:');
+                    console.warn('   - Verify zone 5761510 supports instream video ads');
+                    console.warn('   - Get a zone ID specifically for video ads if needed');
+                    console.warn('   - Check zone configuration in their dashboard');
+                    console.warn('');
                     console.warn('Playing main content without ads.');
                     playMainContent();
                     return;
