@@ -43,6 +43,11 @@
                 <p class="text-gray-400">Discover the latest and most popular videos</p>
             </div>
             
+            <!-- Home Page Top Ad -->
+            <div class="mb-6">
+                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top-banner' ad_size='728x90' %}
+            </div>
+            
             <!-- Videos Grid -->
             {% if page_obj %}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
