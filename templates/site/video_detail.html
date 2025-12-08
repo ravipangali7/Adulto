@@ -610,6 +610,15 @@ document.addEventListener('DOMContentLoaded', function() {
     {% get_ad_script ads "video-instream-instream-video" as vast_url %}
     const vastAdUrl = {% if vast_url %}'{{ vast_url|escapejs }}'{% else %}null{% endif %};
     
+    // Debug: Log VAST URL status
+    console.log('VAST Ad URL check:', {
+        hasVastUrl: !!vastAdUrl,
+        vastUrl: vastAdUrl ? vastAdUrl.substring(0, 100) + '...' : null,
+        instreamAdExists: {% if debug_instream_ad.instream_ad_exists %}true{% else %}false{% endif %},
+        instreamAdActive: {% if debug_instream_ad.instream_ad_active %}true{% else %}false{% endif %},
+        hasScript: {% if debug_instream_ad.instream_ad_script %}true{% else %}false{% endif %}
+    });
+    
     // Track ad mode state
     let adModeStarted = false;
     let player;

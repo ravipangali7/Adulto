@@ -80,6 +80,8 @@ def videos(request):
 
 def video_detail(request, slug):
     """Video detail page"""
+    from core.models import Ad
+    
     video = get_object_or_404(Video, slug=slug, is_active=True)
     # Increment view count
     video.views += 1
@@ -102,12 +104,21 @@ def video_detail(request, slug):
     # Initialize comment form
     comment_form = CommentForm(user=request.user)
     
+    # Debug: Check if instream video ad exists
+    instream_ad = Ad.objects.filter(placement='video-instream', ad_type='instream-video').first()
+    debug_info = {
+        'instream_ad_exists': instream_ad is not None,
+        'instream_ad_active': instream_ad.is_active if instream_ad else False,
+        'instream_ad_script': instream_ad.script if instream_ad and instream_ad.is_active else None,
+    }
+    
     context = {
         'video': video,
         'related_videos': related_videos,
         'popular_videos': popular_videos,
         'comments': comments,
         'comment_form': comment_form,
+        'debug_instream_ad': debug_info,  # For debugging
     }
     return render(request, 'site/video_detail.html', context)
 
