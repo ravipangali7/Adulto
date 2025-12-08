@@ -1132,16 +1132,10 @@
     <!-- Navigation -->
     {% include 'site/partials/navbar.html' %}
     
-    <!-- Header Top Banner Ad - Hardcoded -->
+    <!-- Header Top Banner Ad - Seamlessly Integrated with Double-Wrap -->
     <div class="w-full max-w-full mx-auto py-2" style="background: transparent; overflow: hidden !important; box-sizing: border-box !important; width: 100% !important; max-width: 100vw !important; padding-left: 1rem !important; padding-right: 1rem !important; position: relative !important;">
         <div style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important; contain: layout style paint !important;">
-            <div class="ad-strict-container" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                <div class="ad-wrapper ad-banner ad-header-top-banner" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important;">
-                    <div class="ad-container ad-size-728x90" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                        <ins class="eas6a97888e31" data-zoneid="5761502"></ins>
-                    </div>
-                </div>
-            </div>
+            {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top-banner' ad_size='728x90' %}
         </div>
     </div>
     
@@ -1151,24 +1145,23 @@
     </main>
     
     
-    <!-- Global In-Page Push Notifications - Hardcoded -->
-    <div class="ad-strict-container" style="display: none;">
-        <ins class="eas6a97888e31" data-zoneid="5761512"></ins>
-    </div>
-
-    <!-- Global Fullpage Interstitial - Hardcoded -->
-    <div class="ad-strict-container" style="display: none;">
-        <ins class="eas6a97888e31" data-zoneid="5761514"></ins>
-    </div>
-
-    <!-- Global Sticky Banner (Bottom) - Hardcoded -->
-    <div class="ad-strict-container ad-sticky-banner" style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; z-index: 9999 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; box-sizing: border-box !important;">
-        <div class="ad-wrapper ad-sticky-banner" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; margin: 0 !important; padding: 0 !important;">
-            <div class="ad-container ad-size-728x90" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                <ins class="eas6a97888e31" data-zoneid="5761504"></ins>
-            </div>
-        </div>
-    </div>
+    <!-- Global Popunder Ad (Desktop) - Place in <head> or before </body> -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-popunder-desktop-inpage-push-notifications' ad_size='auto' desktop_only=True %}
+    
+    <!-- Global Popunder Ad (Mobile) - Place in <head> or before </body> -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-popunder-mobile-inpage-push-notifications' ad_size='auto' mobile_only=True %}
+    
+    <!-- Global Fullpage Interstitial -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='fullpage-interstitial' ad_id='global-interstitial-fullpage-interstitial' ad_size='auto' %}
+    
+    <!-- Global Instant Message Ad (Chat Box) - Mobile First -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-instant-message-inpage-push-notifications' ad_size='300x250' %}
+    
+    <!-- Global In-Page Push Notification -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='inpage-push-notifications' ad_id='global-inpage-push-inpage-push-notifications' ad_size='auto' %}
+    
+    <!-- Global Sticky Banner (Bottom) -->
+    {% include 'site/partials/ad_placeholder.html' with ad_type='sticky-banner' ad_id='global-sticky-bottom-sticky-banner' ad_size='728x90' %}
     
     <!-- Video Slider Ad - Fixed Position Bottom Right -->
     <div class="ad-strict-container ad-slider slider-ad" style="position: fixed !important; bottom: 20px !important; right: 20px !important; width: 320px !important; max-width: calc(100vw - 40px) !important; z-index: 9998 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; box-sizing: border-box !important; border-radius: 8px !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;">

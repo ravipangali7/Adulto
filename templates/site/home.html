@@ -43,15 +43,9 @@
                 <p class="text-gray-400">Discover the latest and most popular videos</p>
             </div>
             
-            <!-- Home Page Top Ad - Hardcoded -->
+            <!-- Home Page Top Ad -->
             <div class="mb-6">
-                <div class="ad-strict-container" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                    <div class="ad-wrapper ad-banner" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important;">
-                        <div class="ad-container ad-size-728x90" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                            <ins class="eas6a97888e31" data-zoneid="5761502"></ins>
-                        </div>
-                    </div>
-                </div>
+                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top-banner' ad_size='728x90' %}
             </div>
             
             <!-- Videos Grid -->
@@ -59,15 +53,9 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {% for video in page_obj %}
                 {% if forloop.counter == 5 %}
-                    <!-- In-Content Ad after 4th video - Hardcoded -->
+                    <!-- In-Content Ad after 4th video -->
                     <div class="col-span-full my-4">
-                        <div class="ad-strict-container" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                            <div class="ad-wrapper ad-banner ad-incontent" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important;">
-                                <div class="ad-container ad-size-728x90" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                                    <ins class="eas6a97888e31" data-zoneid="5761502"></ins>
-                                </div>
-                            </div>
-                        </div>
+                        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='incontent-banner' ad_size='728x90' %}
                     </div>
                 {% endif %}
                 
@@ -117,15 +105,9 @@
         <!-- Categories Sidebar (20% on desktop, 100% on mobile) -->
         <div class="w-full lg:w-1/5 order-2 lg:order-1">
             <div class="bg-grey-custom rounded-lg p-4 sm:p-6 lg:sticky lg:top-32">
-                <!-- Sidebar Ad Above Categories - Hardcoded -->
+                <!-- Sidebar Ad Above Categories (Desktop) -->
                 <div class="mb-4 lg:mb-6">
-                    <div class="ad-strict-container" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                        <div class="ad-wrapper ad-banner ad-sidebar" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important;">
-                            <div class="ad-container ad-size-300x250" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                                <ins class="eas6a97888e31" data-zoneid="5761536"></ins>
-                            </div>
-                        </div>
-                    </div>
+                    {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='sidebar-banner' ad_size='300x250' %}
                 </div>
                 
                 <h2 class="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 flex items-center">
@@ -175,15 +157,9 @@
         </div>
     </div>
     
-    <!-- Bottom Banner Ad (Home Page) - Hardcoded -->
+    <!-- Bottom Banner Ad (Home Page) -->
     <div class="mt-8">
-        <div class="ad-strict-container" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-            <div class="ad-wrapper ad-banner" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important;">
-                <div class="ad-container ad-size-970x250" style="width: 100% !important; max-width: 100% !important; overflow: hidden !important; box-sizing: border-box !important; position: relative !important;">
-                    <ins class="eas6a97888e31" data-zoneid="5761502"></ins>
-                </div>
-            </div>
-        </div>
+        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='home-bottom-banner' ad_size='970x250' %}
     </div>
 </div>
 
