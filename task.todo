@@ -1,8 +1,7 @@
 ✅ 1. Pagination
-2. Spam Ad 
+✅ 2. INstream Ad
 3. Ad in Home Screen
 4. View count issue (not count in gap of upload)
-✅ 5. INstream Ad
 
 git fetch origin
 git reset --hard origin/main

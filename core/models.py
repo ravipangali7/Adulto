@@ -377,6 +377,7 @@ PLACEMENT_CHOICES = [
 	# Page-Specific (Unique)
 	('home-bottom', 'Home Bottom Leaderboard (970x250 Desktop, 728x90 Mobile)'),
 	('video-below-player', 'Video Below Player Banner (728x90 Desktop, 320x50 Mobile)'),
+	('video-sidebar', 'Video Sidebar Banner (300x250 Desktop, Full Width Mobile) - Video Detail Page'),
 	('video-instream', 'Video In-Stream VAST (VAST URL for instream-video ad_type)'),
 	('video-slider', 'Video Slider (VAST URL, slides from right bottom)'),
 ]
