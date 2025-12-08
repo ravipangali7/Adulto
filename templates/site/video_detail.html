@@ -897,21 +897,64 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Fetch VAST XML
-        fetch(vastUrl)
+        // Add additional parameters to VAST URL if needed
+        // Some ad networks require page URL, referrer, etc.
+        let vastUrlWithParams = vastUrl;
+        try {
+            const url = new URL(vastUrl);
+            
+            // Add common VAST parameters if not already present
+            // These help ad networks serve relevant ads
+            if (!url.searchParams.has('page_url')) {
+                url.searchParams.set('page_url', encodeURIComponent(window.location.href));
+            }
+            if (!url.searchParams.has('referrer')) {
+                url.searchParams.set('referrer', encodeURIComponent(document.referrer || window.location.href));
+            }
+            if (!url.searchParams.has('timestamp')) {
+                url.searchParams.set('timestamp', Date.now().toString());
+            }
+            
+            vastUrlWithParams = url.toString();
+        } catch (e) {
+            console.log('Could not parse VAST URL, using as-is:', e);
+            // If URL parsing fails, use original URL
+        }
+        
+        console.log('Fetching VAST from:', vastUrlWithParams);
+        
+        // Fetch VAST XML with proper headers
+        fetch(vastUrlWithParams, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'omit',
+            headers: {
+                'Accept': 'application/xml, text/xml, */*'
+            }
+        })
             .then(function(response) {
+                console.log('VAST fetch response status:', response.status, response.statusText);
                 if (!response.ok) {
                     throw new Error('Failed to fetch VAST: ' + response.status);
                 }
                 return response.text();
             })
             .then(function(xmlText) {
+                console.log('VAST response received, length:', xmlText.length);
+                console.log('VAST response preview:', xmlText.substring(0, 200));
+                
                 // Parse VAST XML
                 const vastData = parseVastXML(xmlText);
                 
                 // Handle empty VAST (no ads available)
                 if (vastData && vastData.isEmpty) {
-                    console.log('VAST response is empty - no ads available. Playing main content.');
+                    console.warn('VAST response is empty - no ads available from ad network.');
+                    console.warn('This could mean:');
+                    console.warn('1. The zone ID is not configured for instream video ads');
+                    console.warn('2. The ad network has no ads available at this time');
+                    console.warn('3. The zone might be configured for banner ads only');
+                    console.warn('Playing main content without ads.');
                     playMainContent();
                     return;
                 }
