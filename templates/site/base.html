@@ -61,6 +61,17 @@
       gtag('config', 'G-KXXG60NNZB');
     </script>
     
+    <!-- Global Ad Provider Script - Load early for all ads -->
+    <script async type="application/javascript" src="https://a.magsrv.com/ad-provider.js"></script>
+    <script>
+        // Initialize AdProvider after script loads
+        window.AdProvider = window.AdProvider || [];
+        // Push serve command to initialize ads
+        if (typeof AdProvider !== 'undefined' && AdProvider.push) {
+            AdProvider.push({"serve": {}});
+        }
+    </script>
+    
     <!-- Favicon -->
     <link rel="shortcut icon" href="/static/core/logo.png" />
     
