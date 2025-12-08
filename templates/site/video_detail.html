@@ -646,20 +646,71 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Check for parsing errors
             if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
-                console.error('VAST XML parsing error');
+                const errorText = xmlDoc.getElementsByTagName('parsererror')[0].textContent;
+                console.error('VAST XML parsing error:', errorText);
                 return null;
             }
             
-            // Get the first Ad element
-            const ad = xmlDoc.getElementsByTagName('Ad')[0];
+            // Log the XML for debugging (first 500 chars)
+            console.log('VAST XML received:', xmlText.substring(0, 500));
+            
+            // Handle namespaces - try with and without namespace
+            let ad = xmlDoc.getElementsByTagName('Ad')[0];
             if (!ad) {
-                console.log('No Ad element found in VAST');
+                // Try with namespace
+                ad = xmlDoc.getElementsByTagNameNS('http://www.iab.net/VAST', 'Ad')[0];
+            }
+            if (!ad) {
+                // Try VAST 3.0 namespace
+                ad = xmlDoc.getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'Ad')[0];
+            }
+            if (!ad) {
+                // Try VAST 4.0 namespace
+                ad = xmlDoc.getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'Ad')[0];
+            }
+            
+            if (!ad) {
+                console.log('No Ad element found in VAST. XML root element:', xmlDoc.documentElement.tagName);
                 return null;
             }
             
             // Get InLine or Wrapper
-            const inline = ad.getElementsByTagName('InLine')[0];
-            const wrapper = ad.getElementsByTagName('Wrapper')[0];
+            let inline = ad.getElementsByTagName('InLine')[0];
+            let wrapper = ad.getElementsByTagName('Wrapper')[0];
+            
+            // Try with namespaces if not found
+            if (!inline && !wrapper) {
+                inline = ad.getElementsByTagNameNS('http://www.iab.net/VAST', 'InLine')[0];
+                wrapper = ad.getElementsByTagNameNS('http://www.iab.net/VAST', 'Wrapper')[0];
+            }
+            if (!inline && !wrapper) {
+                inline = ad.getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'InLine')[0];
+                wrapper = ad.getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'Wrapper')[0];
+            }
+            if (!inline && !wrapper) {
+                inline = ad.getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'InLine')[0];
+                wrapper = ad.getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'Wrapper')[0];
+            }
+            
+            // Handle Wrapper - need to follow VASTAdTagURI
+            if (wrapper && !inline) {
+                let vastAdTagUri = wrapper.getElementsByTagName('VASTAdTagURI')[0];
+                if (!vastAdTagUri) {
+                    vastAdTagUri = wrapper.getElementsByTagNameNS('http://www.iab.net/VAST', 'VASTAdTagURI')[0];
+                }
+                if (!vastAdTagUri) {
+                    vastAdTagUri = wrapper.getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'VASTAdTagURI')[0];
+                }
+                if (!vastAdTagUri) {
+                    vastAdTagUri = wrapper.getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'VASTAdTagURI')[0];
+                }
+                if (vastAdTagUri) {
+                    const wrapperUrl = vastAdTagUri.textContent.trim();
+                    console.log('VAST Wrapper found, following URL:', wrapperUrl);
+                    // Return wrapper URL to be fetched
+                    return { isWrapper: true, wrapperUrl: wrapperUrl };
+                }
+            }
             
             if (!inline && !wrapper) {
                 console.log('No InLine or Wrapper found in VAST');
@@ -667,21 +718,51 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Get Creative
-            const creative = (inline || wrapper).getElementsByTagName('Creative')[0];
+            let creative = (inline || wrapper).getElementsByTagName('Creative')[0];
+            if (!creative) {
+                creative = (inline || wrapper).getElementsByTagNameNS('http://www.iab.net/VAST', 'Creative')[0];
+            }
+            if (!creative) {
+                creative = (inline || wrapper).getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'Creative')[0];
+            }
+            if (!creative) {
+                creative = (inline || wrapper).getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'Creative')[0];
+            }
+            
             if (!creative) {
                 console.log('No Creative found in VAST');
                 return null;
             }
             
             // Get Linear
-            const linear = creative.getElementsByTagName('Linear')[0];
+            let linear = creative.getElementsByTagName('Linear')[0];
+            if (!linear) {
+                linear = creative.getElementsByTagNameNS('http://www.iab.net/VAST', 'Linear')[0];
+            }
+            if (!linear) {
+                linear = creative.getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'Linear')[0];
+            }
+            if (!linear) {
+                linear = creative.getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'Linear')[0];
+            }
+            
             if (!linear) {
                 console.log('No Linear creative found in VAST');
                 return null;
             }
             
             // Get MediaFiles
-            const mediaFiles = linear.getElementsByTagName('MediaFile');
+            let mediaFiles = linear.getElementsByTagName('MediaFile');
+            if (!mediaFiles || mediaFiles.length === 0) {
+                mediaFiles = linear.getElementsByTagNameNS('http://www.iab.net/VAST', 'MediaFile');
+            }
+            if (!mediaFiles || mediaFiles.length === 0) {
+                mediaFiles = linear.getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'MediaFile');
+            }
+            if (!mediaFiles || mediaFiles.length === 0) {
+                mediaFiles = linear.getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'MediaFile');
+            }
+            
             if (!mediaFiles || mediaFiles.length === 0) {
                 console.log('No MediaFile found in VAST');
                 return null;
@@ -707,7 +788,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get tracking events
             const trackingEvents = {};
-            const trackingElements = linear.getElementsByTagName('Tracking');
+            let trackingElements = linear.getElementsByTagName('Tracking');
+            if (!trackingElements || trackingElements.length === 0) {
+                trackingElements = linear.getElementsByTagNameNS('http://www.iab.net/VAST', 'Tracking');
+            }
+            if (!trackingElements || trackingElements.length === 0) {
+                trackingElements = linear.getElementsByTagNameNS('http://www.iab.net/VAST/3.0', 'Tracking');
+            }
+            if (!trackingElements || trackingElements.length === 0) {
+                trackingElements = linear.getElementsByTagNameNS('http://www.iab.net/VAST/4.0', 'Tracking');
+            }
+            
             for (let i = 0; i < trackingElements.length; i++) {
                 const event = trackingElements[i].getAttribute('event');
                 const url = trackingElements[i].textContent.trim();
@@ -730,8 +821,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to handle VAST ad
-    function handleVastAd(vastUrl) {
+    // Function to handle VAST ad with wrapper support
+    function handleVastAd(vastUrl, maxRedirects = 3) {
+        if (maxRedirects <= 0) {
+            console.error('Max VAST redirects reached');
+            playMainContent();
+            return;
+        }
+        
         // Fetch VAST XML
         fetch(vastUrl)
             .then(function(response) {
@@ -744,11 +841,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Parse VAST XML
                 const vastData = parseVastXML(xmlText);
                 
+                // Handle wrapper redirects
+                if (vastData && vastData.isWrapper) {
+                    console.log('Following VAST wrapper to:', vastData.wrapperUrl);
+                    handleVastAd(vastData.wrapperUrl, maxRedirects - 1);
+                    return;
+                }
+                
                 if (!vastData || !vastData.mediaUrl) {
                     console.log('No valid media URL found in VAST');
                     playMainContent();
                     return;
                 }
+                
+                console.log('VAST ad media URL found:', vastData.mediaUrl);
                 
                 // Start ad mode
                 player.ads.startLinearAdMode();
