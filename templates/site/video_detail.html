@@ -657,6 +657,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to play the main video content
     function playMainContent() {
+        console.log('playMainContent called, adModeStarted:', adModeStarted);
+        
         // Only end ad mode if it was actually started
         if (adModeStarted) {
             try {
@@ -667,15 +669,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 adModeStarted = false;
             }
         }
-        // If adModeStarted is false, we're in BeforePreroll state
-        // Don't call endLinearAdMode - just set source and play
-        // The plugin will handle the state transition
         
+        // If adModeStarted is false, we're in BeforePreroll state
+        // Set the source - the contrib-ads plugin will automatically transition
+        // from BeforePreroll to content when source is set
+        
+        const videoUrl = '{% url "stream_video" video.id %}';
+        console.log('Setting video source to:', videoUrl);
+        
+        // Set the source
         player.src({
-            src: '{% url "stream_video" video.id %}',
+            src: videoUrl,
             type: 'video/mp4'
         });
-        player.play();
+        
+        // Listen for when the source is loaded
+        player.one('loadedmetadata', function() {
+            console.log('Video metadata loaded, attempting to play');
+            player.play().catch(function(error) {
+                console.error('Error playing video:', error);
+            });
+        });
+        
+        // Fallback: try playing after a delay if loadedmetadata doesn't fire
+        setTimeout(function() {
+            if (player.paused() && player.readyState() >= 2) {
+                console.log('Fallback: attempting to play video');
+                player.play().catch(function(error) {
+                    console.error('Error playing video (fallback):', error);
+                });
+            }
+        }, 1000);
     }
     
     // Function to parse VAST XML and extract media URL
