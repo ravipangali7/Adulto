@@ -612,39 +612,69 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Track ad mode state
     let adModeStarted = false;
+    let player;
     
-    // Check if player is already initialized, if not initialize it
-    let player = videojs.getPlayer('video-player');
-    if (!player || !player.ready_) {
-        // Initialize Video.js player
-        player = videojs('video-player', {
-            controls: true,
-            autoplay: false, // Don't autoplay until ad is handled
-            responsive: true,
-            fluid: false,
-            preload: 'auto',
-            fullscreen: {
-                options: {
-                    navigationUI: 'hide'
-                }
+    // Initialize Video.js player - use ready callback to ensure proper initialization
+    player = videojs('video-player', {
+        controls: true,
+        autoplay: false, // Don't autoplay until ad is handled
+        responsive: true,
+        fluid: false,
+        preload: 'auto',
+        fullscreen: {
+            options: {
+                navigationUI: 'hide'
             }
+        }
+    }, function() {
+        // Player is ready - initialize ads plugin
+        this.ads();
+        
+        // Set up ad events after player and ads are ready
+        this.ready(function() {
+            // Set up ad events
+            this.on('readyforpreroll', function() {
+                if (vastAdUrl) {
+                    handleVastAd(vastAdUrl);
+                } else {
+                    // No ad configured, play main content
+                    playMainContent();
+                }
+            });
+            
+            // Handle ad errors
+            this.on('aderror', function() {
+                console.log('Ad error occurred, playing main content');
+                playMainContent();
+            });
+            
+            // Trigger readyforpreroll when everything is ready
+            setTimeout(function() {
+                player.trigger('readyforpreroll');
+            }, 100);
         });
-    }
-    
-    // Initialize the contrib-ads plugin
-    player.ads();
+    });
     
     // Function to play the main video content
     function playMainContent() {
+        // Only end ad mode if it was actually started
+        if (adModeStarted) {
+            try {
+                player.ads.endLinearAdMode();
+                adModeStarted = false;
+            } catch (e) {
+                console.log('Error ending ad mode (may already be ended):', e);
+                adModeStarted = false;
+            }
+        }
+        // If adModeStarted is false, we're in BeforePreroll state
+        // Don't call endLinearAdMode - just set source and play
+        // The plugin will handle the state transition
+        
         player.src({
             src: '{% url "stream_video" video.id %}',
             type: 'video/mp4'
         });
-        // Only end ad mode if it was actually started
-        if (adModeStarted) {
-            player.ads.endLinearAdMode();
-            adModeStarted = false;
-        }
         player.play();
     }
     
@@ -911,30 +941,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 playMainContent();
             });
     }
-    
-    // Set up ad events
-    player.on('readyforpreroll', function() {
-        if (vastAdUrl) {
-            handleVastAd(vastAdUrl);
-        } else {
-            // No ad configured, play main content
-            playMainContent();
-        }
-    });
-    
-    // Handle ad errors
-    player.on('aderror', function() {
-        console.log('Ad error occurred, playing main content');
-        playMainContent();
-    });
-    
-    // Trigger readyforpreroll when player is ready
-    player.ready(function() {
-        // Small delay to ensure everything is initialized
-        setTimeout(function() {
-            player.trigger('readyforpreroll');
-        }, 100);
-    });
     
     // Google Analytics event tracking for video interactions
     {% if settings.GOOGLE_ANALYTICS_ENABLED %}
