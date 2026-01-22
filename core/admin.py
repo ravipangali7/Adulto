@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Category, Tag, Video, Settings, CMS, AgeVerification, Ad
+from .models import User, Category, Tag, Video, Settings, CMS, AgeVerification, Ad, DMCAReport
 
 
 @admin.register(User)
@@ -274,3 +274,33 @@ class AdAdmin(admin.ModelAdmin):
 			# Add note that script should be URL
 			pass
 		super().save_model(request, obj, form, change)
+
+
+@admin.register(DMCAReport)
+class DMCAReportAdmin(admin.ModelAdmin):
+	list_display = ('id', 'name', 'email', 'status', 'created_at', 'reviewed_by', 'reviewed_at')
+	list_filter = ('status', 'created_at', 'reviewed_at')
+	search_fields = ('name', 'email', 'message', 'page_url')
+	readonly_fields = ('created_at', 'updated_at')
+	fieldsets = (
+		('Reporter Information', {
+			'fields': ('name', 'email')
+		}),
+		('Report Details', {
+			'fields': ('message', 'page_url')
+		}),
+		('Status', {
+			'fields': ('status', 'reviewed_by', 'reviewed_at')
+		}),
+		('Timestamps', {
+			'fields': ('created_at', 'updated_at'),
+			'classes': ('collapse',)
+		}),
+	)
+	
+	def get_readonly_fields(self, request, obj=None):
+		"""Make reviewed_by and reviewed_at readonly if not set"""
+		readonly = list(self.readonly_fields)
+		if obj and obj.reviewed_by:
+			readonly.extend(['reviewed_by', 'reviewed_at'])
+		return readonly

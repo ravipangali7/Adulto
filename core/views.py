@@ -16,12 +16,12 @@ import io
 from io import BytesIO
 from django.core.files.base import ContentFile
 from contextlib import contextmanager
-from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment, Ad
+from .models import Category, Tag, Video, CMS, Settings, AgeVerification, User, Comment, Ad, DMCAReport
 from .forms import CategoryForm, TagForm, VideoForm, CMSForm, SettingsForm, AgeVerificationForm, AdForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
 from .analytics_service import ga_service
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
 
@@ -130,6 +130,11 @@ def dashboard(request):
 	ga_device_data = ga_service.get_device_data(days=7)
 	ga_daily_traffic = ga_service.get_daily_traffic(days=7)
 	
+	# Get DMCA Reports data
+	total_dmca_reports = DMCAReport.objects.count()
+	pending_dmca_reports = DMCAReport.objects.filter(status='pending').count()
+	recent_dmca_reports = DMCAReport.objects.order_by('-created_at')[:5]
+	
 	context = {
 		'total_videos': total_videos,
 		'total_categories': total_categories,
@@ -157,6 +162,10 @@ def dashboard(request):
 		'ga_geographic_data': ga_geographic_data,
 		'ga_device_data': ga_device_data,
 		'ga_daily_traffic': ga_daily_traffic,
+		# DMCA Reports data
+		'total_dmca_reports': total_dmca_reports,
+		'pending_dmca_reports': pending_dmca_reports,
+		'recent_dmca_reports': recent_dmca_reports,
 	}
 	return render(request, 'core/dashboard.html', context)
 
@@ -1701,3 +1710,88 @@ def ad_detail(request, pk):
 		'ad': ad,
 	}
 	return render(request, 'core/ad_detail.html', context)
+
+
+@login_required(login_url='login')
+def dmca_report_list(request):
+	"""List all DMCA reports"""
+	reports = DMCAReport.objects.all().order_by('-created_at')
+	
+	# Filter by status if provided
+	status_filter = request.GET.get('status')
+	if status_filter and status_filter in ['pending', 'reviewed', 'resolved']:
+		reports = reports.filter(status=status_filter)
+	
+	# Search functionality
+	search_query = request.GET.get('search')
+	if search_query:
+		reports = reports.filter(
+			Q(name__icontains=search_query) |
+			Q(email__icontains=search_query) |
+			Q(message__icontains=search_query)
+		)
+	
+	# Pagination
+	from django.core.paginator import Paginator
+	paginator = Paginator(reports, 20)
+	page_number = request.GET.get('page')
+	page_obj = paginator.get_page(page_number)
+	
+	# Statistics
+	total_reports = DMCAReport.objects.count()
+	pending_reports = DMCAReport.objects.filter(status='pending').count()
+	reviewed_reports = DMCAReport.objects.filter(status='reviewed').count()
+	resolved_reports = DMCAReport.objects.filter(status='resolved').count()
+	
+	context = {
+		'page_obj': page_obj,
+		'reports': page_obj,
+		'status_filter': status_filter,
+		'search_query': search_query,
+		'total_reports': total_reports,
+		'pending_reports': pending_reports,
+		'reviewed_reports': reviewed_reports,
+		'resolved_reports': resolved_reports,
+	}
+	return render(request, 'core/dmca_report_list.html', context)
+
+
+@login_required(login_url='login')
+def dmca_report_detail(request, pk):
+	"""View individual DMCA report details"""
+	report = get_object_or_404(DMCAReport, pk=pk)
+	
+	context = {
+		'report': report,
+	}
+	return render(request, 'core/dmca_report_detail.html', context)
+
+
+@login_required(login_url='login')
+@require_http_methods(["POST"])
+def dmca_report_update_status(request, pk):
+	"""Update DMCA report status (AJAX)"""
+	report = get_object_or_404(DMCAReport, pk=pk)
+	
+	new_status = request.POST.get('status')
+	if new_status not in ['pending', 'reviewed', 'resolved']:
+		return JsonResponse({
+			'success': False,
+			'message': 'Invalid status.'
+		}, status=400)
+	
+	report.status = new_status
+	if new_status in ['reviewed', 'resolved']:
+		report.reviewed_by = request.user
+		report.reviewed_at = timezone.now()
+	else:
+		report.reviewed_by = None
+		report.reviewed_at = None
+	report.save()
+	
+	return JsonResponse({
+		'success': True,
+		'message': f'Report status updated to {report.get_status_display()}.',
+		'status': report.status,
+		'status_display': report.get_status_display()
+	})

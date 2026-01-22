@@ -1,6 +1,6 @@
 from django import forms
 import os
-from .models import Category, Tag, Video, Comment, CMS, Settings, AgeVerification, Ad
+from .models import Category, Tag, Video, Comment, CMS, Settings, AgeVerification, Ad, DMCAReport
 
 
 class CategoryForm(forms.ModelForm):
@@ -378,5 +378,58 @@ class AdForm(forms.ModelForm):
             if 'ad_type' not in cleaned_data:
                 cleaned_data['ad_type'] = self.instance.ad_type
         return cleaned_data
+
+
+class DMCAReportForm(forms.ModelForm):
+	class Meta:
+		model = DMCAReport
+		fields = ['name', 'email', 'message']
+		widgets = {
+			'name': forms.TextInput(attrs={
+				'class': 'w-full px-4 py-3 bg-bg-grey border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent',
+				'placeholder': 'Your name',
+				'required': True,
+				'maxlength': 150
+			}),
+			'email': forms.EmailInput(attrs={
+				'class': 'w-full px-4 py-3 bg-bg-grey border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent',
+				'placeholder': 'your.email@example.com',
+				'required': True
+			}),
+			'message': forms.Textarea(attrs={
+				'class': 'w-full px-4 py-3 bg-bg-grey border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:border-transparent resize-none',
+				'rows': 6,
+				'placeholder': 'Please provide details about the copyright infringement...',
+				'required': True
+			}),
+		}
+	
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.fields['name'].required = True
+		self.fields['email'].required = True
+		self.fields['message'].required = True
+	
+	def clean_name(self):
+		name = self.cleaned_data.get('name', '').strip()
+		if not name:
+			raise forms.ValidationError("Name is required.")
+		if len(name) > 150:
+			raise forms.ValidationError("Name must be 150 characters or less.")
+		return name
+	
+	def clean_email(self):
+		email = self.cleaned_data.get('email', '').strip()
+		if not email:
+			raise forms.ValidationError("Email is required.")
+		return email
+	
+	def clean_message(self):
+		message = self.cleaned_data.get('message', '').strip()
+		if not message:
+			raise forms.ValidationError("Message is required.")
+		if len(message) < 10:
+			raise forms.ValidationError("Message must be at least 10 characters long.")
+		return message
 
 

@@ -86,6 +86,11 @@ urlpatterns = [
 	path('api/video-analytics/<int:video_id>/', views.video_analytics_api, name='video_analytics_api'),
 	path('api/user-analytics/<int:user_id>/', views.user_analytics_api, name='user_analytics_api'),
 
+	# DMCA Reports
+	path('dmca-reports/', views.dmca_report_list, name='dmca_report_list'),
+	path('dmca-reports/<int:pk>/', views.dmca_report_detail, name='dmca_report_detail'),
+	path('dmca-reports/<int:pk>/update-status/', views.dmca_report_update_status, name='dmca_report_update_status'),
+
 	# Sitemap
 	path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 

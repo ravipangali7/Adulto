@@ -21,6 +21,10 @@
     </div>
 </div>
 
+{% if cms_page.slug == 'dmca' %}
+    {% include 'site/partials/dmca_report_button.html' %}
+{% endif %}
+
 <style>
 .prose {
     color: #e5e7eb;

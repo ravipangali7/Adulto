@@ -24,6 +24,7 @@ urlpatterns = [
     # Comment and like functionality
     path('video/<int:video_id>/comment/', views.submit_comment, name='submit_comment'),
     path('video/<int:video_id>/like/', views.toggle_like, name='toggle_like'),
+    path('submit-dmca-report/', views.submit_dmca_report, name='submit_dmca_report'),
     # Catch-all pattern for 404 testing (must be last)
     path('<path:path>/', views.not_found, name='catch_all_404'),
 ]

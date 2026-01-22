@@ -107,6 +107,13 @@
                 </a>
             </li>
 
+            <li class="sidebar-item">
+                <a class="sidebar-link" href="{% url 'dmca_report_list' %}">
+                    <i class="align-middle" data-feather="flag"></i> <span
+                        class="align-middle">DMCA Reports</span>
+                </a>
+            </li>
+
             {% if user.is_superuser %}
             <li class="sidebar-item">
                 <a class="sidebar-link" href="{% url 'user_reports' %}">

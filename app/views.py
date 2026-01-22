@@ -11,9 +11,9 @@ from django.contrib.auth import authenticate
 import os
 import mimetypes
 import json
-from core.models import Video, Category, Tag, Comment, CMS
+from core.models import Video, Category, Tag, Comment, CMS, DMCAReport
 from django.contrib.auth.decorators import login_required
-from core.forms import CommentForm
+from core.forms import CommentForm, DMCAReportForm
 
 def home(request):
     """Home page view with categories and videos"""
@@ -462,6 +462,40 @@ def toggle_like(request, video_id):
             'message': 'An error occurred while liking the video.',
             'error': str(e)
         }, status=500)
+
+
+def submit_dmca_report(request):
+    """Handle DMCA report submission (AJAX)"""
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid request method.'
+        }, status=405)
+    
+    form = DMCAReportForm(request.POST)
+    
+    if form.is_valid():
+        report = form.save(commit=False)
+        # Capture the page URL from which the report was submitted
+        report.page_url = request.POST.get('page_url', '') or request.META.get('HTTP_REFERER', '')
+        report.status = 'pending'
+        report.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Thank you for your report. We will review it shortly.'
+        })
+    else:
+        # Return form errors
+        errors = {}
+        for field, error_list in form.errors.items():
+            errors[field] = error_list[0] if error_list else 'This field is required.'
+        
+        return JsonResponse({
+            'success': False,
+            'message': 'Please correct the errors below.',
+            'errors': errors
+        }, status=400)
 
 
 def cms_page(request, slug):

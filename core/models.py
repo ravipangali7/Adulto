@@ -422,3 +422,30 @@ class Ad(models.Model):
 			return cls.objects.get(placement=placement, ad_type=ad_type, is_active=True)
 		except cls.DoesNotExist:
 			return None
+
+
+class DMCAReport(models.Model):
+	"""DMCA Report model for guest users to submit copyright infringement reports"""
+	STATUS_CHOICES = [
+		('pending', 'Pending'),
+		('reviewed', 'Reviewed'),
+		('resolved', 'Resolved'),
+	]
+	
+	name = models.CharField(max_length=150, help_text="Reporter's name")
+	email = models.EmailField(help_text="Reporter's email address")
+	message = models.TextField(help_text="Report message/details")
+	page_url = models.URLField(blank=True, null=True, help_text="URL of the page where report was submitted")
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', help_text="Report status")
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	reviewed_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_dmca_reports', help_text="Admin who reviewed this report")
+	reviewed_at = models.DateTimeField(null=True, blank=True, help_text="When the report was reviewed")
+	
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = "DMCA Report"
+		verbose_name_plural = "DMCA Reports"
+	
+	def __str__(self):
+		return f"DMCA Report from {self.name} - {self.status} ({self.created_at.strftime('%Y-%m-%d')})"
