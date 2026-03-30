@@ -41,35 +41,36 @@
             </div>
         </div>
         
-        <!-- Mobile Navigation Menu -->
-        <div id="mobile-menu" class="md:hidden absolute left-0 right-0 bg-grey-custom border-t border-gray-600 z-40" style="top: 100%; display: none;">
-            <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{% url 'videos' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
-                    Videos
-                </a>
-                <a href="{% url 'categories' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
-                    Categories
-                </a>
-                <a href="{% url 'tags' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
-                    Tags
-                </a>
-                <a href="{% url 'latest' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
-                    Latest
-                </a>
-                <a href="{% url 'popular' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
-                    Popular
-                </a>
-                
-                <!-- Dynamic CMS Pages for Mobile -->
-                {% for page in navbar_pages %}
-                <a href="{% url 'cms_page' page.slug %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
-                    {{ page.title }}
-                </a>
-                {% endfor %}
-            </div>
-        </div>
     </div>
 </nav>
+
+<!-- Mobile Navigation Menu (outside nav to escape overflow clipping) -->
+<div id="mobile-menu" style="display:none; position:fixed; top:calc(var(--header-height) + var(--navbar-height)); left:0; right:0; z-index:9999; background:var(--bg-grey); border-top:1px solid #4b5563;">
+    <div class="px-2 pt-2 pb-3 space-y-1">
+        <a href="{% url 'videos' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+            Videos
+        </a>
+        <a href="{% url 'categories' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+            Categories
+        </a>
+        <a href="{% url 'tags' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+            Tags
+        </a>
+        <a href="{% url 'latest' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+            Latest
+        </a>
+        <a href="{% url 'popular' %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+            Popular
+        </a>
+        
+        <!-- Dynamic CMS Pages for Mobile -->
+        {% for page in navbar_pages %}
+        <a href="{% url 'cms_page' page.slug %}" class="block px-3 py-2 text-white hover:text-primary-gold transition-colors duration-200">
+            {{ page.title }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
 
 <!-- Tags Sub-Navbar -->
 <div class="bg-gray-800 border-b border-gray-700 sticky z-20" style="top: calc(var(--header-height) + var(--navbar-height));">
