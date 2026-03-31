@@ -217,3 +217,6 @@ SECURE_HSTS_PRELOAD = True
 
 # Video Scheduling Configuration
 VIDEO_SCHEDULING_ENABLED = True
+
+# Internal media path used by reverse proxy for protected streaming.
+VIDEO_INTERNAL_MEDIA_PREFIX = os.getenv('VIDEO_INTERNAL_MEDIA_PREFIX', '/protected-media/')

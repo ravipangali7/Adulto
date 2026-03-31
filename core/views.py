@@ -705,25 +705,12 @@ def media_library(request):
 					file_size = os.path.getsize(file_path)
 					file_size_mb = round(file_size / (1024 * 1024), 2)
 					
-					# Get video duration
-					duration = 0
-					try:
-						cap = cv2.VideoCapture(file_path)
-						if cap.isOpened():
-							fps = cap.get(cv2.CAP_PROP_FPS)
-							frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-							if fps > 0:
-								duration = int(frame_count / fps)
-							cap.release()
-					except:
-						pass
-					
 					from urllib.parse import quote
 					videos.append({
 						'filename': filename,
 						'file_path': file_path,
 						'file_size': file_size_mb,
-						'duration': duration,
+						'duration': 0,
 						'url': f"{settings.MEDIA_URL}videos/{quote(filename)}"
 					})
 	
@@ -770,24 +757,11 @@ def media_library_api(request):
 					file_size = os.path.getsize(file_path)
 					file_size_mb = round(file_size / (1024 * 1024), 2)
 					
-					# Get video duration
-					duration = 0
-					try:
-						cap = cv2.VideoCapture(file_path)
-						if cap.isOpened():
-							fps = cap.get(cv2.CAP_PROP_FPS)
-							frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-							if fps > 0:
-								duration = int(frame_count / fps)
-							cap.release()
-					except:
-						pass
-					
 					from urllib.parse import quote
 					videos.append({
 						'filename': filename,
 						'file_size': file_size_mb,
-						'duration': duration,
+						'duration': 0,
 						'url': f"{settings.MEDIA_URL}videos/{quote(filename)}"
 					})
 	

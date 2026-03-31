@@ -1,9 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, Http404, FileResponse, JsonResponse
+from django.http import HttpResponse, Http404, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from django.utils.http import http_date
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -251,7 +250,7 @@ def logout_view(request):
 @require_http_methods(["GET", "HEAD"])
 def stream_video(request, video_id):
     """
-    Stream video with HTTP Range Request support for seeking
+    Validate stream access and delegate file serving to web server.
     """
     try:
         video = Video.objects.get(id=video_id, is_active=True)
@@ -261,50 +260,20 @@ def stream_video(request, video_id):
     
     if not os.path.exists(video_path):
         raise Http404("Video file not found")
-    
-    file_size = os.path.getsize(video_path)
-    range_header = request.META.get('HTTP_RANGE', '').strip()
-    
-    # Get content type
+
     content_type, _ = mimetypes.guess_type(video_path)
     if not content_type:
         content_type = 'video/mp4'
-    
-    if range_header:
-        # Parse range header
-        range_match = range_header.replace('bytes=', '').split('-')
-        start = int(range_match[0]) if range_match[0] else 0
-        end = int(range_match[1]) if range_match[1] else file_size - 1
-        
-        # Ensure end doesn't exceed file size
-        end = min(end, file_size - 1)
-        
-        # Calculate content length
-        content_length = end - start + 1
-        
-        # Create response with partial content
-        response = HttpResponse(status=206)
-        response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
-        response['Accept-Ranges'] = 'bytes'
-        response['Content-Length'] = str(content_length)
-        response['Content-Type'] = content_type
-        
-        # Open file and seek to start position
-        with open(video_path, 'rb') as f:
-            f.seek(start)
-            response.write(f.read(content_length))
-        
-        return response
-    else:
-        # No range request - serve entire file
-        response = FileResponse(
-            open(video_path, 'rb'),
-            content_type=content_type
-        )
-        response['Content-Length'] = str(file_size)
-        response['Accept-Ranges'] = 'bytes'
-        response['Last-Modified'] = http_date(os.path.getmtime(video_path))
-        return response
+
+    internal_prefix = getattr(settings, 'VIDEO_INTERNAL_MEDIA_PREFIX', '/protected-media/')
+    normalized_prefix = f"/{internal_prefix.strip('/')}/"
+    internal_path = f"{normalized_prefix}{video.video_file.name.replace(os.sep, '/')}"
+
+    response = HttpResponse()
+    response['Content-Type'] = content_type
+    response['X-Accel-Redirect'] = internal_path
+    response['Accept-Ranges'] = 'bytes'
+    return response
 
 
 def search(request):
