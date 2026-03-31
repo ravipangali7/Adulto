@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Count, Q
 from core.models import CMS, Settings, AgeVerification, Tag, Ad
 
 
@@ -56,14 +55,9 @@ def _fetch_cms_context_data():
 		context['age_verification'] = None
 
 	try:
-		context['tags_count'] = Tag.objects.count()
-		context['popular_tags'] = list(
-			Tag.objects.annotate(
-				videos_count=Count('videos', filter=Q(videos__is_active=True))
-			)
-			.filter(videos_count__gt=0)
-			.order_by('-videos_count', 'name')[:10]
-		)
+		popular_tags = list(Tag.objects.all())
+		context['popular_tags'] = popular_tags
+		context['tags_count'] = len(popular_tags)
 	except Exception:
 		context['popular_tags'] = []
 		context['tags_count'] = 0
