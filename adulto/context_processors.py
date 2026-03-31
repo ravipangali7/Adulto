@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import models
+from django.core.cache import cache
 from core.models import CMS, Settings, AgeVerification, Tag, Ad
 
 
@@ -10,97 +10,76 @@ def site_branding(request):
 	}
 
 
-def cms_and_settings(request):
-	"""Context processor to make CMS pages and settings available globally"""
+def _fetch_cms_context_data():
+	"""Build global CMS/settings context (one DB round-trip batch; cached)."""
 	context = {}
-	
+
 	try:
-		# Get CMS pages for navbar
-		navbar_pages = CMS.objects.filter(in_navbar=True, is_active=True).order_by('title')
-		context['navbar_pages'] = navbar_pages
-	except:
+		context['navbar_pages'] = list(
+			CMS.objects.filter(in_navbar=True, is_active=True).order_by('title')
+		)
+	except Exception:
 		context['navbar_pages'] = []
-	
+
 	try:
-		# Get CMS pages for footer
-		footer_pages = CMS.objects.filter(in_footer=True, is_active=True).order_by('title')
-		context['footer_pages'] = footer_pages
-	except:
+		context['footer_pages'] = list(
+			CMS.objects.filter(in_footer=True, is_active=True).order_by('title')
+		)
+	except Exception:
 		context['footer_pages'] = []
-	
+
+	defaults = {
+		'site_title': 'Desi Sexy Videos',
+		'site_description': 'Your premier destination for high-quality video content',
+		'contact_email': '',
+		'contact_phone': '',
+		'social_facebook': '',
+		'social_twitter': '',
+		'social_instagram': '',
+		'footer_text': 'Made with ❤️ for video lovers',
+		'meta_verification_script': '',
+	}
 	try:
-		# Get common settings
-		context['site_title'] = Settings.get_setting('site_title', 'Desi Sexy Videos')
-		context['site_description'] = Settings.get_setting('site_description', 'Your premier destination for high-quality video content')
-		context['contact_email'] = Settings.get_setting('contact_email', '')
-		context['contact_phone'] = Settings.get_setting('contact_phone', '')
-		context['social_facebook'] = Settings.get_setting('social_facebook', '')
-		context['social_twitter'] = Settings.get_setting('social_twitter', '')
-		context['social_instagram'] = Settings.get_setting('social_instagram', '')
-		context['footer_text'] = Settings.get_setting('footer_text', 'Made with ❤️ for video lovers')
-	except:
-		# Fallback values if settings don't exist
-		context.update({
-			'site_title': 'Desi Sexy Videos',
-			'site_description': 'Your premier destination for high-quality video content',
-			'contact_email': '',
-			'contact_phone': '',
-			'social_facebook': '',
-			'social_twitter': '',
-			'social_instagram': '',
-			'footer_text': 'Made with ❤️ for video lovers'
-		})
-	
+		settings_map = {
+			row['key']: row['value']
+			for row in Settings.objects.values('key', 'value')
+		}
+		for key, default in defaults.items():
+			context[key] = settings_map.get(key, default)
+	except Exception:
+		context.update(defaults)
+
 	try:
-		# Get active age verification modal
-		age_verification = AgeVerification.get_active()
-		context['age_verification'] = age_verification
-	except:
+		context['age_verification'] = AgeVerification.get_active()
+	except Exception:
 		context['age_verification'] = None
-	
+
 	try:
-		# Get popular tags for sub-navbar (top 10 most used tags)
-		# First try to get tags with videos, if none exist, get all tags
-		
-		# If no tags have videos, just get the first 10 tags
-		popular_tags = Tag.objects.all()
-		
+		popular_tags = list(Tag.objects.all())
 		context['popular_tags'] = popular_tags
-		context['tags_count'] = Tag.objects.count()
-		
-	except Exception as e:
-		print(f"Error getting tags: {e}")
+		context['tags_count'] = len(popular_tags)
+	except Exception:
 		context['popular_tags'] = []
 		context['tags_count'] = 0
-	
+
 	try:
-		# Get all ads (both active and inactive) to check existence
 		all_ads = Ad.objects.all()
 		active_ads_dict = {}
 		ads_exist_dict = {}
-
 		for ad in all_ads:
-			# Create composite key: {placement}-{ad_type} (e.g., "header-top-banner")
 			composite_key = f"{ad.placement}-{ad.ad_type}"
-			ads_exist_dict[composite_key] = True  # Track that ad exists
+			ads_exist_dict[composite_key] = True
 			if ad.is_active:
 				active_ads_dict[composite_key] = ad.get_ad_script()
-
-		context['ads'] = active_ads_dict  # Only active ads with scripts (keyed by composite)
-		context['ads_exist'] = ads_exist_dict  # Track which ads exist (active or inactive)
-	except Exception as e:
-		print(f"Error getting ads: {e}")
+		context['ads'] = active_ads_dict
+		context['ads_exist'] = ads_exist_dict
+	except Exception:
 		context['ads'] = {}
 		context['ads_exist'] = {}
-	
-	try:
-		# Get meta verification script from Settings
-		meta_verification = Settings.get_setting('meta_verification_script', '')
-		context['meta_verification_script'] = meta_verification
-	except Exception as e:
-		print(f"Error getting meta verification script: {e}")
-		context['meta_verification_script'] = ''
-	
+
 	return context
 
 
+def cms_and_settings(request):
+	"""Context processor: CMS pages, settings, ads (cached 5 minutes)."""
+	return cache.get_or_set('cms_context', _fetch_cms_context_data, 300)

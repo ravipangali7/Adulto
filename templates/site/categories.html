@@ -47,7 +47,7 @@
                 {% endif %} {% endcomment %}
                 
                 <p class="text-gray-400 text-sm mb-4">
-                    {{ category.videos.count }} video{{ category.videos.count|pluralize }}
+                    {{ category.videos_count }} video{{ category.videos_count|pluralize }}
                 </p>
                 
                 <!-- View Category Button -->
@@ -76,22 +76,13 @@
             </div>
             <div>
                 <div class="text-3xl font-bold text-primary-gold mb-2">
-                    {% widthratio categories|length 1 1 as total_videos %}
-                    {% for category in categories %}
-                        {% widthratio category.videos.count 1 1 as cat_videos %}
-                        {% widthratio total_videos 1 cat_videos as total_videos %}
-                    {% endfor %}
-                    {{ total_videos|default:"0" }}
+                    {{ categories_sum_videos }}
                 </div>
                 <div class="text-gray-400">Total Videos</div>
             </div>
             <div>
                 <div class="text-3xl font-bold text-primary-gold mb-2">
-                    {% for category in categories %}
-                        {% if forloop.first %}{{ category.videos.count }}{% endif %}
-                    {% empty %}
-                    0
-                    {% endfor %}
+                    {{ top_category_videos_count }}
                 </div>
                 <div class="text-gray-400">Most Popular Category</div>
             </div>

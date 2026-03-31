@@ -33,22 +33,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Debug: Check all available ads -->
-{% load ad_tags %}
-<script>
-console.log('Home Page - All Ads Context:', {
-    adsKeys: [{% for key in ads.keys %}'{{ key }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-    adsExistKeys: [{% for key in ads_exist.keys %}'{{ key }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-    videoBelowPlayer: {
-        inAds: {% if 'video-below-player-banner' in ads %}true{% else %}false{% endif %},
-        inAdsExist: {% if 'video-below-player-banner' in ads_exist %}true{% else %}false{% endif %}
-    },
-    videoSidebar: {
-        inAds: {% if 'video-sidebar-banner' in ads %}true{% else %}false{% endif %},
-        inAdsExist: {% if 'video-sidebar-banner' in ads_exist %}true{% else %}false{% endif %}
-    }
-});
-</script>
 <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Videos Grid (80% on desktop, 100% on mobile) -->
@@ -82,19 +66,6 @@ console.log('Home Page - All Ads Context:', {
             
             <!-- Video Below Player Banner Ad (from video detail page) -->
             <div class="mt-6 mb-6">
-                {% load ad_tags %}
-                {% get_ad_script ads 'video-below-player-banner' as test_script_below %}
-                {% with below_exists=ads_exist|get_item:'video-below-player-banner' %}
-                <!-- Debug Info -->
-                <script>
-                console.log('Home Page - Video Below Player Ad:', {
-                    exists: {% if below_exists %}true{% else %}false{% endif %},
-                    hasScript: {% if test_script_below %}true{% else %}false{% endif %},
-                    scriptLength: {{ test_script_below|length|default:0 }},
-                    scriptPreview: '{{ test_script_below|slice:":50"|default:"empty"|escapejs }}'
-                });
-                </script>
-                {% endwith %}
                 {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-below-player-banner' ad_size='728x90' %}
             </div>
             
@@ -146,19 +117,6 @@ console.log('Home Page - All Ads Context:', {
                 
                 <!-- Video Sidebar Banner Ad (from video detail page) -->
                 <div class="mb-4 lg:mb-6">
-                    {% load ad_tags %}
-                    {% get_ad_script ads 'video-sidebar-banner' as test_script_sidebar %}
-                    {% with sidebar_exists=ads_exist|get_item:'video-sidebar-banner' %}
-                    <!-- Debug Info -->
-                    <script>
-                    console.log('Home Page - Video Sidebar Ad:', {
-                        exists: {% if sidebar_exists %}true{% else %}false{% endif %},
-                        hasScript: {% if test_script_sidebar %}true{% else %}false{% endif %},
-                        scriptLength: {{ test_script_sidebar|length|default:0 }},
-                        scriptPreview: '{{ test_script_sidebar|slice:":50"|default:"empty"|escapejs }}'
-                    });
-                    </script>
-                    {% endwith %}
                     {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-sidebar-banner' ad_size='300x250' %}
                 </div>
                 
@@ -176,7 +134,7 @@ console.log('Home Page - All Ads Context:', {
                     {% for category in categories %}
                     <a href="{% url 'videos' %}?category={{ category.slug }}" class="category-item block w-full text-left px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-white hover:text-primary-gold transition-colors duration-200">
                         {{ category.name }}
-                        <span class="text-gray-400 text-xs sm:text-sm ml-2">({{ category.videos.count }})</span>
+                        <span class="text-gray-400 text-xs sm:text-sm ml-2">({{ category.videos_count }})</span>
                     </a>
                     {% empty %}
                     <p class="text-gray-400 text-sm">No categories available</p>

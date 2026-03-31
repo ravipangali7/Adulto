@@ -32,7 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-79)91^v&pjcnmd%5n44g+ce8tz3o=vuf2#*abg976kznz*ahhm'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']
 
@@ -162,7 +162,7 @@ DATA_UPLOAD_MAX_NUMBER_FILES = 100
 
 # Session settings for long uploads
 SESSION_COOKIE_AGE = 3600  # 1 hour
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SAVE_EVERY_REQUEST = False
 
 # Email settings
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
