@@ -34,13 +34,16 @@ Crawl-delay: 1"""
 urlpatterns = [
     path('system/', admin.site.urls),
     path('core/', include('core.urls')),
-    path('', include('app.urls')),
     path('robots.txt', robots_txt),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+urlpatterns += [
+    path('', include('app.urls')),
+
+]
 # Error handlers
 handler404 = views.not_found
 handler500 = views.server_error
