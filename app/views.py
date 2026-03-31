@@ -4,7 +4,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.utils.http import http_date
-from django.db.models import Q, Count, F, Sum, Max
+from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import authenticate
@@ -17,18 +17,12 @@ from core.forms import CommentForm, DMCAReportForm
 
 def home(request):
     """Home page view with categories and videos"""
-    categories = Category.objects.annotate(
-        videos_count=Count('videos', filter=Q(videos__is_active=True))
-    )
-    videos = (
-        Video.objects.filter(is_active=True)
-        .select_related('uploader')
-        .prefetch_related('category', 'tags')
-    )
+    categories = Category.objects.all()
+    videos = Video.objects.filter(is_active=True) 
     tags = Tag.objects.all()
     
     # Pagination
-    paginator = Paginator(videos, 20)
+    paginator = Paginator(videos, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -41,11 +35,9 @@ def home(request):
 
 def videos(request):
     """All videos page with filtering"""
-    categories = Category.objects.annotate(
-        videos_count=Count('videos', filter=Q(videos__is_active=True))
-    )
+    categories = Category.objects.all()
     tags = Tag.objects.all()
-    videos = Video.objects.filter(is_active=True).select_related('uploader').prefetch_related('category', 'tags')
+    videos = Video.objects.filter(is_active=True)
     
     # Filter by category if provided
     category_slug = request.GET.get('category')
@@ -71,7 +63,7 @@ def videos(request):
     videos = videos.order_by('-created_at')
     
     # Pagination
-    paginator = Paginator(videos, 20)
+    paginator = Paginator(videos, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -90,34 +82,21 @@ def video_detail(request, slug):
     """Video detail page"""
     from core.models import Ad
     
-    video = get_object_or_404(
-        Video.objects.select_related('uploader').prefetch_related('category', 'tags'),
-        slug=slug,
-        is_active=True,
-    )
-    Video.objects.filter(pk=video.pk).update(views=F('views') + 1)
-    video.refresh_from_db(fields=['views'])
+    video = get_object_or_404(Video, slug=slug, is_active=True)
+    # Increment view count
+    video.views += 1
+    video.save(update_fields=['views'])
     
     # Get related videos (same categories, only active)
-    related_videos = (
-        Video.objects.filter(
-            category__in=video.category.all(),
-            is_active=True,
-        )
-        .exclude(id=video.id)
-        .distinct()
-        .select_related('uploader')
-        .prefetch_related('category', 'tags')
-    )
+    related_videos = Video.objects.filter(
+        category__in=video.category.all(),
+        is_active=True
+    ).exclude(id=video.id).distinct()
     
     # Get popular videos for sidebar (top 6 by views)
-    popular_videos = (
-        Video.objects.filter(is_active=True)
-        .exclude(id=video.id)
-        .select_related('uploader')
-        .prefetch_related('category', 'tags')
-        .order_by('-views')[:6]
-    )
+    popular_videos = Video.objects.filter(
+        is_active=True
+    ).exclude(id=video.id).order_by('-views')[:6]
     
     # Get approved comments
     comments = Comment.objects.filter(video=video, is_approved=True).select_related('user')
@@ -145,49 +124,26 @@ def video_detail(request, slug):
 
 def categories(request):
     """Categories page"""
-    categories = Category.objects.annotate(
-        videos_count=Count('videos', filter=Q(videos__is_active=True))
-    )
-    agg = categories.aggregate(
-        sum_videos=Sum('videos_count'),
-        max_videos=Max('videos_count'),
-    )
+    categories = Category.objects.all()
     context = {
         'categories': categories,
-        'categories_sum_videos': agg['sum_videos'] or 0,
-        'top_category_videos_count': agg['max_videos'] or 0,
     }
     return render(request, 'site/categories.html', context)
 
 def tags(request):
     """Tags page"""
-    tags = Tag.objects.annotate(
-        videos_count=Count('videos', filter=Q(videos__is_active=True))
-    )
-    agg = tags.aggregate(
-        sum_videos=Sum('videos_count'),
-        max_videos=Max('videos_count'),
-    )
-    n = tags.count()
+    tags = Tag.objects.all()
     context = {
         'tags': tags,
-        'tags_sum_videos': agg['sum_videos'] or 0,
-        'top_tag_videos_count': agg['max_videos'] or 0,
-        'tags_avg_videos': round((agg['sum_videos'] or 0) / n, 1) if n else 0,
     }
     return render(request, 'site/tags.html', context)
 
 def latest(request):
     """Latest videos page"""
-    videos = (
-        Video.objects.filter(is_active=True)
-        .select_related('uploader')
-        .prefetch_related('category', 'tags')
-        .order_by('-created_at')
-    )
+    videos = Video.objects.filter(is_active=True).order_by('-created_at')
     
     # Pagination
-    paginator = Paginator(videos, 20)
+    paginator = Paginator(videos, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -198,15 +154,10 @@ def latest(request):
 
 def popular(request):
     """Popular videos page"""
-    videos = (
-        Video.objects.filter(is_active=True)
-        .select_related('uploader')
-        .prefetch_related('category', 'tags')
-        .order_by('-views')
-    )
+    videos = Video.objects.filter(is_active=True).order_by('-views')
     
     # Pagination
-    paginator = Paginator(videos, 20)
+    paginator = Paginator(videos, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     

@@ -64,7 +64,7 @@ This runs on **every request** and currently fires ~14 DB queries.
 - `**home()`**: Add `.select_related('uploader').prefetch_related('category', 'tags')` to video queryset; annotate categories: `Category.objects.annotate(videos_count=Count('videos', filter=Q(videos__is_active=True)))`; reduce pagination from 50 → 20
 - `**videos()`**: Same prefetch + category annotation + reduce to 20/page
 - `**latest()` / `popular()`**: Add `.prefetch_related('category', 'tags')`; reduce to 20/page
-- `**categories()**`: Use annotated queryset so template doesn't fire per-category queries
+- `**categories()`**: Use annotated queryset so template doesn't fire per-category queries
 - `**tags()**`: `Tag.objects.annotate(videos_count=Count('videos', filter=Q(videos__is_active=True)))`
 - `**video_detail()**`: Replace race-condition-prone increment with atomic F() expression:
   - `Video.objects.filter(pk=video.pk).update(views=F('views') + 1)` (no read-modify-write)

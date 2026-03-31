@@ -40,7 +40,7 @@
                class="tag-item bg-gray-600 hover:bg-primary-gold text-white hover:text-black px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105"
                data-tag="{{ tag.name|lower }}">
                 #{{ tag.name }}
-                <span class="ml-1 text-xs opacity-75">({{ tag.videos_count }})</span>
+                <span class="ml-1 text-xs opacity-75">({{ tag.videos.count }})</span>
             </a>
             {% endfor %}
         </div>
@@ -61,7 +61,7 @@
                 </a>
             </h3>
             <p class="text-gray-400 text-xs">
-                {{ tag.videos_count }} video{{ tag.videos_count|pluralize }}
+                {{ tag.videos.count }} video{{ tag.videos.count|pluralize }}
             </p>
         </div>
         {% endfor %}
@@ -76,13 +76,22 @@
             </div>
             <div>
                 <div class="text-3xl font-bold text-primary-gold mb-2">
-                    {{ top_tag_videos_count }}
+                    {% for tag in tags %}
+                        {% if forloop.first %}{{ tag.videos.count }}{% endif %}
+                    {% empty %}
+                    0
+                    {% endfor %}
                 </div>
                 <div class="text-gray-400">Most Used Tag</div>
             </div>
             <div>
                 <div class="text-3xl font-bold text-primary-gold mb-2">
-                    {{ tags_avg_videos }}
+                    {% widthratio tags|length 1 1 as avg_videos %}
+                    {% for tag in tags %}
+                        {% widthratio tag.videos.count 1 1 as tag_videos %}
+                        {% widthratio avg_videos 1 tag_videos as avg_videos %}
+                    {% endfor %}
+                    {{ avg_videos|default:"0" }}
                 </div>
                 <div class="text-gray-400">Average Videos per Tag</div>
             </div>

@@ -86,14 +86,20 @@ def dashboard(request):
 	# Get recent comments
 	recent_comments = Comment.objects.select_related('video', 'user').order_by('-created_at')[:5]
 	
-	# Get videos by category with engagement data (single query)
-	videos_by_category = list(
-		Category.objects.annotate(
-			count=Count('videos'),
-			total_views=Sum('videos__views'),
-			total_likes=Sum('videos__likes'),
-		).filter(count__gt=0).values('name', 'count', 'total_views', 'total_likes')
-	)
+	# Get videos by category with engagement data
+	videos_by_category = []
+	for category in Category.objects.all():
+		videos_in_category = category.videos.all()
+		count = videos_in_category.count()
+		if count > 0:
+			total_views_in_category = videos_in_category.aggregate(total=Sum('views'))['total'] or 0
+			total_likes_in_category = videos_in_category.aggregate(total=Sum('likes'))['total'] or 0
+			videos_by_category.append({
+				'name': category.name,
+				'count': count,
+				'total_views': total_views_in_category,
+				'total_likes': total_likes_in_category
+			})
 	
 	# Get recent activity (last 7 days)
 	week_ago = timezone.now() - timedelta(days=7)
@@ -675,16 +681,6 @@ def check_upload_progress(request):
 		return JsonResponse({'error': str(e)}, status=500)
 
 
-def _media_filename_duration_map():
-	"""Map basename(video_file) -> duration from DB (avoids cv2 on every request)."""
-	m = {}
-	qs = Video.objects.filter(video_file__isnull=False).exclude(video_file='').only('video_file', 'duration')
-	for v in qs:
-		if v.video_file:
-			m[os.path.basename(v.video_file.name)] = v.duration or 0
-	return m
-
-
 # Media Library Views
 @login_required(login_url='login')
 def media_library(request):
@@ -695,11 +691,9 @@ def media_library(request):
 		return redirect('dashboard')
 	
 	from django.conf import settings
-	from urllib.parse import quote
 	
 	media_videos_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
 	videos = []
-	db_durations = _media_filename_duration_map()
 	
 	if os.path.exists(media_videos_dir):
 		for filename in os.listdir(media_videos_dir):
@@ -710,7 +704,21 @@ def media_library(request):
 				if mime_type and mime_type.startswith('video/'):
 					file_size = os.path.getsize(file_path)
 					file_size_mb = round(file_size / (1024 * 1024), 2)
-					duration = db_durations.get(filename, 0)
+					
+					# Get video duration
+					duration = 0
+					try:
+						cap = cv2.VideoCapture(file_path)
+						if cap.isOpened():
+							fps = cap.get(cv2.CAP_PROP_FPS)
+							frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+							if fps > 0:
+								duration = int(frame_count / fps)
+							cap.release()
+					except:
+						pass
+					
+					from urllib.parse import quote
 					videos.append({
 						'filename': filename,
 						'file_path': file_path,
@@ -742,12 +750,15 @@ def media_library_upload_page(request):
 @login_required(login_url='login')
 def media_library_api(request):
 	"""API endpoint to return video data for selection modal"""
+	# Allow access for video creation/editing (check if it's a video form request)
+	# or if user is superuser (for direct media library access)
+	referer = request.META.get('HTTP_REFERER', '')
+	is_video_form = 'video' in referer and ('create' in referer or 'edit' in referer)
+	
 	from django.conf import settings
-	from urllib.parse import quote
 	
 	media_videos_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
 	videos = []
-	db_durations = _media_filename_duration_map()
 	
 	if os.path.exists(media_videos_dir):
 		for filename in os.listdir(media_videos_dir):
@@ -758,7 +769,21 @@ def media_library_api(request):
 				if mime_type and mime_type.startswith('video/'):
 					file_size = os.path.getsize(file_path)
 					file_size_mb = round(file_size / (1024 * 1024), 2)
-					duration = db_durations.get(filename, 0)
+					
+					# Get video duration
+					duration = 0
+					try:
+						cap = cv2.VideoCapture(file_path)
+						if cap.isOpened():
+							fps = cap.get(cv2.CAP_PROP_FPS)
+							frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+							if fps > 0:
+								duration = int(frame_count / fps)
+							cap.release()
+					except:
+						pass
+					
+					from urllib.parse import quote
 					videos.append({
 						'filename': filename,
 						'file_size': file_size_mb,
