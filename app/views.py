@@ -21,7 +21,7 @@ def home(request):
     tags = Tag.objects.all()
     
     # Pagination
-    paginator = Paginator(videos, 50)
+    paginator = Paginator(videos, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -62,7 +62,7 @@ def videos(request):
     videos = videos.order_by('-created_at')
     
     # Pagination
-    paginator = Paginator(videos, 50)
+    paginator = Paginator(videos, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -142,7 +142,7 @@ def latest(request):
     videos = Video.objects.filter(is_active=True).order_by('-created_at')
     
     # Pagination
-    paginator = Paginator(videos, 50)
+    paginator = Paginator(videos, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -156,7 +156,7 @@ def popular(request):
     videos = Video.objects.filter(is_active=True).order_by('-views')
     
     # Pagination
-    paginator = Paginator(videos, 50)
+    paginator = Paginator(videos, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -313,7 +313,7 @@ def search(request):
         total_results = results.count()
         
         # Pagination
-        paginator = Paginator(results, 12)  # 12 videos per page
+        paginator = Paginator(results, 20)  # 20 videos per page
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
     else:
