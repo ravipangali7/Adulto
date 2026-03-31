@@ -1,0 +1,108 @@
+/* Custom CSS Variables for Site */
+:root {
+  /* Color Scheme */
+  --primary-gold: #FFD700;
+  --primary-gold-dark: #B8860B;
+  --primary-gold-light: #FFF8DC;
+  
+  --bg-dark: #1a1a1a;
+  --bg-darker: #0d0d0d;
+  --bg-grey: #2d2d2d;
+  --bg-grey-light: #404040;
+  
+  --text-white: #ffffff;
+  --text-grey: #cccccc;
+  --text-grey-dark: #999999;
+  
+  /* Spacing */
+  --header-height: 4rem;
+  --navbar-height: 3rem;
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+}
+
+/* Custom Utility Classes */
+.bg-primary-gold {
+  background-color: var(--primary-gold);
+}
+
+.text-primary-gold {
+  color: var(--primary-gold);
+}
+
+.border-primary-gold {
+  border-color: var(--primary-gold);
+}
+
+.hover-gold:hover {
+  color: var(--primary-gold);
+  transition: var(--transition-fast);
+}
+
+.bg-dark-custom {
+  background-color: var(--bg-dark);
+}
+
+.bg-darker-custom {
+  background-color: var(--bg-darker);
+}
+
+.bg-grey-custom {
+  background-color: var(--bg-grey);
+}
+
+/* Custom Components */
+.video-card {
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.video-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+}
+
+.category-item {
+  transition: background-color var(--transition-fast);
+}
+
+.category-item:hover {
+  background-color: var(--bg-grey-light);
+}
+
+/* Search Bar Styling */
+.search-input {
+  background-color: var(--bg-grey);
+  border: 1px solid var(--bg-grey-light);
+  color: var(--text-white);
+}
+
+.search-input:focus {
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+}
+
+/* Button Styling */
+.btn-gold {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark);
+  transition: var(--transition-fast);
+}
+
+.btn-gold:hover {
+  background-color: var(--primary-gold-dark);
+  transform: translateY(-1px);
+}
+
+.btn-outline-gold {
+  border: 2px solid var(--primary-gold);
+  color: var(--primary-gold);
+  background-color: transparent;
+  transition: var(--transition-fast);
+}
+
+.btn-outline-gold:hover {
+  background-color: var(--primary-gold);
+  color: var(--bg-dark);
+}
