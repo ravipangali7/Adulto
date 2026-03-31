@@ -2,12 +2,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, Http404, FileResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_page
 from django.conf import settings
 from django.utils.http import http_date
 from django.db.models import Q, Count, F, Sum, Max
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import authenticate
+from functools import wraps
 import os
 import mimetypes
 import json
@@ -15,6 +17,24 @@ from core.models import Video, Category, Tag, Comment, CMS, DMCAReport
 from django.contrib.auth.decorators import login_required
 from core.forms import CommentForm, DMCAReportForm
 
+
+def cache_anonymous(timeout):
+    """Cache only anonymous traffic to avoid user/session mixups."""
+    def decorator(view_func):
+        cached_view = cache_page(timeout)(view_func)
+
+        @wraps(view_func)
+        def wrapped(request, *args, **kwargs):
+            if request.user.is_authenticated:
+                return view_func(request, *args, **kwargs)
+            return cached_view(request, *args, **kwargs)
+
+        return wrapped
+
+    return decorator
+
+
+@cache_anonymous(120)
 def home(request):
     """Home page view with categories and videos"""
     categories = Category.objects.annotate(
@@ -39,6 +59,7 @@ def home(request):
     }
     return render(request, 'site/home.html', context)
 
+@cache_anonymous(120)
 def videos(request):
     """All videos page with filtering"""
     categories = Category.objects.annotate(
@@ -86,6 +107,7 @@ def videos(request):
     }
     return render(request, 'site/videos.html', context)
 
+@cache_anonymous(120)
 def video_detail(request, slug):
     """Video detail page"""
     from core.models import Ad
@@ -143,6 +165,7 @@ def video_detail(request, slug):
     }
     return render(request, 'site/video_detail.html', context)
 
+@cache_anonymous(120)
 def categories(request):
     """Categories page"""
     categories = Category.objects.annotate(
@@ -159,6 +182,7 @@ def categories(request):
     }
     return render(request, 'site/categories.html', context)
 
+@cache_anonymous(120)
 def tags(request):
     """Tags page"""
     tags = Tag.objects.annotate(
@@ -177,6 +201,7 @@ def tags(request):
     }
     return render(request, 'site/tags.html', context)
 
+@cache_anonymous(120)
 def latest(request):
     """Latest videos page"""
     videos = (
@@ -196,6 +221,7 @@ def latest(request):
     }
     return render(request, 'site/latest.html', context)
 
+@cache_anonymous(120)
 def popular(request):
     """Popular videos page"""
     videos = (
@@ -356,6 +382,7 @@ def stream_video(request, video_id):
         return response
 
 
+@cache_anonymous(120)
 def search(request):
     """Comprehensive search functionality"""
     query = request.GET.get('q', '').strip()
