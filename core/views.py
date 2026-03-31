@@ -1731,6 +1731,119 @@ def dmca_report_list(request):
 
 
 @login_required(login_url='login')
+def comment_list(request):
+	"""List all comments for moderation"""
+	comments = Comment.objects.select_related('video', 'user').order_by('-created_at')
+
+	status_filter = request.GET.get('status')
+	if status_filter == 'approved':
+		comments = comments.filter(is_approved=True)
+	elif status_filter == 'pending':
+		comments = comments.filter(is_approved=False)
+
+	search_query = request.GET.get('search')
+	if search_query:
+		comments = comments.filter(
+			Q(content__icontains=search_query) |
+			Q(guest_name__icontains=search_query) |
+			Q(user__name__icontains=search_query) |
+			Q(video__title__icontains=search_query)
+		)
+
+	from django.core.paginator import Paginator
+	paginator = Paginator(comments, 20)
+	page_number = request.GET.get('page')
+	page_obj = paginator.get_page(page_number)
+
+	total_comments = Comment.objects.count()
+	approved_comments = Comment.objects.filter(is_approved=True).count()
+	pending_comments = Comment.objects.filter(is_approved=False).count()
+
+	context = {
+		'page_obj': page_obj,
+		'comments': page_obj,
+		'status_filter': status_filter,
+		'search_query': search_query,
+		'total_comments': total_comments,
+		'approved_comments': approved_comments,
+		'pending_comments': pending_comments,
+	}
+	return render(request, 'core/comment_list.html', context)
+
+
+@login_required(login_url='login')
+def video_comment_list(request, video_id):
+	"""List all comments for a specific video"""
+	video = get_object_or_404(Video.objects.select_related('uploader'), id=video_id)
+
+	# Keep permissions consistent with video list/update logic
+	if not request.user.is_superuser and video.uploader != request.user:
+		messages.error(request, "You don't have permission to view comments for this video.")
+		return redirect('video_list')
+
+	comments = Comment.objects.filter(video=video).select_related('user').order_by('-created_at')
+	status_filter = request.GET.get('status')
+	if status_filter == 'approved':
+		comments = comments.filter(is_approved=True)
+	elif status_filter == 'pending':
+		comments = comments.filter(is_approved=False)
+
+	from django.core.paginator import Paginator
+	paginator = Paginator(comments, 20)
+	page_number = request.GET.get('page')
+	page_obj = paginator.get_page(page_number)
+
+	context = {
+		'video': video,
+		'comments': page_obj,
+		'page_obj': page_obj,
+		'status_filter': status_filter,
+		'total_comments': Comment.objects.filter(video=video).count(),
+		'approved_comments': Comment.objects.filter(video=video, is_approved=True).count(),
+		'pending_comments': Comment.objects.filter(video=video, is_approved=False).count(),
+	}
+	return render(request, 'core/video_comment_list.html', context)
+
+
+@login_required(login_url='login')
+@require_http_methods(["POST"])
+def comment_update_approval(request, pk):
+	"""Approve/unapprove comment"""
+	comment = get_object_or_404(Comment, pk=pk)
+
+	# Restrict non-superusers to comments on their own videos
+	if not request.user.is_superuser and comment.video.uploader != request.user:
+		messages.error(request, "You don't have permission to update this comment.")
+		return redirect('comment_list')
+
+	is_approved_value = request.POST.get('is_approved')
+	if is_approved_value in ['true', 'True', '1', 'on']:
+		comment.is_approved = True
+	elif is_approved_value in ['false', 'False', '0', 'off']:
+		comment.is_approved = False
+	else:
+		comment.is_approved = not comment.is_approved
+
+	comment.save(update_fields=['is_approved'])
+
+	if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+		return JsonResponse({
+			'success': True,
+			'is_approved': comment.is_approved,
+			'status_label': 'Approved' if comment.is_approved else 'Pending'
+		})
+
+	messages.success(
+		request,
+		f"Comment {'approved' if comment.is_approved else 'set to pending'} successfully."
+	)
+	next_url = request.POST.get('next')
+	if next_url:
+		return redirect(next_url)
+	return redirect('comment_list')
+
+
+@login_required(login_url='login')
 def dmca_report_detail(request, pk):
 	"""View individual DMCA report details"""
 	report = get_object_or_404(DMCAReport, pk=pk)

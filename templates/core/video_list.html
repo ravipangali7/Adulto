@@ -100,6 +100,9 @@
                                             <i class="fas fa-play me-2"></i>Preview Video
                                         </button>
                                     {% endif %}
+                                    <a class="btn btn-primary" href="{% url 'video_comment_list' item.id %}">
+                                        <i class="fas fa-comments me-1"></i>Comments
+                                    </a>
                                     <div class="d-flex gap-2">
                                         <a class="btn btn-secondary flex-fill" href="{% url 'video_update' item.id %}">
                                             <i class="fas fa-edit me-1"></i>Edit
@@ -216,6 +219,9 @@
                                             <i class="fas fa-play me-2"></i>Preview Video
                                     </button>
                                 {% endif %}
+                                    <a class="btn btn-primary btn-sm" href="{% url 'video_comment_list' item.id %}">
+                                        <i class="fas fa-comments me-1"></i>Comments
+                                    </a>
                                     <div class="d-flex gap-2">
                                         <a class="btn btn-secondary btn-sm flex-fill" href="{% url 'video_update' item.id %}">
                                             <i class="fas fa-edit me-1"></i>Edit
@@ -333,6 +339,9 @@
                                             <i class="fas fa-play me-2"></i>Preview Video
                                         </button>
                                     {% endif %}
+                                    <a class="btn btn-primary btn-sm" href="{% url 'video_comment_list' item.id %}" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                                        <i class="fas fa-comments me-1"></i>Comments
+                                    </a>
                                     <div class="d-flex gap-2">
                                         <a class="btn btn-secondary btn-sm flex-fill" href="{% url 'video_update' item.id %}" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
                                             <i class="fas fa-edit me-1"></i>Edit

@@ -378,7 +378,7 @@ def submit_comment(request, video_id):
             # Return success response with comment data
             return JsonResponse({
                 'success': True,
-                'message': 'Comment submitted successfully!',
+                'message': 'Comment submitted successfully! It will appear after admin approval.',
                 'comment': {
                     'id': comment.id,
                     'author_name': comment.author_name,
