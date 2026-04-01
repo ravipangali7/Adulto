@@ -83,8 +83,15 @@ def cms_and_settings(request):
 			# Create composite key: {placement}-{ad_type} (e.g., "header-top-banner")
 			composite_key = f"{ad.placement}-{ad.ad_type}"
 			ads_exist_dict[composite_key] = True  # Track that ad exists
+			ads_exist_dict[ad.placement] = True
+			if ad.ad_type == 'banner':
+				ads_exist_dict[f"{ad.placement}-banner"] = True
 			if ad.is_active:
-				active_ads_dict[composite_key] = ad.get_ad_script()
+				ad_script = ad.get_ad_script()
+				active_ads_dict[composite_key] = ad_script
+				active_ads_dict[ad.placement] = ad_script
+				if ad.ad_type == 'banner':
+					active_ads_dict[f"{ad.placement}-banner"] = ad_script
 
 		context['ads'] = active_ads_dict  # Only active ads with scripts (keyed by composite)
 		context['ads_exist'] = ads_exist_dict  # Track which ads exist (active or inactive)

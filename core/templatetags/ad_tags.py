@@ -18,3 +18,13 @@ def get_ad_script(ads_dict, ad_id):
 		return ads_dict.get(ad_id, '')
 	return ''
 
+
+@register.filter
+def normalize_ad_id(ad_id):
+	"""Normalize legacy banner-style IDs to placement IDs."""
+	if not ad_id:
+		return ''
+	if isinstance(ad_id, str) and ad_id.endswith('-banner'):
+		return ad_id[:-7]
+	return ad_id
+

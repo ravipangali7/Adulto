@@ -61,7 +61,7 @@ console.log('Home Page - All Ads Context:', {
             
             <!-- Home Page Top Ad -->
             <div class="mb-6">
-                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top-banner' ad_size='728x90' %}
+                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top' ad_size='728x90' %}
             </div>
             
             <!-- Videos Grid -->
@@ -71,7 +71,7 @@ console.log('Home Page - All Ads Context:', {
                 {% if forloop.counter == 5 %}
                     <!-- In-Content Ad after 4th video -->
                     <div class="col-span-full my-4">
-                        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='incontent-banner' ad_size='728x90' %}
+                        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='incontent' ad_size='728x90' %}
                     </div>
                 {% endif %}
                 
@@ -83,8 +83,8 @@ console.log('Home Page - All Ads Context:', {
             <!-- Video Below Player Banner Ad (from video detail page) -->
             <div class="mt-6 mb-6">
                 {% load ad_tags %}
-                {% get_ad_script ads 'video-below-player-banner' as test_script_below %}
-                {% with below_exists=ads_exist|get_item:'video-below-player-banner' %}
+                {% get_ad_script ads 'video-below-player' as test_script_below %}
+                {% with below_exists=ads_exist|get_item:'video-below-player' %}
                 <!-- Debug Info -->
                 <script>
                 console.log('Home Page - Video Below Player Ad:', {
@@ -95,7 +95,7 @@ console.log('Home Page - All Ads Context:', {
                 });
                 </script>
                 {% endwith %}
-                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-below-player-banner' ad_size='728x90' %}
+                {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-below-player' ad_size='728x90' %}
             </div>
             
             <!-- Pagination -->
@@ -141,14 +141,14 @@ console.log('Home Page - All Ads Context:', {
             <div class="bg-grey-custom rounded-lg p-4 sm:p-6 lg:sticky lg:top-32">
                 <!-- Sidebar Ad Above Categories (Desktop) -->
                 <div class="mb-4 lg:mb-6">
-                    {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='sidebar-banner' ad_size='300x250' %}
+                    {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='sidebar' ad_size='300x250' %}
                 </div>
                 
                 <!-- Video Sidebar Banner Ad (from video detail page) -->
                 <div class="mb-4 lg:mb-6">
                     {% load ad_tags %}
-                    {% get_ad_script ads 'video-sidebar-banner' as test_script_sidebar %}
-                    {% with sidebar_exists=ads_exist|get_item:'video-sidebar-banner' %}
+                    {% get_ad_script ads 'video-sidebar' as test_script_sidebar %}
+                    {% with sidebar_exists=ads_exist|get_item:'video-sidebar' %}
                     <!-- Debug Info -->
                     <script>
                     console.log('Home Page - Video Sidebar Ad:', {
@@ -159,7 +159,7 @@ console.log('Home Page - All Ads Context:', {
                     });
                     </script>
                     {% endwith %}
-                    {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-sidebar-banner' ad_size='300x250' %}
+                    {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-sidebar' ad_size='300x250' %}
                 </div>
                 
                 <h2 class="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 flex items-center">
@@ -211,7 +211,7 @@ console.log('Home Page - All Ads Context:', {
     
     <!-- Bottom Banner Ad (Home Page) -->
     <div class="mt-8">
-        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='home-bottom-banner' ad_size='970x250' %}
+        {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='home-bottom' ad_size='970x250' %}
     </div>
 </div>
 
