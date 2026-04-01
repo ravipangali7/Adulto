@@ -93,38 +93,35 @@ def cms_and_settings(request):
 				if ad.ad_type == 'banner':
 					active_ads_dict[f"{ad.placement}-banner"] = ad_script
 
+		# Force homepage banner aliases to the same working video-detail banner script path.
+		forced_banner_script = (
+			active_ads_dict.get('video-below-player-banner')
+			or active_ads_dict.get('video-sidebar-banner')
+			or active_ads_dict.get('video-below-player')
+			or active_ads_dict.get('video-sidebar')
+		)
+		if forced_banner_script:
+			for forced_key in [
+				'header-top',
+				'header-top-banner',
+				'incontent',
+				'incontent-banner',
+				'sidebar',
+				'sidebar-banner',
+				'home-bottom',
+				'home-bottom-banner',
+				'video-below-player-banner',
+				'video-sidebar-banner',
+			]:
+				active_ads_dict[forced_key] = forced_banner_script
+				ads_exist_dict[forced_key] = True
+
 		context['ads'] = active_ads_dict  # Only active ads with scripts (keyed by composite)
 		context['ads_exist'] = ads_exist_dict  # Track which ads exist (active or inactive)
-
-		# Home-only dedupe map: keep first slot when the same script is reused.
-		home_slot_order = [
-			'header-top',
-			'incontent',
-			'video-below-player',
-			'sidebar',
-			'video-sidebar',
-			'home-bottom',
-		]
-		seen_home_signatures = set()
-		home_ad_slot_enabled = {}
-		for slot_id in home_slot_order:
-			ad_script = active_ads_dict.get(slot_id, '')
-			if ad_script:
-				signature = ad_script.strip()
-				if signature in seen_home_signatures:
-					home_ad_slot_enabled[slot_id] = False
-				else:
-					seen_home_signatures.add(signature)
-					home_ad_slot_enabled[slot_id] = True
-			else:
-				# Keep enabled; partial will still hide missing/inactive ads.
-				home_ad_slot_enabled[slot_id] = True
-		context['home_ad_slot_enabled'] = home_ad_slot_enabled
 	except Exception as e:
 		print(f"Error getting ads: {e}")
 		context['ads'] = {}
 		context['ads_exist'] = {}
-		context['home_ad_slot_enabled'] = {}
 	
 	try:
 		# Get meta verification script from Settings
