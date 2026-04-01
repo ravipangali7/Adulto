@@ -61,7 +61,9 @@ console.log('Home Page - All Ads Context:', {
             
             <!-- Home Page Top Ad -->
             <div class="mb-6">
+                {% if home_ad_slot_enabled|get_item:'header-top' %}
                 {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='header-top' ad_size='728x90' %}
+                {% endif %}
             </div>
             
             <!-- Videos Grid -->
@@ -71,7 +73,9 @@ console.log('Home Page - All Ads Context:', {
                 {% if forloop.counter == 5 %}
                     <!-- In-Content Ad after 4th video -->
                     <div class="col-span-full my-4">
+                        {% if home_ad_slot_enabled|get_item:'incontent' %}
                         {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='incontent' ad_size='728x90' %}
+                        {% endif %}
                     </div>
                 {% endif %}
                 
@@ -95,7 +99,9 @@ console.log('Home Page - All Ads Context:', {
                 });
                 </script>
                 {% endwith %}
+                {% if home_ad_slot_enabled|get_item:'video-below-player' %}
                 {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-below-player' ad_size='728x90' %}
+                {% endif %}
             </div>
             
             <!-- Pagination -->
@@ -141,7 +147,9 @@ console.log('Home Page - All Ads Context:', {
             <div class="bg-grey-custom rounded-lg p-4 sm:p-6 lg:sticky lg:top-32">
                 <!-- Sidebar Ad Above Categories (Desktop) -->
                 <div class="mb-4 lg:mb-6">
+                    {% if home_ad_slot_enabled|get_item:'sidebar' %}
                     {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='sidebar' ad_size='300x250' %}
+                    {% endif %}
                 </div>
                 
                 <!-- Video Sidebar Banner Ad (from video detail page) -->
@@ -159,7 +167,9 @@ console.log('Home Page - All Ads Context:', {
                     });
                     </script>
                     {% endwith %}
+                    {% if home_ad_slot_enabled|get_item:'video-sidebar' %}
                     {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-sidebar' ad_size='300x250' %}
+                    {% endif %}
                 </div>
                 
                 <h2 class="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 flex items-center">
@@ -211,7 +221,9 @@ console.log('Home Page - All Ads Context:', {
     
     <!-- Bottom Banner Ad (Home Page) -->
     <div class="mt-8">
+        {% if home_ad_slot_enabled|get_item:'home-bottom' %}
         {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='home-bottom' ad_size='970x250' %}
+        {% endif %}
     </div>
 </div>
 

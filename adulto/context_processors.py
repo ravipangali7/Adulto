@@ -95,10 +95,36 @@ def cms_and_settings(request):
 
 		context['ads'] = active_ads_dict  # Only active ads with scripts (keyed by composite)
 		context['ads_exist'] = ads_exist_dict  # Track which ads exist (active or inactive)
+
+		# Home-only dedupe map: keep first slot when the same script is reused.
+		home_slot_order = [
+			'header-top',
+			'incontent',
+			'video-below-player',
+			'sidebar',
+			'video-sidebar',
+			'home-bottom',
+		]
+		seen_home_signatures = set()
+		home_ad_slot_enabled = {}
+		for slot_id in home_slot_order:
+			ad_script = active_ads_dict.get(slot_id, '')
+			if ad_script:
+				signature = ad_script.strip()
+				if signature in seen_home_signatures:
+					home_ad_slot_enabled[slot_id] = False
+				else:
+					seen_home_signatures.add(signature)
+					home_ad_slot_enabled[slot_id] = True
+			else:
+				# Keep enabled; partial will still hide missing/inactive ads.
+				home_ad_slot_enabled[slot_id] = True
+		context['home_ad_slot_enabled'] = home_ad_slot_enabled
 	except Exception as e:
 		print(f"Error getting ads: {e}")
 		context['ads'] = {}
 		context['ads_exist'] = {}
+		context['home_ad_slot_enabled'] = {}
 	
 	try:
 		# Get meta verification script from Settings
