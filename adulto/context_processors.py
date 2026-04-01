@@ -110,10 +110,10 @@ def cms_and_settings(request):
 				'sidebar-banner',
 				'home-bottom',
 				'home-bottom-banner',
-				'video-below-player-banner',
-				'video-sidebar-banner',
 			]:
-				active_ads_dict[forced_key] = forced_banner_script
+				# Preserve existing explicit mappings; only backfill missing aliases.
+				if forced_key not in active_ads_dict:
+					active_ads_dict[forced_key] = forced_banner_script
 				ads_exist_dict[forced_key] = True
 
 		context['ads'] = active_ads_dict  # Only active ads with scripts (keyed by composite)

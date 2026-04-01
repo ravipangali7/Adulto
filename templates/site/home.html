@@ -7,6 +7,8 @@
 
 {% block keywords %}videos, entertainment, categories, latest, popular, streaming, online videos, video platform, featured videos{% endblock %}
 
+{% block body_class %}home-page{% endblock %}
+
 {% block structured_data %}
 <script type="application/ld+json">
 {
@@ -65,7 +67,7 @@ console.log('Home Page - All Ads Context:', {
                 {% for video in page_obj %}
                 {% if forloop.counter == 5 %}
                     <!-- In-Content Ad after 4th video -->
-                    <div class="col-span-full my-4">
+                    <div class="col-span-full my-4 home-ad-slot" data-fallback-label="Sponsored" data-fallback-size="728x90">
                         {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-below-player-banner' ad_size='728x90' %}
                     </div>
                 {% endif %}
@@ -76,7 +78,7 @@ console.log('Home Page - All Ads Context:', {
             </div>
             
             <!-- Video Below Player Banner Ad (from video detail page) -->
-            <div class="mt-6 mb-6">
+            <div class="mt-6 mb-6 home-ad-slot" data-fallback-label="Featured Sponsor" data-fallback-size="728x90">
                 {% load ad_tags %}
                 {% get_ad_script ads 'video-below-player-banner' as test_script_below %}
                 {% with below_exists=ads_exist|get_item:'video-below-player-banner' %}
@@ -135,12 +137,12 @@ console.log('Home Page - All Ads Context:', {
         <div class="w-full lg:w-1/5 order-2 lg:order-1">
             <div class="bg-grey-custom rounded-lg p-4 sm:p-6 lg:sticky lg:top-32">
                 <!-- Sidebar Ad Above Categories (Desktop) -->
-                <div class="mb-4 lg:mb-6">
+                <div class="mb-4 lg:mb-6 home-ad-slot" data-fallback-label="Sidebar Sponsor" data-fallback-size="300x250">
                     {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-sidebar-banner' ad_size='300x250' %}
                 </div>
                 
                 <!-- Video Sidebar Banner Ad (from video detail page) -->
-                <div class="mb-4 lg:mb-6">
+                <div class="mb-4 lg:mb-6 home-ad-slot" data-fallback-label="Recommended Sponsor" data-fallback-size="300x250">
                     {% load ad_tags %}
                     {% get_ad_script ads 'video-sidebar-banner' as test_script_sidebar %}
                     {% with sidebar_exists=ads_exist|get_item:'video-sidebar-banner' %}
@@ -205,7 +207,7 @@ console.log('Home Page - All Ads Context:', {
     </div>
     
     <!-- Bottom Banner Ad (Home Page) -->
-    <div class="mt-8">
+    <div class="mt-8 home-ad-slot" data-fallback-label="Partner Banner" data-fallback-size="970x250">
         {% include 'site/partials/ad_placeholder.html' with ad_type='banner' ad_id='video-below-player-banner' ad_size='970x250' %}
     </div>
 </div>
@@ -253,5 +255,41 @@ function trackVideoClick(videoTitle, videoId) {
     });
     {% endif %}
 }
+
+// Home fallback: if provider returns no visible creative, show house banner.
+function renderHomeAdFallback(slot) {
+    if (!slot || slot.querySelector('.home-ad-fallback')) return;
+    const fallback = document.createElement('div');
+    fallback.className = 'home-ad-fallback rounded-lg border border-gray-600 bg-bg-grey p-4 text-center text-gray-300';
+    fallback.innerHTML = `
+        <div class="text-primary-gold text-xs uppercase tracking-wide mb-2">${slot.dataset.fallbackLabel || 'Sponsored'}</div>
+        <div class="text-sm">Ad space (${slot.dataset.fallbackSize || 'responsive'})</div>
+    `;
+    slot.appendChild(fallback);
+}
+
+function slotHasVisibleCreative(slot) {
+    const adNodes = slot.querySelectorAll('iframe, img, video, object, embed');
+    for (const node of adNodes) {
+        const rect = node.getBoundingClientRect();
+        if (rect.width > 40 && rect.height > 20) return true;
+    }
+    const richNodes = slot.querySelectorAll('ins, [id*="ad"], [class*="ad"]');
+    for (const node of richNodes) {
+        const rect = node.getBoundingClientRect();
+        if (rect.width > 80 && rect.height > 20) return true;
+    }
+    return false;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        document.querySelectorAll('.home-ad-slot').forEach(function(slot) {
+            if (!slotHasVisibleCreative(slot)) {
+                renderHomeAdFallback(slot);
+            }
+        });
+    }, 2500);
+});
 </script>
 {% endblock %}

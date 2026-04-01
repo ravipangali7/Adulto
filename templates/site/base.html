@@ -1015,6 +1015,21 @@
             }
         }
         
+        /* Home-specific override: keep ad creative visible */
+        .home-page .ad-wrapper,
+        .home-page .ad-container {
+            overflow: visible !important;
+        }
+        
+        .home-page .ad-container iframe,
+        .home-page .ad-wrapper iframe,
+        .home-page .ad-container iframe[style*="height"],
+        .home-page .ad-wrapper iframe[style*="height"] {
+            max-height: none !important;
+            min-height: 90px !important;
+            height: auto !important;
+        }
+        
         /* Responsive ad script containers - Professional Containment - AGGRESSIVE */
         .ad-container ins,
         .ad-container div[id*="ad"],
@@ -1124,7 +1139,7 @@
     </style>
     {% endblock %}
 </head>
-<body class="bg-dark-custom text-white min-h-screen flex flex-col">
+<body class="bg-dark-custom text-white min-h-screen flex flex-col {% block body_class %}{% endblock %}">
    
     <!-- Header -->
     {% include 'site/partials/header.html' %}
@@ -1204,16 +1219,23 @@
             // Function to enforce containment on ad elements
             function enforceAdContainment(element) {
                 if (!element) return;
+                const isHomePage = document.body && document.body.classList.contains('home-page');
                 
                 // Force containment CSS
                 element.style.setProperty('width', '100%', 'important');
                 element.style.setProperty('maxWidth', '100%', 'important');
-                element.style.setProperty('overflow', 'hidden', 'important');
+                element.style.setProperty('overflow', isHomePage ? 'visible' : 'hidden', 'important');
                 element.style.setProperty('boxSizing', 'border-box', 'important');
                 
                 // Find all children and enforce containment
                 const children = element.querySelectorAll('*');
                 children.forEach(function(child) {
+                    if (isHomePage) {
+                        child.style.setProperty('maxHeight', 'none', 'important');
+                        child.style.setProperty('overflow', 'visible', 'important');
+                        child.style.setProperty('boxSizing', 'border-box', 'important');
+                        return;
+                    }
                     // Override inline width/height styles
                     if (child.style.width && !child.style.width.includes('%')) {
                         child.style.setProperty('width', '100%', 'important');
