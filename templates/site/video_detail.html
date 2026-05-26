@@ -638,32 +638,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }, function() {
-        // Player is ready - initialize ads plugin
-        this.ads();
-        
-        // Set up ad events after player and ads are ready
-        this.ready(function() {
-            // Set up ad events
-            this.on('readyforpreroll', function() {
-                if (vastAdUrl) {
-                    handleVastAd(vastAdUrl);
-                } else {
-                    // No ad configured, play main content
-                    playMainContent();
-                }
-            });
-            
-            // Handle ad errors
-            this.on('aderror', function() {
-                console.log('Ad error occurred, playing main content');
+        const vjsPlayer = this;
+        vjsPlayer.ads();
+
+        vjsPlayer.on('readyforpreroll', function() {
+            if (vastAdUrl) {
+                handleVastAd(vastAdUrl);
+            } else {
                 playMainContent();
-            });
-            
-            // Trigger readyforpreroll when everything is ready
-            setTimeout(function() {
-                player.trigger('readyforpreroll');
-            }, 100);
+            }
         });
+
+        vjsPlayer.on('aderror', function() {
+            playMainContent();
+        });
+
+        setTimeout(function() {
+            vjsPlayer.trigger('readyforpreroll');
+        }, 100);
     });
     
     // Function to play the main video content

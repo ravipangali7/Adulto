@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, Http404, JsonResponse
+from django.http import HttpResponse, Http404, FileResponse, JsonResponse
+from django.utils.http import http_date
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -247,24 +248,8 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-@require_http_methods(["GET", "HEAD"])
-def stream_video(request, video_id):
-    """
-    Validate stream access and delegate file serving to web server.
-    """
-    try:
-        video = Video.objects.get(id=video_id, is_active=True)
-        video_path = video.video_file.path
-    except Video.DoesNotExist:
-        raise Http404("Video not found")
-    
-    if not os.path.exists(video_path):
-        raise Http404("Video file not found")
-
-    content_type, _ = mimetypes.guess_type(video_path)
-    if not content_type:
-        content_type = 'video/mp4'
-
+def _stream_video_x_accel(video, video_path, content_type):
+    """Delegate serving to nginx via X-Accel-Redirect (production only)."""
     internal_prefix = getattr(settings, 'VIDEO_INTERNAL_MEDIA_PREFIX', '/protected-media/')
     normalized_prefix = f"/{internal_prefix.strip('/')}/"
     internal_path = f"{normalized_prefix}{video.video_file.name.replace(os.sep, '/')}"
@@ -274,6 +259,80 @@ def stream_video(request, video_id):
     response['X-Accel-Redirect'] = internal_path
     response['Accept-Ranges'] = 'bytes'
     return response
+
+
+def _stream_video_django(request, video_path, content_type):
+    """Stream video with HTTP Range Request support for seeking."""
+    file_size = os.path.getsize(video_path)
+    range_header = request.META.get('HTTP_RANGE', '').strip()
+
+    common_headers = {
+        'Accept-Ranges': 'bytes',
+        'Content-Type': content_type,
+    }
+
+    if request.method == 'HEAD':
+        response = HttpResponse()
+        for key, value in common_headers.items():
+            response[key] = value
+        response['Content-Length'] = str(file_size)
+        return response
+
+    if range_header:
+        range_match = range_header.replace('bytes=', '').split('-')
+        start = int(range_match[0]) if range_match[0] else 0
+        end = int(range_match[1]) if range_match[1] else file_size - 1
+        end = min(end, file_size - 1)
+
+        if start > end or start >= file_size:
+            response = HttpResponse(status=416)
+            response['Content-Range'] = f'bytes */{file_size}'
+            return response
+
+        content_length = end - start + 1
+        response = HttpResponse(status=206)
+        response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
+        response['Content-Length'] = str(content_length)
+        for key, value in common_headers.items():
+            response[key] = value
+
+        with open(video_path, 'rb') as video_file:
+            video_file.seek(start)
+            response.write(video_file.read(content_length))
+        return response
+
+    response = FileResponse(open(video_path, 'rb'), content_type=content_type)
+    response['Content-Length'] = str(file_size)
+    response['Accept-Ranges'] = 'bytes'
+    response['Last-Modified'] = http_date(os.path.getmtime(video_path))
+    return response
+
+
+@require_http_methods(["GET", "HEAD"])
+def stream_video(request, video_id):
+    """
+    Stream a video after access checks.
+
+    Uses X-Accel-Redirect when VIDEO_USE_X_ACCEL_REDIRECT is enabled (nginx).
+    Otherwise serves the file from Django with byte-range support for seeking.
+    """
+    try:
+        video = Video.objects.get(id=video_id, is_active=True)
+        video_path = video.video_file.path
+    except Video.DoesNotExist:
+        raise Http404("Video not found")
+
+    if not os.path.exists(video_path):
+        raise Http404("Video file not found")
+
+    content_type, _ = mimetypes.guess_type(video_path)
+    if not content_type:
+        content_type = 'video/mp4'
+
+    if getattr(settings, 'VIDEO_USE_X_ACCEL_REDIRECT', False):
+        return _stream_video_x_accel(video, video_path, content_type)
+
+    return _stream_video_django(request, video_path, content_type)
 
 
 def search(request):

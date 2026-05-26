@@ -220,3 +220,9 @@ VIDEO_SCHEDULING_ENABLED = True
 
 # Internal media path used by reverse proxy for protected streaming.
 VIDEO_INTERNAL_MEDIA_PREFIX = os.getenv('VIDEO_INTERNAL_MEDIA_PREFIX', '/protected-media/')
+# Set to true only when nginx is configured to honor X-Accel-Redirect for VIDEO_INTERNAL_MEDIA_PREFIX.
+VIDEO_USE_X_ACCEL_REDIRECT = os.getenv('VIDEO_USE_X_ACCEL_REDIRECT', 'false').lower() in (
+    'true',
+    '1',
+    'yes',
+)
